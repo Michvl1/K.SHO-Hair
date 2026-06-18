@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Élène Styles — Independent Hair Stylist</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --plum: #2D1B2E;
+    --plum-mid: #3D2840;
+    --champagne: #E8D5B7;
+    --rose: #C4899A;
+    --rose-dark: #A96B7E;
+    --ivory: #F7F2EC;
+    --charcoal: #1A1A1A;
+    --muted: #7A6E7E;
+    --success: #7CAE9E;
+    --border: rgba(232,213,183,0.18);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--ivory); color: var(--charcoal); overflow-x: hidden; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 2.5rem;
+    background: transparent;
+    transition: background 0.4s, backdrop-filter 0.4s;
+  }
+  nav.scrolled { background: rgba(45,27,46,0.92); backdrop-filter: blur(12px); }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--champagne); letter-spacing: 0.04em; font-style: italic; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--champagne); text-decoration: none; font-size: 0.88rem; font-weight: 500; letter-spacing: 0.05em; opacity: 0.85; transition: opacity 0.2s; }
+  .nav-links a:hover { opacity: 1; }
+  .nav-cta {
+    background: var(--rose); color: #fff; border: none; padding: 0.6rem 1.4rem;
+    border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    font-weight: 600; cursor: pointer; letter-spacing: 0.03em; transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--rose-dark); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+  .hamburger span { width: 22px; height: 2px; background: var(--champagne); border-radius: 2px; transition: 0.3s; }
+  .mobile-menu {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--plum); z-index: 200; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2.5rem;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a { color: var(--champagne); text-decoration: none; font-family: 'Playfair Display', serif; font-size: 2rem; }
+  .mobile-close { position: absolute; top: 1.5rem; right: 2rem; font-size: 2rem; color: var(--champagne); cursor: pointer; background: none; border: none; }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative; min-height: 100vh; background: var(--plum);
+    display: flex; align-items: center; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 70% at 70% 50%, #4a2850 0%, var(--plum) 70%);
+  }
+  .hero-circles {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .hero-circles::before {
+    content: ''; position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,137,154,0.15);
+    top: -100px; right: -100px;
+    animation: slowspin 40s linear infinite;
+  }
+  .hero-circles::after {
+    content: ''; position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,137,154,0.1);
+    bottom: -80px; left: 10%;
+    animation: slowspin 60s linear infinite reverse;
+  }
+  @keyframes slowspin { to { transform: rotate(360deg); } }
+  .hero-content {
+    position: relative; z-index: 2;
+    max-width: 1200px; margin: 0 auto; padding: 6rem 2.5rem 4rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+  }
+  .hero-text { animation: fadeUp 0.9s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.7rem;
+    color: var(--rose); font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1.5rem;
+  }
+  .hero-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--rose); }
+  .hero-title {
+    font-family: 'Playfair Display', serif; color: var(--champagne);
+    font-size: clamp(2.8rem, 5vw, 4.2rem); line-height: 1.1;
+    font-weight: 700; margin-bottom: 1.4rem;
+  }
+  .hero-title em { font-style: italic; color: var(--rose); }
+  .hero-sub { color: rgba(232,213,183,0.72); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2.2rem; max-width: 400px; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--rose); color: #fff; border: none;
+    padding: 0.9rem 2rem; border-radius: 100px; font-size: 0.95rem;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s, transform 0.15s; text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover { background: var(--rose-dark); transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--champagne);
+    border: 1.5px solid rgba(232,213,183,0.4);
+    padding: 0.9rem 2rem; border-radius: 100px; font-size: 0.95rem;
+    font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s, background 0.2s; text-decoration: none; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--champagne); background: rgba(232,213,183,0.08); }
+  .hero-portrait {
+    position: relative; animation: fadeUp 0.9s 0.2s ease both;
+  }
+  .portrait-frame {
+    width: 100%; aspect-ratio: 3/4; border-radius: 2rem 2rem 8rem 2rem;
+    background: linear-gradient(145deg, #4a2850, #6b3a5d);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .portrait-placeholder {
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    color: rgba(232,213,183,0.4);
+  }
+  .portrait-placeholder svg { width: 80px; height: 80px; }
+  .portrait-placeholder p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; }
+  .portrait-badge {
+    position: absolute; bottom: -1rem; left: -1rem;
+    background: var(--ivory); border-radius: 1.2rem; padding: 1rem 1.4rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    display: flex; gap: 0.8rem; align-items: center;
+  }
+  .badge-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--plum); line-height: 1; }
+  .badge-label { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+  .hero-stats {
+    position: absolute; top: 2rem; right: -1rem;
+    background: var(--plum-mid); border: 1px solid var(--border);
+    border-radius: 1rem; padding: 1rem 1.2rem;
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .stat-item { display: flex; align-items: center; gap: 0.6rem; }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .stat-dot.rose { background: var(--rose); }
+  .stat-text { font-size: 0.78rem; color: var(--champagne); opacity: 0.8; }
+
+  /* ── SECTION SHARED ── */
+  section { padding: 6rem 2.5rem; max-width: 1200px; margin: 0 auto; }
+  .section-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.7rem;
+    color: var(--rose); font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .section-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--rose); }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 700; line-height: 1.15;
+    color: var(--plum); margin-bottom: 1rem;
+  }
+  .section-sub { color: var(--muted); font-size: 1rem; line-height: 1.7; max-width: 520px; }
+  .divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--rose) 0%, transparent 60%); margin: 0; }
+
+  /* ── ABOUT ── */
+  #about-wrap { background: var(--plum); }
+  #about { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .about-img {
+    background: linear-gradient(145deg, #4a2850, #6b3a5d);
+    border-radius: 1.2rem; display: flex; align-items: center; justify-content: center;
+    color: rgba(232,213,183,0.3); font-style: italic; font-family: 'Playfair Display', serif;
+    font-size: 0.8rem;
+  }
+  .about-img:nth-child(1) { aspect-ratio: 1; }
+  .about-img:nth-child(2) { aspect-ratio: 1; margin-top: 2rem; }
+  .about-img:nth-child(3) { aspect-ratio: 2/1; grid-column: 1/-1; }
+  .about-text .section-title { color: var(--champagne); }
+  .about-text .section-sub { color: rgba(232,213,183,0.65); }
+  .about-text p { color: rgba(232,213,183,0.65); line-height: 1.8; margin-bottom: 1.2rem; font-size: 0.97rem; }
+  .about-sig { font-family: 'Playfair Display', serif; font-style: italic; color: var(--rose); font-size: 1.6rem; margin-top: 1.5rem; }
+  .specialty-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+  .tag {
+    background: rgba(196,137,154,0.15); color: var(--rose);
+    border: 1px solid rgba(196,137,154,0.3); border-radius: 100px;
+    padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: 500;
+  }
+
+  /* ── SERVICES ── */
+  #services-wrap { background: var(--ivory); }
+  #services { }
+  .services-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem; }
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .service-card {
+    background: #fff; border-radius: 1.5rem; padding: 2rem;
+    border: 1px solid rgba(196,137,154,0.15);
+    transition: transform 0.25s, box-shadow 0.25s;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .service-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(45,27,46,0.1); }
+  .service-card.featured {
+    background: var(--plum); border-color: transparent;
+    grid-row: span 2;
+  }
+  .service-card.featured .service-name,
+  .service-card.featured .service-desc,
+  .service-card.featured .service-duration { color: var(--champagne); }
+  .service-card.featured .service-price { color: var(--rose); }
+  .service-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: rgba(196,137,154,0.12); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.2rem; font-size: 1.4rem;
+  }
+  .service-card.featured .service-icon { background: rgba(196,137,154,0.2); }
+  .service-name { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 600; color: var(--plum); margin-bottom: 0.5rem; }
+  .service-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 1.2rem; }
+  .service-footer { display: flex; justify-content: space-between; align-items: center; }
+  .service-price { font-size: 1.3rem; font-weight: 700; color: var(--plum); font-family: 'Playfair Display', serif; }
+  .service-duration { font-size: 0.78rem; color: var(--muted); }
+  .service-book-btn {
+    background: var(--rose); color: #fff; border: none;
+    padding: 0.55rem 1.2rem; border-radius: 100px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .service-book-btn:hover { background: var(--rose-dark); }
+  .service-card.featured .service-book-btn { background: var(--champagne); color: var(--plum); }
+  .service-card.featured .service-book-btn:hover { background: #fff; }
+
+  /* ── PORTFOLIO ── */
+  #portfolio-wrap { background: var(--plum); }
+  #portfolio {}
+  #portfolio .section-title { color: var(--champagne); }
+  #portfolio .section-sub { color: rgba(232,213,183,0.6); }
+  .portfolio-header { margin-bottom: 2.5rem; }
+  .portfolio-filters { display: flex; gap: 0.6rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  .filter-btn {
+    background: rgba(255,255,255,0.06); color: rgba(232,213,183,0.7);
+    border: 1px solid rgba(232,213,183,0.15); border-radius: 100px;
+    padding: 0.45rem 1.1rem; font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .filter-btn.active, .filter-btn:hover { background: var(--rose); color: #fff; border-color: var(--rose); }
+  .portfolio-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    gap: 1rem;
+  }
+  .portfolio-item {
+    border-radius: 1rem; overflow: hidden; position: relative;
+    background: linear-gradient(145deg, #4a2850, #6b3a5d);
+    cursor: pointer;
+    transition: transform 0.25s;
+  }
+  .portfolio-item:hover { transform: scale(1.02); }
+  .portfolio-item:nth-child(1) { grid-column: span 2; grid-row: span 2; aspect-ratio: 1; }
+  .portfolio-item:not(:nth-child(1)) { aspect-ratio: 1; }
+  .portfolio-placeholder {
+    width: 100%; height: 100%; min-height: 140px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.6rem; color: rgba(232,213,183,0.3);
+    font-style: italic; font-family: 'Playfair Display', serif; font-size: 0.8rem;
+    padding: 1rem;
+  }
+  .portfolio-overlay {
+    position: absolute; inset: 0; background: linear-gradient(to top, rgba(45,27,46,0.85) 0%, transparent 50%);
+    opacity: 0; transition: opacity 0.25s; display: flex; align-items: flex-end; padding: 1rem;
+  }
+  .portfolio-item:hover .portfolio-overlay { opacity: 1; }
+  .portfolio-label { color: var(--champagne); font-size: 0.85rem; font-weight: 500; }
+
+  /* ── BOOKING ── */
+  #booking-wrap { background: var(--ivory); }
+  #booking { display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: start; }
+  .booking-info .section-title { color: var(--plum); }
+  .booking-info p { color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; font-size: 0.95rem; }
+  .booking-policies { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+  .policy-item { display: flex; gap: 1rem; align-items: flex-start; }
+  .policy-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(196,137,154,0.12); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .policy-text h4 { font-size: 0.9rem; font-weight: 600; color: var(--plum); margin-bottom: 0.2rem; }
+  .policy-text p { font-size: 0.82rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  /* booking form card */
+  .booking-form-card {
+    background: #fff; border-radius: 2rem; padding: 2.5rem;
+    box-shadow: 0 8px 40px rgba(45,27,46,0.08);
+    border: 1px solid rgba(196,137,154,0.12);
+  }
+  .form-step { display: none; }
+  .form-step.active { display: block; }
+  .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+  .step-dot {
+    flex: 1; height: 4px; border-radius: 4px; background: rgba(196,137,154,0.2);
+    transition: background 0.3s;
+  }
+  .step-dot.done { background: var(--rose); }
+  .step-dot.active { background: var(--rose); opacity: 0.5; }
+  .step-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 600; color: var(--plum); margin-bottom: 0.4rem; }
+  .step-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.8rem; }
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--plum); margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem;
+    border: 1.5px solid rgba(196,137,154,0.25); font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem; color: var(--charcoal); background: var(--ivory);
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--rose);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .service-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
+  .service-option {
+    border: 1.5px solid rgba(196,137,154,0.25); border-radius: 1rem; padding: 1rem;
+    cursor: pointer; transition: all 0.2s; background: var(--ivory);
+  }
+  .service-option:hover { border-color: var(--rose); }
+  .service-option.selected { border-color: var(--rose); background: rgba(196,137,154,0.08); }
+  .service-option .svc-name { font-weight: 600; font-size: 0.88rem; color: var(--plum); margin-bottom: 0.2rem; }
+  .service-option .svc-price { font-size: 0.8rem; color: var(--rose); font-weight: 500; }
+
+  /* calendar */
+  .calendar { background: var(--ivory); border-radius: 1.2rem; padding: 1.2rem; }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .cal-header button { background: none; border: none; cursor: pointer; color: var(--plum); font-size: 1.1rem; padding: 0.2rem 0.5rem; border-radius: 6px; transition: background 0.15s; }
+  .cal-header button:hover { background: rgba(196,137,154,0.1); }
+  .cal-month { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 1rem; color: var(--plum); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; }
+  .cal-day-name { text-align: center; font-size: 0.72rem; font-weight: 600; color: var(--muted); padding: 0.3rem 0; letter-spacing: 0.05em; }
+  .cal-day {
+    text-align: center; padding: 0.5rem 0.2rem; border-radius: 8px;
+    font-size: 0.85rem; cursor: pointer; color: var(--charcoal);
+    transition: all 0.15s;
+  }
+  .cal-day:hover:not(.disabled):not(.empty) { background: rgba(196,137,154,0.15); }
+  .cal-day.selected { background: var(--rose); color: #fff; font-weight: 600; }
+  .cal-day.today { border: 1.5px solid var(--rose); color: var(--rose); font-weight: 600; }
+  .cal-day.disabled { color: rgba(0,0,0,0.2); cursor: not-allowed; }
+  .cal-day.empty { cursor: default; }
+  .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 1.2rem; }
+  .time-slot {
+    text-align: center; padding: 0.55rem; border-radius: 0.6rem;
+    border: 1.5px solid rgba(196,137,154,0.25); font-size: 0.82rem;
+    cursor: pointer; color: var(--charcoal); background: var(--ivory);
+    font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .time-slot:hover:not(.booked) { border-color: var(--rose); color: var(--rose); }
+  .time-slot.selected { background: var(--rose); color: #fff; border-color: var(--rose); }
+  .time-slot.booked { opacity: 0.35; cursor: not-allowed; }
+
+  /* payment step */
+  .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
+  .payment-option {
+    border: 1.5px solid rgba(196,137,154,0.25); border-radius: 1rem; padding: 1rem;
+    cursor: pointer; transition: all 0.2s; background: var(--ivory);
+  }
+  .payment-option.selected { border-color: var(--rose); background: rgba(196,137,154,0.08); }
+  .payment-option h4 { font-size: 0.9rem; font-weight: 600; color: var(--plum); margin-bottom: 0.2rem; }
+  .payment-option p { font-size: 0.78rem; color: var(--muted); }
+  .payment-option .pay-amount { font-size: 1.1rem; font-weight: 700; color: var(--rose); margin-top: 0.4rem; font-family: 'Playfair Display', serif; }
+  .card-fields { display: flex; flex-direction: column; gap: 0.8rem; }
+  .card-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.8rem; }
+  .order-summary { background: var(--ivory); border-radius: 1rem; padding: 1.2rem; margin-bottom: 1.5rem; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 0.4rem 0; color: var(--muted); }
+  .summary-row.total { font-weight: 700; color: var(--plum); font-size: 1rem; border-top: 1px solid rgba(196,137,154,0.2); margin-top: 0.5rem; padding-top: 0.7rem; }
+  .summary-row.paying { color: var(--rose); font-weight: 600; }
+  .form-nav { display: flex; gap: 1rem; margin-top: 1.5rem; }
+  .btn-back {
+    background: transparent; border: 1.5px solid rgba(196,137,154,0.3);
+    color: var(--muted); padding: 0.8rem 1.5rem; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { border-color: var(--rose); color: var(--rose); }
+  .btn-next {
+    flex: 1; background: var(--rose); color: #fff; border: none;
+    padding: 0.9rem 2rem; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    font-weight: 600; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-next:hover { background: var(--rose-dark); }
+
+  /* success */
+  .booking-success { text-align: center; padding: 1.5rem 0; }
+  .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .booking-success h3 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--plum); margin-bottom: 0.7rem; }
+  .booking-success p { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+  .booking-ref { background: var(--ivory); border-radius: 0.8rem; padding: 0.8rem 1.2rem; margin: 1rem auto; display: inline-block; font-weight: 600; color: var(--plum); font-size: 0.9rem; }
+
+  /* ── REVIEWS ── */
+  #reviews-wrap { background: var(--ivory); }
+  #reviews {}
+  .reviews-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem; }
+  .overall-rating { display: flex; align-items: center; gap: 1rem; }
+  .rating-big { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 700; color: var(--plum); line-height: 1; }
+  .rating-details .stars { color: var(--rose); font-size: 1.1rem; letter-spacing: 2px; }
+  .rating-details p { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+  .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+  .review-card { background: #fff; border-radius: 1.5rem; padding: 1.8rem; border: 1px solid rgba(196,137,154,0.12); }
+  .review-stars { color: var(--rose); font-size: 0.9rem; letter-spacing: 1px; margin-bottom: 1rem; }
+  .review-text { font-size: 0.92rem; line-height: 1.7; color: var(--charcoal); margin-bottom: 1.4rem; font-style: italic; }
+  .review-author { display: flex; align-items: center; gap: 0.8rem; }
+  .author-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--rose), var(--plum)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 0.85rem; }
+  .author-info h4 { font-size: 0.88rem; font-weight: 600; color: var(--plum); }
+  .author-info p { font-size: 0.78rem; color: var(--muted); }
+  /* leave review */
+  .leave-review-card {
+    background: var(--plum); border-radius: 2rem; padding: 2.5rem;
+    display: grid; grid-template-columns: 1fr 1.4fr; gap: 3rem; align-items: center;
+  }
+  .leave-review-info h3 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--champagne); margin-bottom: 0.8rem; }
+  .leave-review-info p { color: rgba(232,213,183,0.65); font-size: 0.92rem; line-height: 1.7; }
+  .star-select { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+  .star-btn { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: rgba(232,213,183,0.3); transition: color 0.15s; }
+  .star-btn.active { color: var(--rose); }
+  .review-form textarea {
+    width: 100%; padding: 1rem; border-radius: 1rem;
+    border: 1.5px solid rgba(232,213,183,0.2); background: rgba(255,255,255,0.05);
+    color: var(--champagne); font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
+    resize: none; outline: none; margin-bottom: 1rem;
+  }
+  .review-form textarea::placeholder { color: rgba(232,213,183,0.35); }
+  .review-form textarea:focus { border-color: var(--rose); }
+  .review-form input {
+    width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem;
+    border: 1.5px solid rgba(232,213,183,0.2); background: rgba(255,255,255,0.05);
+    color: var(--champagne); font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
+    outline: none; margin-bottom: 1rem;
+  }
+  .review-form input::placeholder { color: rgba(232,213,183,0.35); }
+  .review-form input:focus { border-color: var(--rose); }
+
+  /* ── CONTACT ── */
+  #contact-wrap { background: var(--plum); }
+  #contact { display: grid; grid-template-columns: 1fr 1.2fr; gap: 5rem; align-items: start; }
+  #contact .section-title { color: var(--champagne); }
+  .contact-info-items { display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem; }
+  .contact-item { display: flex; gap: 1rem; align-items: flex-start; }
+  .contact-icon { width: 42px; height: 42px; border-radius: 12px; background: rgba(196,137,154,0.15); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+  .contact-item-text h4 { color: var(--champagne); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .contact-item-text p, .contact-item-text a { color: rgba(232,213,183,0.65); font-size: 0.88rem; text-decoration: none; }
+  .contact-item-text a:hover { color: var(--rose); }
+  .social-links { display: flex; gap: 0.8rem; margin-top: 2rem; }
+  .social-btn {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: rgba(196,137,154,0.1); border: 1px solid rgba(196,137,154,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--champagne); font-size: 1rem; text-decoration: none;
+    transition: background 0.2s, border-color 0.2s; cursor: pointer;
+  }
+  .social-btn:hover { background: var(--rose); border-color: var(--rose); }
+  .contact-form-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(232,213,183,0.12);
+    border-radius: 2rem; padding: 2.5rem;
+  }
+  .contact-form-card h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--champagne); margin-bottom: 0.5rem; }
+  .contact-form-card > p { color: rgba(232,213,183,0.55); font-size: 0.88rem; margin-bottom: 1.8rem; }
+  .contact-form-card .form-group label { color: rgba(232,213,183,0.7); }
+  .contact-form-card input, .contact-form-card select, .contact-form-card textarea {
+    background: rgba(255,255,255,0.06); border-color: rgba(232,213,183,0.15);
+    color: var(--champagne);
+  }
+  .contact-form-card input::placeholder, .contact-form-card textarea::placeholder { color: rgba(232,213,183,0.3); }
+  .contact-form-card input:focus, .contact-form-card select:focus, .contact-form-card textarea:focus { border-color: var(--rose); }
+  .contact-form-card select option { background: var(--plum); color: var(--champagne); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #1a0e1b; padding: 2.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--champagne); font-style: italic; }
+  .footer-copy { font-size: 0.8rem; color: var(--muted); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--rose); }
+
+  /* ── STICKY BOOK ── */
+  .sticky-book {
+    position: fixed; right: 1.5rem; bottom: 2rem; z-index: 50;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    transform: translateX(80px); transition: transform 0.4s ease;
+  }
+  .sticky-book.visible { transform: translateX(0); }
+  .sticky-book a {
+    writing-mode: vertical-lr; text-orientation: mixed;
+    background: var(--rose); color: #fff; text-decoration: none;
+    padding: 1.2rem 0.85rem; border-radius: 100px; font-size: 0.82rem;
+    font-weight: 600; letter-spacing: 0.1em; transition: background 0.2s;
+    box-shadow: 0 4px 20px rgba(196,137,154,0.4);
+  }
+  .sticky-book a:hover { background: var(--rose-dark); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .nav-links, .nav-cta { display: none; }
+    .hamburger { display: flex; }
+    .hero-content { grid-template-columns: 1fr; }
+    .hero-portrait { display: none; }
+    #about { grid-template-columns: 1fr; }
+    .about-img-grid { display: none; }
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .service-card.featured { grid-row: span 1; }
+    .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
+    .portfolio-item:nth-child(1) { grid-column: span 2; }
+    #booking { grid-template-columns: 1fr; }
+    .reviews-grid { grid-template-columns: 1fr 1fr; }
+    .leave-review-card { grid-template-columns: 1fr; }
+    #contact { grid-template-columns: 1fr; }
+    .payment-options { grid-template-columns: 1fr; }
+    .service-select-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    section { padding: 4rem 1.2rem; }
+    .services-grid { grid-template-columns: 1fr; }
+    .portfolio-grid { grid-template-columns: 1fr 1fr; }
+    .reviews-grid { grid-template-columns: 1fr; }
+    .time-slots { grid-template-columns: repeat(2, 1fr); }
+    footer { flex-direction: column; text-align: center; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-logo">Élène Styles</div>
+  <ul class="nav-links">
+    <li><a href="#about-wrap">About</a></li>
+    <li><a href="#services-wrap">Services</a></li>
+    <li><a href="#portfolio-wrap">Portfolio</a></li>
+    <li><a href="#reviews-wrap">Reviews</a></li>
+    <li><a href="#contact-wrap">Contact</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('booking-wrap').scrollIntoView({behavior:'smooth'})">Book Now</button>
+  <div class="hamburger" onclick="document.querySelector('.mobile-menu').classList.add('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-menu">
+  <button class="mobile-close" onclick="document.querySelector('.mobile-menu').classList.remove('open')">✕</button>
+  <a href="#about-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">About</a>
+  <a href="#services-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Services</a>
+  <a href="#portfolio-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Portfolio</a>
+  <a href="#booking-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Book</a>
+  <a href="#reviews-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Reviews</a>
+  <a href="#contact-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Contact</a>
+</div>
+
+<!-- STICKY BOOK -->
+<div class="sticky-book" id="sticky-book">
+  <a href="#booking-wrap">BOOK NOW</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-circles"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <span class="hero-eyebrow">Independent Hair Stylist · London</span>
+      <h1 class="hero-title">Where hair becomes <em>your story</em></h1>
+      <p class="hero-sub">Precision cuts, transformative colour, and bespoke styling tailored entirely to you. Every appointment is a collaboration, every result a confidence boost.</p>
+      <div class="hero-actions">
+        <a href="#booking-wrap" class="btn-primary">Book an Appointment</a>
+        <a href="#portfolio-wrap" class="btn-ghost">View My Work</a>
+      </div>
+    </div>
+    <div class="hero-portrait">
+      <div class="portrait-frame">
+        <div class="portrait-placeholder">
+          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="28" r="16" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 70c0-16.569 13.431-30 30-30s30 13.431 30 30" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <p>Your portrait here</p>
+        </div>
+      </div>
+      <div class="portrait-badge">
+        <div class="badge-num">8+</div>
+        <div class="badge-label">Years of<br>experience</div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">500+ happy clients</span></div>
+        <div class="stat-item"><div class="stat-dot rose"></div><span class="stat-text">4.9★ average rating</span></div>
+        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">Fully insured</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<div id="about-wrap">
+<section id="about">
+  <div class="about-img-grid">
+    <div class="about-img">Studio</div>
+    <div class="about-img">At work</div>
+    <div class="about-img">The space</div>
+  </div>
+  <div class="about-text">
+    <span class="section-eyebrow">About Me</span>
+    <h2 class="section-title">Hello, I'm Élène — your hair's new best friend.</h2>
+    <p>With over eight years working across London's finest salons and editorial sets, I made the leap to independent styling so I could give every client exactly what they deserve: time, attention, and a result that turns heads.</p>
+    <p>My studio is a calm, private space where you come first. No rushing, no distractions — just great conversation and even better hair. I specialise in blonding, lived-in colour, and precision cuts that work with your lifestyle, not against it.</p>
+    <div class="specialty-tags">
+      <span class="tag">Blonding</span>
+      <span class="tag">Balayage</span>
+      <span class="tag">Precision Cuts</span>
+      <span class="tag">Colour Correction</span>
+      <span class="tag">Bridal Styling</span>
+      <span class="tag">Extensions</span>
+    </div>
+    <div class="about-sig">Élène x</div>
+  </div>
+</section>
+</div>
+
+<!-- SERVICES -->
+<div id="services-wrap">
+<section id="services">
+  <div class="services-header">
+    <div>
+      <span class="section-eyebrow">Services & Pricing</span>
+      <h2 class="section-title">What I offer</h2>
+      <p class="section-sub">Every service includes a thorough consultation and personalised aftercare advice.</p>
+    </div>
+  </div>
+  <div class="services-grid">
+    <div class="service-card featured">
+      <div class="service-icon">✦</div>
+      <div class="service-name">Full Colour & Blonding</div>
+      <div class="service-desc">My signature service. A bespoke blonding appointment covering balayage, highlights, toning, and a glossing treatment for that lit-from-within finish. Time and care, guaranteed.</div>
+      <div class="service-footer">
+        <div>
+          <div class="service-price">From £185</div>
+          <div class="service-duration">3–4 hours</div>
+        </div>
+        <button class="service-book-btn" onclick="selectServiceAndBook('Full Colour & Blonding','185')">Book this</button>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">✂</div>
+      <div class="service-name">Precision Cut</div>
+      <div class="service-desc">A tailored cut designed for your face shape, texture, and lifestyle — styled and finished to perfection.</div>
+      <div class="service-footer">
+        <div>
+          <div class="service-price">From £75</div>
+          <div class="service-duration">60–75 min</div>
+        </div>
+        <button class="service-book-btn" onclick="selectServiceAndBook('Precision Cut','75')">Book this</button>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🌿</div>
+      <div class="service-name">Balayage</div>
+      <div class="service-desc">Hand-painted colour for a sun-kissed, natural look with beautifully soft regrowth.</div>
+      <div class="service-footer">
+        <div>
+          <div class="service-price">From £145</div>
+          <div class="service-duration">2.5–3.5 hours</div>
+        </div>
+        <button class="service-book-btn" onclick="selectServiceAndBook('Balayage','145')">Book this</button>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">💍</div>
+      <div class="service-name">Bridal Styling</div>
+      <div class="service-desc">Trial + wedding day styling package. Includes a full consultation and pin curl practice run.</div>
+      <div class="service-footer">
+        <div>
+          <div class="service-price">From £220</div>
+          <div class="service-duration">2–3 hours</div>
+        </div>
+        <button class="service-book-btn" onclick="selectServiceAndBook('Bridal Styling','220')">Book this</button>
+      </div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🎨</div>
+      <div class="service-name">Colour Correction</div>
+      <div class="service-desc">Complex colour corrections handled with expertise. Requires a consultation prior to booking.</div>
+      <div class="service-footer">
+        <div>
+          <div class="service-price">POA</div>
+          <div class="service-duration">Varies</div>
+        </div>
+        <button class="service-book-btn" onclick="selectServiceAndBook('Colour Correction','0')">Enquire</button>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- PORTFOLIO -->
+<div id="portfolio-wrap">
+<section id="portfolio">
+  <div class="portfolio-header">
+    <span class="section-eyebrow">My Work</span>
+    <h2 class="section-title">Fresh from the chair</h2>
+    <p class="section-sub">Real results for real people. Swipe through recent looks from the studio.</p>
+    <div class="portfolio-filters">
+      <button class="filter-btn active" onclick="filterPortfolio(this,'all')">All</button>
+      <button class="filter-btn" onclick="filterPortfolio(this,'colour')">Colour</button>
+      <button class="filter-btn" onclick="filterPortfolio(this,'cuts')">Cuts</button>
+      <button class="filter-btn" onclick="filterPortfolio(this,'bridal')">Bridal</button>
+      <button class="filter-btn" onclick="filterPortfolio(this,'creative')">Creative</button>
+    </div>
+  </div>
+  <div class="portfolio-grid">
+    <div class="portfolio-item" data-cat="colour">
+      <div class="portfolio-placeholder">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
+        Platinum Balayage
+      </div>
+      <div class="portfolio-overlay"><span class="portfolio-label">Platinum Balayage</span></div>
+    </div>
+    <div class="portfolio-item" data-cat="cuts">
+      <div class="portfolio-placeholder">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
+        Bob Cut
+      </div>
+      <div class="portfolio-overlay"><span class="portfolio-label">The Perfect Bob</span></div>
+    </div>
+    <div class="portfolio-item" data-cat="colour">
+      <div class="portfolio-placeholder">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
+        Copper Gloss
+      </div>
+      <div class="portfolio-overlay"><span class="portfolio-label">Copper Gloss</span></div>
+    </div>
+    <div class="portfolio-item" data-cat="bridal">
+      <div class="portfolio-placeholder">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
+        Bridal Updo
+      </div>
+      <div class="portfolio-overlay"><span class="portfolio-label">Romantic Bridal Updo</span></div>
+    </div>
+    <div class="portfolio-item" data-cat="creative">
+      <div class="portfolio-placeholder">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
+        Vivid Violet
+      </div>
+      <div class="portfolio-overlay"><span class="portfolio-label">Vivid Violet</span></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- BOOKING -->
+<div id="booking-wrap">
+<section id="booking">
+  <div class="booking-info">
+    <span class="section-eyebrow">Book Your Appointment</span>
+    <h2 class="section-title">Reserve your spot in the chair</h2>
+    <p>Slots fill up fast — book ahead to secure your preferred date. A deposit locks in your appointment and gives you priority rescheduling.</p>
+    <div class="booking-policies">
+      <div class="policy-item">
+        <div class="policy-icon">🔒</div>
+        <div class="policy-text">
+          <h4>Secure deposit</h4>
+          <p>A 30% deposit is taken at booking and deducted from your final balance on the day.</p>
+        </div>
+      </div>
+      <div class="policy-item">
+        <div class="policy-icon">🔄</div>
+        <div class="policy-text">
+          <h4>Free rescheduling</h4>
+          <p>Cancel or reschedule with 48 hours' notice and your deposit transfers to your new slot.</p>
+        </div>
+      </div>
+      <div class="policy-item">
+        <div class="policy-icon">📋</div>
+        <div class="policy-text">
+          <h4>Consultation included</h4>
+          <p>Every appointment starts with a proper sit-down to make sure we're aligned on your vision.</p>
+        </div>
+      </div>
+      <div class="policy-item">
+        <div class="policy-icon">💳</div>
+        <div class="policy-text">
+          <h4>Flexible payment</h4>
+          <p>Pay deposit, full amount, or split — all major cards accepted.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="booking-form-card">
+    <!-- Step indicators -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+      <div class="step-dot" id="dot-4"></div>
+    </div>
+
+    <!-- Step 1: Service -->
+    <div class="form-step active" id="step-1">
+      <div class="step-title">Choose your service</div>
+      <div class="step-sub">Select the treatment you'd like to book</div>
+      <div class="service-select-grid" id="service-grid">
+        <div class="service-option selected" onclick="selectService(this,'Precision Cut','75')">
+          <div class="svc-name">✂ Precision Cut</div>
+          <div class="svc-price">From £75</div>
+        </div>
+        <div class="service-option" onclick="selectService(this,'Balayage','145')">
+          <div class="svc-name">🌿 Balayage</div>
+          <div class="svc-price">From £145</div>
+        </div>
+        <div class="service-option" onclick="selectService(this,'Full Colour & Blonding','185')">
+          <div class="svc-name">✦ Full Colour</div>
+          <div class="svc-price">From £185</div>
+        </div>
+        <div class="service-option" onclick="selectService(this,'Bridal Styling','220')">
+          <div class="svc-name">💍 Bridal</div>
+          <div class="svc-price">From £220</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Any notes for me?</label>
+        <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
+      </div>
+      <div class="form-nav">
+        <button class="btn-next" onclick="nextStep(1)">Choose date & time →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Date & Time -->
+    <div class="form-step" id="step-2">
+      <div class="step-title">Pick your date & time</div>
+      <div class="step-sub">Available slots are shown below</div>
+      <div class="calendar">
+        <div class="cal-header">
+          <button onclick="changeMonth(-1)">‹</button>
+          <span class="cal-month" id="cal-month-label"></span>
+          <button onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="time-slots" id="time-slots"></div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="nextStep(0)">← Back</button>
+        <button class="btn-next" onclick="nextStep(2)">Your details →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Details -->
+    <div class="form-step" id="step-3">
+      <div class="step-title">Your details</div>
+      <div class="step-sub">So I know who I'm welcoming in</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" placeholder="Emma" id="client-first"/>
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" placeholder="Thompson" id="client-last"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" placeholder="emma@example.com" id="client-email"/>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" placeholder="+44 7700 900000" id="client-phone"/>
+      </div>
+      <div class="form-group">
+        <label>Have you visited before?</label>
+        <select id="client-returning">
+          <option>First time visiting</option>
+          <option>Returning client</option>
+        </select>
+      </div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="nextStep(1)">← Back</button>
+        <button class="btn-next" onclick="nextStep(3)">Payment →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Payment -->
+    <div class="form-step" id="step-4">
+      <div class="step-title">Secure your booking</div>
+      <div class="step-sub">Choose how you'd like to pay today</div>
+      <div class="order-summary">
+        <div class="summary-row"><span>Service</span><span id="sum-service">Precision Cut</span></div>
+        <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
+        <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
+        <div class="summary-row total"><span>Total</span><span id="sum-total">£75</span></div>
+        <div class="summary-row paying"><span>Paying today</span><span id="sum-paying">—</span></div>
+      </div>
+      <div class="payment-options">
+        <div class="payment-option selected" onclick="selectPayment(this,'deposit')" id="pay-deposit">
+          <h4>🔒 Deposit</h4>
+          <p>Secure your slot now</p>
+          <div class="pay-amount" id="deposit-amount">£22</div>
+        </div>
+        <div class="payment-option" onclick="selectPayment(this,'full')" id="pay-full">
+          <h4>✓ Pay in Full</h4>
+          <p>Nothing to pay on the day</p>
+          <div class="pay-amount" id="full-amount">£75</div>
+        </div>
+      </div>
+      <div class="card-fields">
+        <div class="form-group">
+          <label>Card Number</label>
+          <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)"/>
+        </div>
+        <div class="card-row">
+          <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" placeholder="Emma Thompson"/>
+          </div>
+          <div class="form-group">
+            <label>Expiry</label>
+            <input type="text" placeholder="MM/YY" maxlength="5"/>
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="text" placeholder="123" maxlength="3"/>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button class="btn-back" onclick="nextStep(2)">← Back</button>
+        <button class="btn-next" onclick="confirmBooking()">Confirm & Pay</button>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="form-step" id="step-success">
+      <div class="booking-success">
+        <div class="success-icon">🌸</div>
+        <h3>You're booked in!</h3>
+        <p>A confirmation email is on its way to you. I can't wait to see you in the chair.</p>
+        <div class="booking-ref" id="booking-ref">REF: #ÉS-0001</div>
+        <p style="margin-top:1rem; font-size:0.82rem;">Have questions before your appointment? <a href="#contact-wrap" style="color:var(--rose)">Drop me a message.</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- REVIEWS -->
+<div id="reviews-wrap">
+<section id="reviews">
+  <div class="reviews-header">
+    <div>
+      <span class="section-eyebrow">Client Reviews</span>
+      <h2 class="section-title">What my clients say</h2>
+    </div>
+    <div class="overall-rating">
+      <div class="rating-big">4.9</div>
+      <div class="rating-details">
+        <div class="stars">★★★★★</div>
+        <p>From 127 reviews</p>
+      </div>
+    </div>
+  </div>
+  <div class="reviews-grid">
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"I've been going to Élène for two years now and I genuinely don't trust anyone else with my hair. She listens, she advises, and she delivers every single time. My balayage is always perfect."</p>
+      <div class="review-author">
+        <div class="author-avatar">SJ</div>
+        <div class="author-info"><h4>Sophie J.</h4><p>Balayage client · 3 weeks ago</p></div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"My wedding hair was an absolute dream. Élène did a full trial and made me feel so relaxed on the day. Worth every penny — I felt like a different woman walking down the aisle."</p>
+      <div class="review-author">
+        <div class="author-avatar">LM</div>
+        <div class="author-info"><h4>Laura M.</h4><p>Bridal Styling · 2 months ago</p></div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-stars">★★★★★</div>
+      <p class="review-text">"I'd had a botched colour from a previous salon and was genuinely nervous. Élène was patient, honest, and the correction took years off me. Booked in immediately for my next appointment."</p>
+      <div class="review-author">
+        <div class="author-avatar">RC</div>
+        <div class="author-info"><h4>Rachel C.</h4><p>Colour Correction · 1 month ago</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leave a Review -->
+  <div class="leave-review-card">
+    <div class="leave-review-info">
+      <span class="section-eyebrow" style="color:var(--rose)">Leave a Review</span>
+      <h3>Loved your appointment?</h3>
+      <p>Reviews mean the world to a small independent business. If you've had a great experience, do take a moment to share it — it genuinely helps.</p>
+    </div>
+    <div class="review-form">
+      <div class="star-select" id="star-select">
+        <button class="star-btn active" data-val="1" onclick="setStars(1)">★</button>
+        <button class="star-btn active" data-val="2" onclick="setStars(2)">★</button>
+        <button class="star-btn active" data-val="3" onclick="setStars(3)">★</button>
+        <button class="star-btn active" data-val="4" onclick="setStars(4)">★</button>
+        <button class="star-btn active" data-val="5" onclick="setStars(5)">★</button>
+      </div>
+      <input type="text" placeholder="Your name" id="review-name"/>
+      <textarea rows="4" placeholder="Share your experience — what did you love most?" id="review-text"></textarea>
+      <button class="btn-primary" onclick="submitReview()" style="width:100%">Submit Review</button>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- CONTACT -->
+<div id="contact-wrap">
+<section id="contact">
+  <div>
+    <span class="section-eyebrow">Get in Touch</span>
+    <h2 class="section-title" style="color:var(--champagne)">Let's talk about your hair</h2>
+    <p style="color:rgba(232,213,183,0.65);line-height:1.7;margin-top:0.5rem;font-size:0.95rem;">Whether you have a question before booking, want to discuss a complex colour, or just want to say hello — I'm always happy to chat.</p>
+    <div class="contact-info-items">
+      <div class="contact-item">
+        <div class="contact-icon">📍</div>
+        <div class="contact-item-text">
+          <h4>Studio location</h4>
+          <p>Private studio, Shoreditch, London E1<br><em style="font-size:0.8rem;color:var(--rose)">Exact address sent on booking confirmation</em></p>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📧</div>
+        <div class="contact-item-text">
+          <h4>Email</h4>
+          <a href="mailto:hello@elenestyles.com">hello@elenestyles.com</a>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">📱</div>
+        <div class="contact-item-text">
+          <h4>Instagram DMs</h4>
+          <a href="#" target="_blank">@elenestyles</a>
+        </div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">🕐</div>
+        <div class="contact-item-text">
+          <h4>Studio hours</h4>
+          <p>Tue–Sat · 9:00am – 6:00pm<br>Closed Sun & Mon</p>
+        </div>
+      </div>
+    </div>
+    <div class="social-links">
+      <a class="social-btn" title="Instagram" href="#">𝕀</a>
+      <a class="social-btn" title="TikTok" href="#">𝕋</a>
+      <a class="social-btn" title="Facebook" href="#">𝔽</a>
+    </div>
+  </div>
+  <div class="contact-form-card">
+    <h3>Send me a message</h3>
+    <p>I aim to reply within 24 hours on studio days.</p>
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" placeholder="Your full name"/>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" placeholder="you@example.com"/>
+    </div>
+    <div class="form-group">
+      <label>What's it about?</label>
+      <select>
+        <option>General enquiry</option>
+        <option>Booking question</option>
+        <option>Colour consultation</option>
+        <option>Bridal enquiry</option>
+        <option>Reschedule / cancellation</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Message</label>
+      <textarea rows="5" placeholder="Tell me what's on your mind..."></textarea>
+    </div>
+    <button class="btn-primary" style="width:100%" onclick="submitContact(this)">Send Message</button>
+  </div>
+</section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Élène Styles</div>
+  <span class="footer-copy">© 2025 Élène Styles. All rights reserved. Independent stylist, London.</span>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms</a>
+    <a href="#booking-wrap">Book Now</a>
+  </div>
+</footer>
+
+<script>
+// ── NAV SCROLL ──
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('main-nav');
+  const sticky = document.getElementById('sticky-book');
+  if (window.scrollY > 80) { nav.classList.add('scrolled'); }
+  else { nav.classList.remove('scrolled'); }
+  if (window.scrollY > 500) { sticky.classList.add('visible'); }
+  else { sticky.classList.remove('visible'); }
+});
+
+// ── BOOKING FLOW ──
+let currentStep = 1;
+let booking = { service: 'Precision Cut', price: 75, date: null, time: null, paymentType: 'deposit' };
+
+function nextStep(from) {
+  if (from === 1) {
+    if (!booking.service) { alert('Please choose a service first.'); return; }
+  }
+  if (from === 2) {
+    if (!booking.date) { alert('Please pick a date.'); return; }
+    if (!booking.time) { alert('Please choose a time slot.'); return; }
+    // Update summary
+    document.getElementById('sum-service').textContent = booking.service;
+    document.getElementById('sum-date').textContent = booking.date;
+    document.getElementById('sum-time').textContent = booking.time;
+  }
+  if (from === 3) {
+    const first = document.getElementById('client-first').value.trim();
+    const email = document.getElementById('client-email').value.trim();
+    if (!first || !email) { alert('Please fill in your name and email.'); return; }
+    updatePaymentStep();
+  }
+  const newStep = from + 1;
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  currentStep = newStep;
+  document.getElementById('step-' + currentStep).classList.add('active');
+  updateDots();
+}
+
+function updateDots() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'step-dot';
+    if (i < currentStep) dot.classList.add('done');
+    else if (i === currentStep) dot.classList.add('active');
+  }
+}
+
+function selectService(el, name, price) {
+  document.querySelectorAll('.service-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  booking.service = name;
+  booking.price = parseInt(price);
+}
+
+function selectServiceAndBook(name, price) {
+  booking.service = name;
+  booking.price = parseInt(price);
+  // select in grid if present
+  document.querySelectorAll('.service-option').forEach(o => {
+    const n = o.querySelector('.svc-name').textContent;
+    if (n.includes(name.split(' ')[0]) || name.includes(o.querySelector('.svc-name').textContent.replace(/^[^\w]+/,''))) {
+      o.classList.add('selected');
+    } else { o.classList.remove('selected'); }
+  });
+  document.getElementById('booking-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── CALENDAR ──
+let calYear, calMonth, selectedDate = null, selectedTime = null;
+const BOOKED_SLOTS = { '15': ['10:00', '14:30'], '18': ['11:00'] };
+const TIMES = ['9:00','10:00','10:30','11:00','12:00','13:30','14:00','14:30','15:30','16:00','17:00'];
+
+function initCalendar() {
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = months[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  ['M','T','W','T','F','S','S'].forEach(d => {
+    const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
+  });
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const offset = (firstDay + 6) % 7;
+  const days = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  for (let i = 0; i < offset; i++) {
+    const el = document.createElement('div'); el.className = 'cal-day empty'; grid.appendChild(el);
+  }
+  for (let d = 1; d <= days; d++) {
+    const el = document.createElement('div'); el.className = 'cal-day';
+    el.textContent = d;
+    const date = new Date(calYear, calMonth, d);
+    const dayOfWeek = date.getDay();
+    const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isSunMon = dayOfWeek === 0 || dayOfWeek === 1;
+    if (isPast || isSunMon) { el.classList.add('disabled'); }
+    else {
+      const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+      if (isToday) el.classList.add('today');
+      if (selectedDate === d + '' + calMonth + calYear) el.classList.add('selected');
+      el.onclick = () => selectDate(d, el);
+    }
+    grid.appendChild(el);
+  }
+}
+
+function selectDate(d, el) {
+  document.querySelectorAll('.cal-day').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDate = d + '' + calMonth + calYear;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  booking.date = d + ' ' + months[calMonth] + ' ' + calYear;
+  renderTimeSlots(d);
+}
+
+function renderTimeSlots(day) {
+  const container = document.getElementById('time-slots');
+  container.innerHTML = '';
+  const bookedForDay = BOOKED_SLOTS[day] || [];
+  TIMES.forEach(t => {
+    const el = document.createElement('button');
+    el.className = 'time-slot'; el.textContent = t;
+    if (bookedForDay.includes(t)) { el.classList.add('booked'); el.disabled = true; }
+    else { el.onclick = () => selectTime(t, el); }
+    container.appendChild(el);
+  });
+}
+
+function selectTime(t, el) {
+  document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+  booking.time = t;
+  selectedTime = t;
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+// ── PAYMENT ──
+function updatePaymentStep() {
+  const price = booking.price;
+  const deposit = Math.round(price * 0.30);
+  document.getElementById('sum-total').textContent = price > 0 ? '£' + price : 'POA';
+  document.getElementById('deposit-amount').textContent = '£' + deposit;
+  document.getElementById('full-amount').textContent = price > 0 ? '£' + price : 'POA';
+  updatePayingAmount();
+}
+
+function selectPayment(el, type) {
+  document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  booking.paymentType = type;
+  updatePayingAmount();
+}
+
+function updatePayingAmount() {
+  const price = booking.price;
+  const deposit = Math.round(price * 0.30);
+  const paying = booking.paymentType === 'deposit' ? '£' + deposit : (price > 0 ? '£' + price : 'POA');
+  document.getElementById('sum-paying').textContent = paying;
+}
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function confirmBooking() {
+  const cardNum = document.querySelector('.card-fields input').value.replace(/\s/g,'');
+  if (cardNum.length < 16) { alert('Please enter a valid card number.'); return; }
+  document.getElementById('step-4').classList.remove('active');
+  const ref = '#ÉS-' + Math.floor(1000 + Math.random() * 9000);
+  document.getElementById('booking-ref').textContent = 'REF: ' + ref;
+  document.getElementById('step-success').classList.add('active');
+  document.querySelectorAll('.step-dot').forEach(d => d.classList.add('done'));
+}
+
+// ── PORTFOLIO FILTER ──
+function filterPortfolio(btn, cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.portfolio-item').forEach(item => {
+    if (cat === 'all' || item.dataset.cat === cat) {
+      item.style.display = '';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// ── REVIEWS ──
+let currentStars = 5;
+function setStars(n) {
+  currentStars = n;
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) <= n);
+  });
+}
+function submitReview() {
+  const name = document.getElementById('review-name').value.trim();
+  const text = document.getElementById('review-text').value.trim();
+  if (!name || !text) { alert('Please fill in your name and review.'); return; }
+  // Inject review into grid
+  const grid = document.querySelector('.reviews-grid');
+  const card = document.createElement('div'); card.className = 'review-card';
+  const stars = '★'.repeat(currentStars) + '☆'.repeat(5 - currentStars);
+  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  card.innerHTML = `
+    <div class="review-stars">${stars}</div>
+    <p class="review-text">"${text}"</p>
+    <div class="review-author">
+      <div class="author-avatar">${initials}</div>
+      <div class="author-info"><h4>${name}</h4><p>Just now</p></div>
+    </div>`;
+  grid.prepend(card);
+  document.getElementById('review-name').value = '';
+  document.getElementById('review-text').value = '';
+  setStars(5);
+  alert('Thank you for your review! 🌸');
+}
+
+// ── CONTACT ──
+function submitContact(btn) {
+  btn.textContent = 'Message sent! 🌸';
+  btn.style.background = 'var(--success)';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Send Message'; btn.style.background = ''; btn.disabled = false; }, 3000);
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  initCalendar();
+  updateDots();
+});
+</script>
+</body>
+</html>

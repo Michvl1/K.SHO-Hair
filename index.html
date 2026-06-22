@@ -237,7 +237,7 @@
   .portfolio-item:hover { transform: scale(1.02); }
   .portfolio-item:nth-child(1) { grid-column: span 2; grid-row: span 2; aspect-ratio: 1; }
   .portfolio-item:not(:nth-child(1)) { aspect-ratio: 1; }
-  .portfolio-placeholder { width: 100%; height: 100%; overflow: hidden; }
+  .portfolio-placeholder { position: absolute; inset: 0; overflow: hidden; }
   .portfolio-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .portfolio-overlay {
     position: absolute; inset: 0; background: linear-gradient(to top, rgba(45,27,46,0.85) 0%, transparent 50%);
@@ -581,15 +581,17 @@
     </div>
     <div class="hero-portrait">
       <div class="portrait-frame">
-       <div class="portfolio-placeholder">
-         
-         <div>
-        <img src="keziahprofile.jpg" alt="Keziah">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;color:rgba(232,213,183,0.4);">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="28" r="16" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 70c0-16.569 13.431-30 30-30s30 13.431 30 30" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:0.9rem;">Your portrait here</p>
         </div>
-      
+      </div>
       <div class="portrait-badge">
-        <div class="badge-num">8+</div>
-        <div class="badge-label">Years of experience</div>
+        <div class="badge-num">5★</div>
+        <div class="badge-label">Rated by every<br>happy client</div>
       </div>
       <div class="hero-stats">
         <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">Taking bookings</span></div>
@@ -719,27 +721,39 @@
     </div>
     <div class="portfolio-grid">
       <div class="portfolio-item">
-        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#4a2850,#6b3a5d);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.3);font-family:'Playfair Display',serif;font-style:italic;">Your photo here</div>
+        <div class="portfolio-placeholder">
+          <img src="photo1.jpg" alt="Knotless Braids"/>
+        </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Knotless Braids</span></div>
       </div>
       <div class="portfolio-item">
-        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#5a3060,#3d2840);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-placeholder">
+          <img src="Boho Braids.jpeg" alt="Boho Twists"/>
+        </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Boho Twists</span></div>
       </div>
       <div class="portfolio-item">
-        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#3d2840,#4a2850);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-placeholder">
+          <img src="photo3.jpg" alt="Goddess Braids"/>
+        </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Goddess Braids</span></div>
       </div>
       <div class="portfolio-item">
-        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#6b3a5d,#4a2850);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-placeholder">
+          <img src="Fulani Kinky twists 2.jpeg" alt="Fulani Braids"/>
+        </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
       </div>
       <div class="portfolio-item">
-        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#4a2850,#5a3060);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Kinky Twists</span></div>
+        <div class="portfolio-placeholder">
+          <img src="Fulani Kinky twists.png" alt="Fulani Kinky Twists"/>
+        </div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Fulani Kinky Twists</span></div>
       </div>
       <div class="portfolio-item">
-        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#3d2840,#6b3a5d);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-placeholder">
+          <img src="photo6.jpg" alt="Feed In Braids"/>
+        </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Feed In Braids</span></div>
       </div>
     </div>

@@ -312,10 +312,44 @@
   .svc-size-price { font-size: 1rem; font-weight: 700; color: var(--rose); font-family: 'Playfair Display', serif; }
 
   /* ── ADDON SECTION ── */
-  .addon-section { margin-bottom: 0.5rem; }
-  .addon-title { font-size: 0.8rem; font-weight: 600; color: var(--plum); margin-bottom: 0.5rem; letter-spacing: 0.03em; text-transform: uppercase; }
-  .addon-opt { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); cursor: pointer; }
-  .addon-opt input { accent-color: var(--rose); }
+  .addon-section { margin-top: 1rem; }
+  .addon-group { margin-bottom: 1rem; }
+  .addon-group-title {
+    font-size: 0.75rem; font-weight: 700; color: var(--plum);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .addon-group-title::after { content: ''; flex: 1; height: 1px; background: rgba(196,137,154,0.2); }
+  .addon-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .addon-chip {
+    border: 1.5px solid rgba(196,137,154,0.25); border-radius: 100px;
+    padding: 0.35rem 0.85rem; font-size: 0.78rem; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    color: var(--muted); background: var(--ivory);
+    transition: all 0.2s; white-space: nowrap; user-select: none;
+  }
+  .addon-chip:hover { border-color: var(--rose); color: var(--rose); }
+  .addon-chip.selected { background: var(--rose); color: #fff; border-color: var(--rose); }
+  .addon-chip .chip-price { font-size: 0.72rem; opacity: 0.85; margin-left: 0.2rem; }
+  .colour-swatches { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .colour-chip {
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    border: 2.5px solid transparent; transition: all 0.2s;
+    flex-shrink: 0; position: relative;
+  }
+  .colour-chip:hover { transform: scale(1.12); }
+  .colour-chip.selected { border-color: var(--rose); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--rose); }
+  .addon-group.hidden { display: none; }
+  .addon-free-note { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; }
+  .addon-free-note::before { content: '✓'; color: var(--success); font-weight: 700; }
+  .addon-total-bar {
+    background: rgba(196,137,154,0.08); border: 1px solid rgba(196,137,154,0.2);
+    border-radius: 0.75rem; padding: 0.7rem 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 0.8rem;
+  }
+  .addon-total-label { font-size: 0.8rem; color: var(--muted); }
+  .addon-total-val { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--rose); }
 
   /* ── FORM ELEMENTS ── */
   .form-group { margin-bottom: 1.1rem; }
@@ -728,7 +762,7 @@
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="Boho Braids.jpeg" alt="Boho Twists"/>
+          <img src="photo2.jpg" alt="Boho Twists"/>
         </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Boho Twists</span></div>
       </div>
@@ -740,15 +774,15 @@
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="Fulani Kinky twists 2.jpeg" alt="Fulani Braids"/>
+          <img src="photo4.jpg" alt="Fulani Braids"/>
         </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="Fulani Kinky twists.png" alt="Fulani Kinky Twists"/>
+          <img src="photo5.jpg" alt="Kinky Twists"/>
         </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Fulani Kinky Twists</span></div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Kinky Twists</span></div>
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
@@ -816,11 +850,70 @@
         <div class="step-sub">Select a style, then choose your preferred size</div>
         <div class="category-tabs" id="cat-tabs"></div>
         <div class="service-panels" id="service-panels"></div>
-        <div class="addon-section">
-          <div class="addon-title">Add-ons</div>
-          <label class="addon-opt">
-            <input type="checkbox" checked disabled> Free consultation included with every booking
-          </label>
+        <div class="addon-section" id="addon-section">
+
+          <!-- Always visible -->
+          <div class="addon-group">
+            <div class="addon-group-title">Included</div>
+            <div class="addon-free-note">Free consultation included with every booking</div>
+          </div>
+
+          <!-- Length add-ons — always visible -->
+          <div class="addon-group" id="addon-length">
+            <div class="addon-group-title">Length</div>
+            <div class="addon-chips">
+              <div class="addon-chip" data-addon="length" data-price="0" data-label="Standard length" onclick="toggleChip(this,'length')">Standard <span class="chip-price">included</span></div>
+              <div class="addon-chip" data-addon="length" data-price="15" data-label="Lower back length +£15" onclick="toggleChip(this,'length')">Lower back <span class="chip-price">+£15</span></div>
+              <div class="addon-chip" data-addon="length" data-price="30" data-label="Bum length +£30" onclick="toggleChip(this,'length')">Bum length <span class="chip-price">+£30</span></div>
+            </div>
+          </div>
+
+          <!-- Colour add-ons — always visible -->
+          <div class="addon-group" id="addon-colour">
+            <div class="addon-group-title">Hair Colour</div>
+            <div class="colour-swatches" id="colour-swatches"></div>
+            <div class="addon-chips" style="margin-top:0.5rem">
+              <div class="addon-chip" data-addon="custommix" data-price="15" data-label="Custom mix: Blonde +£15" onclick="toggleChip(this,'custommix-blonde')">Custom mix: Blonde <span class="chip-price">+£15</span></div>
+              <div class="addon-chip" data-addon="custommix" data-price="15" data-label="Custom mix: Brown +£15" onclick="toggleChip(this,'custommix-brown')">Custom mix: Brown <span class="chip-price">+£15</span></div>
+            </div>
+          </div>
+
+          <!-- Freestyle add-ons — Boho & Goddess only -->
+          <div class="addon-group hidden" id="addon-freestyle">
+            <div class="addon-group-title">Freestyle</div>
+            <div class="addon-chips">
+              <div class="addon-chip" data-addon="freestyle" data-price="10" data-label="Simple freestyle +£10" onclick="toggleChip(this,'freestyle')">Simple <span class="chip-price">+£10</span></div>
+              <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Complex freestyle +£20" onclick="toggleChip(this,'freestyle')">Complex <span class="chip-price">+£20</span></div>
+              <div class="addon-chip" data-addon="freestyle" data-price="30" data-label="Extreme freestyle +£30" onclick="toggleChip(this,'freestyle')">Extreme <span class="chip-price">+£30</span></div>
+              <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Barrel ends +£20" onclick="toggleChip(this,'freestyle')">Barrel Ends <span class="chip-price">+£20</span></div>
+            </div>
+          </div>
+
+          <!-- Curl specification — Boho & Goddess only -->
+          <div class="addon-group hidden" id="addon-curl">
+            <div class="addon-group-title">Curl Specification</div>
+            <div class="addon-chips">
+              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Deep Wave" onclick="toggleChip(this,'curl')">Deep Wave</div>
+              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Burmese Curly" onclick="toggleChip(this,'curl')">Burmese Curly</div>
+              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Body Wave" onclick="toggleChip(this,'curl')">Body Wave</div>
+              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Loose Deep Wave" onclick="toggleChip(this,'curl')">Loose Deep Wave</div>
+            </div>
+          </div>
+
+          <!-- Boho/Goddess upgrade — Fulani only -->
+          <div class="addon-group hidden" id="addon-fulani-upgrade">
+            <div class="addon-group-title">Style Upgrade</div>
+            <div class="addon-chips">
+              <div class="addon-chip" data-addon="fulani-upgrade" data-price="20" data-label="Boho &amp; Goddess upgrade +£20" onclick="toggleChip(this,'fulani-upgrade')">Boho &amp; Goddess add-on <span class="chip-price">+£20</span></div>
+            </div>
+          </div>
+
+          <!-- Live add-on total -->
+          <div class="addon-total-bar" id="addon-total-bar" style="display:none">
+            <span class="addon-total-label">Add-ons total</span>
+            <span class="addon-total-val" id="addon-total-val">+£0</span>
+          </div>
+
         </div>
         <div class="form-group" style="margin-top:1rem">
           <label>Any notes for me?</label>
@@ -894,6 +987,7 @@
         <div class="order-summary">
           <div class="summary-row"><span>Service</span><span id="sum-service">—</span></div>
           <div class="summary-row"><span>Size</span><span id="sum-size">—</span></div>
+          <div class="summary-row"><span>Add-ons</span><span id="sum-addons">None</span></div>
           <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
           <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
           <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
@@ -1300,6 +1394,150 @@ let calYear, calMonth;
 let selectedDate = null;
 let selectedTime = null;
 
+/* ---- Add-on state ---- */
+// Each key is a group id; value is { label, price } of selected chip (null = none)
+const addonState = {
+  length:           null,
+  'custommix-blonde': null,
+  'custommix-brown':  null,
+  freestyle:        null,
+  curl:             null,
+  'fulani-upgrade': null,
+  colour:           null   // tracks selected colour swatch label
+};
+
+/* ---- Colour swatches ---- */
+const COLOURS = [
+  { id: '1',   label: '1 (Jet Black)',    hex: '#0a0a0a' },
+  { id: '1b',  label: '1B (Off Black)',   hex: '#1a1008' },
+  { id: '2',   label: '2 (Dark Brown)',   hex: '#2c1a0e' },
+  { id: '4',   label: '4 (Medium Brown)', hex: '#6b3a1f' },
+  { id: '8',   label: '8 (Light Brown)',  hex: '#9e6b3a' },
+  { id: '27',  label: '27 (Honey Blonde)',hex: '#c9843a' },
+  { id: '30',  label: '30 (Auburn)',      hex: '#8b3a1a' },
+  { id: '613', label: '613 (Platinum)',   hex: '#f5e6b8' },
+];
+
+function buildColourSwatches() {
+  const wrap = document.getElementById('colour-swatches');
+  COLOURS.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'colour-chip';
+    el.style.background = c.hex;
+    el.title = c.label;
+    el.setAttribute('data-colour', c.id);
+    el.setAttribute('title', c.id);
+    // Tooltip label below swatch
+    el.innerHTML = '<span style="position:absolute;bottom:-1.3rem;left:50%;transform:translateX(-50%);font-size:0.62rem;color:var(--muted);white-space:nowrap;">' + c.id + '</span>';
+    el.onclick = () => {
+      document.querySelectorAll('.colour-chip').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      addonState.colour = c.label;
+      recalcAddonTotal();
+    };
+    wrap.appendChild(el);
+  });
+}
+
+/* ---- Addon visibility based on selected category ---- */
+const BOHO_GODDESS_CATS = [
+  'Goddess Braids/Twists', 'Boho Braids/Twists',
+  'French Curls', 'Boho French Curls',
+  'Fulani French Curls'
+];
+const FULANI_CATS = ['Fulani Braids/Twists', 'Fulani French Curls'];
+
+function updateAddonVisibility() {
+  const cat = SERVICES[selectedCat].cat;
+  const isBohoGoddess = BOHO_GODDESS_CATS.includes(cat);
+  const isFulani      = FULANI_CATS.includes(cat);
+
+  document.getElementById('addon-freestyle').classList.toggle('hidden', !isBohoGoddess);
+  document.getElementById('addon-curl').classList.toggle('hidden', !isBohoGoddess);
+  document.getElementById('addon-fulani-upgrade').classList.toggle('hidden', !isFulani);
+
+  // Clear hidden groups' selections
+  if (!isBohoGoddess) {
+    addonState.freestyle = null;
+    addonState.curl = null;
+    document.querySelectorAll('#addon-freestyle .addon-chip, #addon-curl .addon-chip').forEach(c => c.classList.remove('selected'));
+  }
+  if (!isFulani) {
+    addonState['fulani-upgrade'] = null;
+    document.querySelectorAll('#addon-fulani-upgrade .addon-chip').forEach(c => c.classList.remove('selected'));
+  }
+  recalcAddonTotal();
+}
+
+/* ---- Toggle a chip (radio within group, toggle off on re-click) ---- */
+function toggleChip(el, groupKey) {
+  const alreadySelected = el.classList.contains('selected');
+  // Deselect all chips in same group
+  const group = el.closest('.addon-group');
+  group.querySelectorAll('.addon-chip[data-addon="' + el.dataset.addon + '"]').forEach(c => c.classList.remove('selected'));
+  // Also handle custommix separately — they're two independent toggles
+  if (groupKey === 'custommix-blonde' || groupKey === 'custommix-brown') {
+    if (alreadySelected) {
+      addonState[groupKey] = null;
+    } else {
+      el.classList.add('selected');
+      addonState[groupKey] = { label: el.dataset.label, price: parseInt(el.dataset.price) };
+    }
+  } else {
+    if (alreadySelected) {
+      addonState[groupKey] = null;
+    } else {
+      el.classList.add('selected');
+      addonState[groupKey] = { label: el.dataset.label, price: parseInt(el.dataset.price) };
+    }
+  }
+  recalcAddonTotal();
+}
+
+/* ---- Recalculate add-on total and update bar ---- */
+function recalcAddonTotal() {
+  let total = 0;
+  const parts = [];
+
+  Object.entries(addonState).forEach(([key, val]) => {
+    if (!val) return;
+    if (key === 'colour') return; // colour has no extra charge
+    if (val.price > 0) {
+      total += val.price;
+      parts.push('+£' + val.price);
+    }
+  });
+
+  // Length — "standard" = £0, skip
+  const bar = document.getElementById('addon-total-bar');
+  if (total > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('addon-total-val').textContent = '+£' + total;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function getAddonTotal() {
+  let total = 0;
+  Object.entries(addonState).forEach(([key, val]) => {
+    if (!val || key === 'colour') return;
+    total += (val.price || 0);
+  });
+  return total;
+}
+
+function getAddonSummaryText() {
+  const parts = [];
+  Object.entries(addonState).forEach(([key, val]) => {
+    if (!val) return;
+    if (key === 'colour') { parts.push(val); return; }
+    if (key === 'length' && val.price === 0) return; // "standard" = nothing to note
+    parts.push(val.label);
+  });
+  return parts.length ? parts.join(', ') : 'None';
+}
+
 /* ---- Build service UI ---- */
 function buildServiceUI() {
   const tabs   = document.getElementById('cat-tabs');
@@ -1340,6 +1578,9 @@ function buildServiceUI() {
     panel.appendChild(grid);
     panels.appendChild(panel);
   });
+
+  buildColourSwatches();
+  updateAddonVisibility();
 }
 
 function selectCat(i) {
@@ -1347,13 +1588,13 @@ function selectCat(i) {
   selectedSize = {};
   document.querySelectorAll('.cat-tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
   document.querySelectorAll('.service-panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
-  // Auto-select first size of new cat
   const firstOpt = document.querySelector('#panel-' + i + ' .size-opt');
   if (firstOpt) {
     firstOpt.classList.add('selected');
     const sz = SERVICES[i].sizes[0];
     selectedSize = { price: sz.price, name: sz.name };
   }
+  updateAddonVisibility();
 }
 
 function selectSize(catIdx, szIdx, el, sz) {
@@ -1383,14 +1624,18 @@ function selectPayment(el, mode) {
 }
 
 function updatePaySummary() {
-  const price = selectedSize.price || 0;
+  const basePrice  = selectedSize.price || 0;
+  const addonCost  = getAddonTotal();
+  const totalPrice = basePrice + addonCost;
+
   document.getElementById('sum-service').textContent = SERVICES[selectedCat].cat;
   document.getElementById('sum-size').textContent    = selectedSize.name || '—';
+  document.getElementById('sum-addons').textContent  = getAddonSummaryText();
   document.getElementById('sum-date').textContent    = selectedDate || '—';
   document.getElementById('sum-time').textContent    = selectedTime || '—';
-  document.getElementById('sum-total').textContent   = price ? '£' + price : '—';
-  document.getElementById('full-amount').textContent = price ? '£' + price : '—';
-  document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£15 deposit' : (price ? '£' + price : '—');
+  document.getElementById('sum-total').textContent   = totalPrice ? '£' + totalPrice : '—';
+  document.getElementById('full-amount').textContent = totalPrice ? '£' + totalPrice : '—';
+  document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£15 deposit' : (totalPrice ? '£' + totalPrice : '—');
 }
 
 /* ---- Confirm ---- */

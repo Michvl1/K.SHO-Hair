@@ -39,6 +39,7 @@
     background: var(--rose); color: #fff; border: none; padding: 0.6rem 1.4rem;
     border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
     font-weight: 600; cursor: pointer; letter-spacing: 0.03em; transition: background 0.2s;
+    text-decoration: none;
   }
   .nav-cta:hover { background: var(--rose-dark); }
   .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
@@ -61,21 +62,17 @@
     position: absolute; inset: 0;
     background: radial-gradient(ellipse 80% 70% at 70% 50%, #4a2850 0%, var(--plum) 70%);
   }
-  .hero-circles {
-    position: absolute; inset: 0; overflow: hidden;
-  }
+  .hero-circles { position: absolute; inset: 0; overflow: hidden; }
   .hero-circles::before {
     content: ''; position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 50%;
+    width: 600px; height: 600px; border-radius: 50%;
     border: 1px solid rgba(196,137,154,0.15);
     top: -100px; right: -100px;
     animation: slowspin 40s linear infinite;
   }
   .hero-circles::after {
     content: ''; position: absolute;
-    width: 400px; height: 400px;
-    border-radius: 50%;
+    width: 400px; height: 400px; border-radius: 50%;
     border: 1px solid rgba(196,137,154,0.1);
     bottom: -80px; left: 10%;
     animation: slowspin 60s linear infinite reverse;
@@ -117,23 +114,13 @@
     transition: border-color 0.2s, background 0.2s; text-decoration: none; display: inline-block;
   }
   .btn-ghost:hover { border-color: var(--champagne); background: rgba(232,213,183,0.08); }
-  .hero-portrait {
-    position: relative; animation: fadeUp 0.9s 0.2s ease both;
-  }
+  .hero-portrait { position: relative; animation: fadeUp 0.9s 0.2s ease both; }
   .portrait-frame {
     width: 100%; aspect-ratio: 3/4; border-radius: 2rem 2rem 8rem 2rem;
     background: linear-gradient(145deg, #4a2850, #6b3a5d);
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; position: relative;
   }
- .portrait-placeholder img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-  .portrait-placeholder svg { width: 80px; height: 80px; }
-  .portrait-placeholder p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; }
   .portrait-badge {
     position: absolute; bottom: -1rem; left: -1rem;
     background: var(--ivory); border-radius: 1.2rem; padding: 1rem 1.4rem;
@@ -167,7 +154,6 @@
     color: var(--plum); margin-bottom: 1rem;
   }
   .section-sub { color: var(--muted); font-size: 1rem; line-height: 1.7; max-width: 520px; }
-  .divider { width: 100%; height: 1px; background: linear-gradient(90deg, var(--rose) 0%, transparent 60%); margin: 0; }
 
   /* ── ABOUT ── */
   #about-wrap { background: var(--plum); }
@@ -176,8 +162,7 @@
   .about-img {
     background: linear-gradient(145deg, #4a2850, #6b3a5d);
     border-radius: 1.2rem; display: flex; align-items: center; justify-content: center;
-    color: rgba(232,213,183,0.3); font-style: italic; font-family: 'Playfair Display', serif;
-    font-size: 0.8rem;
+    color: rgba(232,213,183,0.3); font-style: italic; font-family: 'Playfair Display', serif; font-size: 0.8rem;
   }
   .about-img:nth-child(1) { aspect-ratio: 1; }
   .about-img:nth-child(2) { aspect-ratio: 1; margin-top: 2rem; }
@@ -195,7 +180,6 @@
 
   /* ── SERVICES ── */
   #services-wrap { background: var(--ivory); }
-  #services { }
   .services-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem; }
   .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
   .service-card {
@@ -205,10 +189,7 @@
     cursor: pointer; position: relative; overflow: hidden;
   }
   .service-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(45,27,46,0.1); }
-  .service-card.featured {
-    background: var(--plum); border-color: transparent;
-    grid-row: span 2;
-  }
+  .service-card.featured { background: var(--plum); border-color: transparent; grid-row: span 2; }
   .service-card.featured .service-name,
   .service-card.featured .service-desc,
   .service-card.featured .service-duration { color: var(--champagne); }
@@ -229,7 +210,6 @@
     padding: 0.55rem 1.2rem; border-radius: 100px;
     font-size: 0.82rem; font-weight: 600; cursor: pointer;
     font-family: 'DM Sans', sans-serif; transition: background 0.2s;
-    white-space: nowrap;
   }
   .service-book-btn:hover { background: var(--rose-dark); }
   .service-card.featured .service-book-btn { background: var(--champagne); color: var(--plum); }
@@ -237,7 +217,6 @@
 
   /* ── PORTFOLIO ── */
   #portfolio-wrap { background: var(--plum); }
-  #portfolio {}
   #portfolio .section-title { color: var(--champagne); }
   #portfolio .section-sub { color: rgba(232,213,183,0.6); }
   .portfolio-header { margin-bottom: 2.5rem; }
@@ -249,38 +228,17 @@
     cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
   }
   .filter-btn.active, .filter-btn:hover { background: var(--rose); color: #fff; border-color: var(--rose); }
-  .portfolio-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: auto;
-    gap: 1rem;
-  }
+  .portfolio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
   .portfolio-item {
     border-radius: 1rem; overflow: hidden; position: relative;
     background: linear-gradient(145deg, #4a2850, #6b3a5d);
-    cursor: pointer;
-    transition: transform 0.25s;
+    cursor: pointer; transition: transform 0.25s;
   }
-
-  .top-focus {
-  object-position: center 35%;
-}
   .portfolio-item:hover { transform: scale(1.02); }
   .portfolio-item:nth-child(1) { grid-column: span 2; grid-row: span 2; aspect-ratio: 1; }
   .portfolio-item:not(:nth-child(1)) { aspect-ratio: 1; }
-  .portfolio-placeholder {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.portfolio-placeholder img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  
-  
-}
+  .portfolio-placeholder { width: 100%; height: 100%; overflow: hidden; }
+  .portfolio-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .portfolio-overlay {
     position: absolute; inset: 0; background: linear-gradient(to top, rgba(45,27,46,0.85) 0%, transparent 50%);
     opacity: 0; transition: opacity 0.25s; display: flex; align-items: flex-end; padding: 1rem;
@@ -297,108 +255,145 @@
   .policy-item { display: flex; gap: 1rem; align-items: flex-start; }
   .policy-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(196,137,154,0.12); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
   .policy-text h4 { font-size: 0.9rem; font-weight: 600; color: var(--plum); margin-bottom: 0.2rem; }
-  .policy-text p { font-size: 0.82rem; color: var(--muted); margin: 0; line-height: 1.5; }
+  .policy-text p { font-size: 0.82rem; color: var(--muted); margin: 0 0 0.3rem; line-height: 1.5; }
 
-  /* booking form card */
+  /* ── BOOKING FORM CARD ── */
   .booking-form-card {
     background: #fff; border-radius: 2rem; padding: 2.5rem;
     box-shadow: 0 8px 40px rgba(45,27,46,0.08);
     border: 1px solid rgba(196,137,154,0.12);
+    position: sticky; top: 100px;
   }
   .form-step { display: none; }
   .form-step.active { display: block; }
   .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
-  .step-dot {
-    flex: 1; height: 4px; border-radius: 4px; background: rgba(196,137,154,0.2);
-    transition: background 0.3s;
-  }
+  .step-dot { flex: 1; height: 4px; border-radius: 4px; background: rgba(196,137,154,0.2); transition: background 0.3s; }
   .step-dot.done { background: var(--rose); }
-  .step-dot.active { background: var(--rose); opacity: 0.5; }
+  .step-dot.active { background: rgba(196,137,154,0.5); }
   .step-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 600; color: var(--plum); margin-bottom: 0.4rem; }
-  .step-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.8rem; }
-  .form-group { margin-bottom: 1.2rem; }
-  .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--plum); margin-bottom: 0.5rem; letter-spacing: 0.02em; }
-  .form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem;
-    border: 1.5px solid rgba(196,137,154,0.25); font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem; color: var(--charcoal); background: var(--ivory);
-    outline: none; transition: border-color 0.2s;
+  .step-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+  /* ── CATEGORY TABS ── */
+  .category-tabs {
+    display: flex; gap: 0.5rem; flex-wrap: wrap;
+    margin-bottom: 1rem; max-height: 120px; overflow-y: auto;
+    padding-bottom: 0.5rem;
   }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--rose);
+  .category-tabs::-webkit-scrollbar { width: 4px; height: 4px; }
+  .category-tabs::-webkit-scrollbar-track { background: transparent; }
+  .category-tabs::-webkit-scrollbar-thumb { background: rgba(196,137,154,0.3); border-radius: 4px; }
+  .cat-tab {
+    background: var(--ivory); color: var(--muted);
+    border: 1.5px solid rgba(196,137,154,0.2); border-radius: 100px;
+    padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s; white-space: nowrap;
   }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .service-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
-  .service-option {
-    border: 1.5px solid rgba(196,137,154,0.25); border-radius: 1rem; padding: 1rem;
+  .cat-tab.active, .cat-tab:hover { background: var(--plum); color: var(--champagne); border-color: var(--plum); }
+
+  /* ── SERVICE PANELS ── */
+  .service-panels { position: relative; }
+  .service-panel { display: none; }
+  .service-panel.active { display: block; }
+  .hair-note {
+    background: rgba(196,137,154,0.08); border: 1px solid rgba(196,137,154,0.2);
+    border-radius: 0.75rem; padding: 0.7rem 1rem;
+    font-size: 0.8rem; color: var(--rose); margin-bottom: 0.8rem; line-height: 1.5;
+  }
+  .size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1rem; }
+  .size-opt {
+    border: 1.5px solid rgba(196,137,154,0.2); border-radius: 0.9rem; padding: 0.8rem 1rem;
     cursor: pointer; transition: all 0.2s; background: var(--ivory);
   }
-  .service-option:hover { border-color: var(--rose); }
-  .service-option.selected { border-color: var(--rose); background: rgba(196,137,154,0.08); }
-  .service-option .svc-name { font-weight: 600; font-size: 0.88rem; color: var(--plum); margin-bottom: 0.2rem; }
-  .service-option .svc-price { font-size: 0.8rem; color: var(--rose); font-weight: 500; }
+  .size-opt:hover { border-color: var(--rose); }
+  .size-opt.selected { border-color: var(--rose); background: rgba(196,137,154,0.08); }
+  .svc-size-name { font-weight: 600; font-size: 0.88rem; color: var(--plum); margin-bottom: 0.15rem; }
+  .svc-size-detail { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.2rem; }
+  .svc-size-price { font-size: 1rem; font-weight: 700; color: var(--rose); font-family: 'Playfair Display', serif; }
 
-  /* calendar */
-  .calendar { background: var(--ivory); border-radius: 1.2rem; padding: 1.2rem; }
-  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-  .cal-header button { background: none; border: none; cursor: pointer; color: var(--plum); font-size: 1.1rem; padding: 0.2rem 0.5rem; border-radius: 6px; transition: background 0.15s; }
-  .cal-header button:hover { background: rgba(196,137,154,0.1); }
-  .cal-month { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 1rem; color: var(--plum); }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; }
-  .cal-day-name { text-align: center; font-size: 0.72rem; font-weight: 600; color: var(--muted); padding: 0.3rem 0; letter-spacing: 0.05em; }
-  .cal-day {
-    text-align: center; padding: 0.5rem 0.2rem; border-radius: 8px;
-    font-size: 0.85rem; cursor: pointer; color: var(--charcoal);
-    transition: all 0.15s;
+  /* ── ADDON SECTION ── */
+  .addon-section { margin-bottom: 0.5rem; }
+  .addon-title { font-size: 0.8rem; font-weight: 600; color: var(--plum); margin-bottom: 0.5rem; letter-spacing: 0.03em; text-transform: uppercase; }
+  .addon-opt { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); cursor: pointer; }
+  .addon-opt input { accent-color: var(--rose); }
+
+  /* ── FORM ELEMENTS ── */
+  .form-group { margin-bottom: 1.1rem; }
+  .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--plum); margin-bottom: 0.4rem; letter-spacing: 0.02em; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.72rem 1rem; border-radius: 0.75rem;
+    border: 1.5px solid rgba(196,137,154,0.25); font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; color: var(--charcoal); background: var(--ivory);
+    outline: none; transition: border-color 0.2s;
   }
-  .cal-day:hover:not(.disabled):not(.empty) { background: rgba(196,137,154,0.15); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--rose); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* ── CALENDAR ── */
+  .calendar { background: var(--ivory); border-radius: 1.2rem; padding: 1rem; }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .cal-nav-btn { background: none; border: none; cursor: pointer; color: var(--plum); font-size: 1.1rem; padding: 0.2rem 0.6rem; border-radius: 6px; transition: background 0.15s; }
+  .cal-nav-btn:hover { background: rgba(196,137,154,0.12); }
+  .cal-month { font-family: 'Playfair Display', serif; font-weight: 600; font-size: 0.95rem; color: var(--plum); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem; }
+  .cal-day-label { text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--muted); padding: 0.25rem 0; letter-spacing: 0.04em; }
+  .cal-day {
+    text-align: center; padding: 0.45rem 0.1rem; border-radius: 7px;
+    font-size: 0.82rem; cursor: pointer; color: var(--charcoal); transition: all 0.15s;
+  }
+  .cal-day.available:hover { background: rgba(196,137,154,0.15); }
   .cal-day.selected { background: var(--rose); color: #fff; font-weight: 600; }
   .cal-day.today { border: 1.5px solid var(--rose); color: var(--rose); font-weight: 600; }
   .cal-day.disabled { color: rgba(0,0,0,0.2); cursor: not-allowed; }
   .cal-day.empty { cursor: default; }
-  .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 1.2rem; }
+  .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem; }
   .time-slot {
-    text-align: center; padding: 0.55rem; border-radius: 0.6rem;
-    border: 1.5px solid rgba(196,137,154,0.25); font-size: 0.82rem;
+    text-align: center; padding: 0.5rem; border-radius: 0.6rem;
+    border: 1.5px solid rgba(196,137,154,0.25); font-size: 0.8rem;
     cursor: pointer; color: var(--charcoal); background: var(--ivory);
     font-family: 'DM Sans', sans-serif; transition: all 0.2s;
   }
-  .time-slot:hover:not(.booked) { border-color: var(--rose); color: var(--rose); }
+  .time-slot:hover { border-color: var(--rose); color: var(--rose); }
   .time-slot.selected { background: var(--rose); color: #fff; border-color: var(--rose); }
   .time-slot.booked { opacity: 0.35; cursor: not-allowed; }
+  .no-date-msg { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 1rem; font-style: italic; }
 
-  /* payment step */
+  /* ── PAYMENT ── */
   .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
   .payment-option {
     border: 1.5px solid rgba(196,137,154,0.25); border-radius: 1rem; padding: 1rem;
     cursor: pointer; transition: all 0.2s; background: var(--ivory);
   }
   .payment-option.selected { border-color: var(--rose); background: rgba(196,137,154,0.08); }
-  .payment-option h4 { font-size: 0.9rem; font-weight: 600; color: var(--plum); margin-bottom: 0.2rem; }
-  .payment-option p { font-size: 0.78rem; color: var(--muted); }
+  .payment-option h4 { font-size: 0.88rem; font-weight: 600; color: var(--plum); margin-bottom: 0.2rem; }
+  .payment-option p { font-size: 0.77rem; color: var(--muted); }
   .payment-option .pay-amount { font-size: 1.1rem; font-weight: 700; color: var(--rose); margin-top: 0.4rem; font-family: 'Playfair Display', serif; }
-  .card-fields { display: flex; flex-direction: column; gap: 0.8rem; }
+  .card-fields { display: flex; flex-direction: column; gap: 0.4rem; }
   .card-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.8rem; }
-  .order-summary { background: var(--ivory); border-radius: 1rem; padding: 1.2rem; margin-bottom: 1.5rem; }
-  .summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 0.4rem 0; color: var(--muted); }
-  .summary-row.total { font-weight: 700; color: var(--plum); font-size: 1rem; border-top: 1px solid rgba(196,137,154,0.2); margin-top: 0.5rem; padding-top: 0.7rem; }
+
+  /* ── ORDER SUMMARY ── */
+  .order-summary { background: var(--ivory); border-radius: 1rem; padding: 1.1rem; margin-bottom: 1.2rem; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 0.86rem; padding: 0.35rem 0; color: var(--muted); }
+  .summary-row.total { font-weight: 700; color: var(--plum); font-size: 0.95rem; border-top: 1px solid rgba(196,137,154,0.2); margin-top: 0.4rem; padding-top: 0.6rem; }
   .summary-row.paying { color: var(--rose); font-weight: 600; }
-  .form-nav { display: flex; gap: 1rem; margin-top: 1.5rem; }
+
+  /* ── FORM NAV ── */
+  .form-nav { display: flex; gap: 1rem; margin-top: 1.2rem; }
   .btn-back {
     background: transparent; border: 1.5px solid rgba(196,137,154,0.3);
-    color: var(--muted); padding: 0.8rem 1.5rem; border-radius: 100px;
-    font-family: 'DM Sans', sans-serif; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+    color: var(--muted); padding: 0.75rem 1.4rem; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.88rem; cursor: pointer; transition: all 0.2s;
   }
   .btn-back:hover { border-color: var(--rose); color: var(--rose); }
   .btn-next {
     flex: 1; background: var(--rose); color: #fff; border: none;
-    padding: 0.9rem 2rem; border-radius: 100px;
-    font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+    padding: 0.85rem 1.5rem; border-radius: 100px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
     font-weight: 600; cursor: pointer; transition: background 0.2s;
   }
   .btn-next:hover { background: var(--rose-dark); }
 
-  /* success */
+  /* ── SUCCESS ── */
   .booking-success { text-align: center; padding: 1.5rem 0; }
   .success-icon { font-size: 3rem; margin-bottom: 1rem; }
   .booking-success h3 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--plum); margin-bottom: 0.7rem; }
@@ -407,7 +402,6 @@
 
   /* ── REVIEWS ── */
   #reviews-wrap { background: var(--ivory); }
-  #reviews {}
   .reviews-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 1.5rem; }
   .overall-rating { display: flex; align-items: center; gap: 1rem; }
   .rating-big { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 700; color: var(--plum); line-height: 1; }
@@ -421,7 +415,6 @@
   .author-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--rose), var(--plum)); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 0.85rem; }
   .author-info h4 { font-size: 0.88rem; font-weight: 600; color: var(--plum); }
   .author-info p { font-size: 0.78rem; color: var(--muted); }
-  /* leave review */
   .leave-review-card {
     background: var(--plum); border-radius: 2rem; padding: 2.5rem;
     display: grid; grid-template-columns: 1fr 1.4fr; gap: 3rem; align-items: center;
@@ -475,8 +468,7 @@
   .contact-form-card > p { color: rgba(232,213,183,0.55); font-size: 0.88rem; margin-bottom: 1.8rem; }
   .contact-form-card .form-group label { color: rgba(232,213,183,0.7); }
   .contact-form-card input, .contact-form-card select, .contact-form-card textarea {
-    background: rgba(255,255,255,0.06); border-color: rgba(232,213,183,0.15);
-    color: var(--champagne);
+    background: rgba(255,255,255,0.06); border-color: rgba(232,213,183,0.15); color: var(--champagne);
   }
   .contact-form-card input::placeholder, .contact-form-card textarea::placeholder { color: rgba(232,213,183,0.3); }
   .contact-form-card input:focus, .contact-form-card select:focus, .contact-form-card textarea:focus { border-color: var(--rose); }
@@ -497,7 +489,6 @@
   /* ── STICKY BOOK ── */
   .sticky-book {
     position: fixed; right: 1.5rem; bottom: 2rem; z-index: 50;
-    display: flex; flex-direction: column; align-items: center; gap: 0;
     transform: translateX(80px); transition: transform 0.4s ease;
   }
   .sticky-book.visible { transform: translateX(0); }
@@ -506,7 +497,7 @@
     background: var(--rose); color: #fff; text-decoration: none;
     padding: 1.2rem 0.85rem; border-radius: 100px; font-size: 0.82rem;
     font-weight: 600; letter-spacing: 0.1em; transition: background 0.2s;
-    box-shadow: 0 4px 20px rgba(196,137,154,0.4);
+    box-shadow: 0 4px 20px rgba(196,137,154,0.4); display: block;
   }
   .sticky-book a:hover { background: var(--rose-dark); }
 
@@ -523,11 +514,12 @@
     .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
     .portfolio-item:nth-child(1) { grid-column: span 2; }
     #booking { grid-template-columns: 1fr; }
+    .booking-form-card { position: static; }
     .reviews-grid { grid-template-columns: 1fr 1fr; }
     .leave-review-card { grid-template-columns: 1fr; }
     #contact { grid-template-columns: 1fr; }
     .payment-options { grid-template-columns: 1fr; }
-    .service-select-grid { grid-template-columns: 1fr; }
+    .size-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
     section { padding: 4rem 1.2rem; }
@@ -536,6 +528,8 @@
     .reviews-grid { grid-template-columns: 1fr; }
     .time-slots { grid-template-columns: repeat(2, 1fr); }
     footer { flex-direction: column; text-align: center; }
+    .card-row { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -554,815 +548,951 @@
     <li><a href="#reviews-wrap">Reviews</a></li>
     <li><a href="#contact-wrap">Contact</a></li>
   </ul>
-  <button class="nav-cta" onclick="document.getElementById('booking-wrap').scrollIntoView({behavior:'smooth'})">Book Now</button>
-  <div class="hamburger" onclick="document.querySelector('.mobile-menu').classList.add('open')">
+  <a href="#booking-wrap" class="nav-cta">Book Now</a>
+  <div class="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
   </div>
 </nav>
 
-<div class="mobile-menu">
-  <button class="mobile-close" onclick="document.querySelector('.mobile-menu').classList.remove('open')">✕</button>
-  <a href="#about-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">About</a>
-  <a href="#services-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Services</a>
-  <a href="#portfolio-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Portfolio</a>
-  <a href="#booking-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Book</a>
-  <a href="#reviews-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Reviews</a>
-  <a href="#contact-wrap" onclick="this.closest('.mobile-menu').classList.remove('open')">Contact</a>
-</div>
-
-<!-- STICKY BOOK -->
-<div class="sticky-book" id="sticky-book">
-  <a href="#booking-wrap">BOOK NOW</a>
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <button class="mobile-close" onclick="toggleMenu()">✕</button>
+  <a href="#about-wrap" onclick="toggleMenu()">About</a>
+  <a href="#services-wrap" onclick="toggleMenu()">Services</a>
+  <a href="#portfolio-wrap" onclick="toggleMenu()">Portfolio</a>
+  <a href="#booking-wrap" onclick="toggleMenu()">Book Now</a>
+  <a href="#reviews-wrap" onclick="toggleMenu()">Reviews</a>
+  <a href="#contact-wrap" onclick="toggleMenu()">Contact</a>
 </div>
 
 <!-- HERO -->
-<section id="hero">
+<div id="hero">
   <div class="hero-bg"></div>
   <div class="hero-circles"></div>
   <div class="hero-content">
     <div class="hero-text">
-      <span class="hero-eyebrow">Independent Hair Stylist · Kent</span>
-      <h1 class="hero-title">Where hair becomes <em>your story</em></h1>
-      <p class="hero-sub">Specialist braids, twists, and protective styling tailored entirely to you. Every appointment is personal, every style expertly crafted, and every result designed to leave you feeling confident and beautiful.</p>
+      <div class="hero-eyebrow">Independent Hair Stylist · Medway, Kent</div>
+      <h1 class="hero-title">Where your hair <em>becomes</em> your crown</h1>
+      <p class="hero-sub">Specialist in braids, twists, and protective styles. Every appointment is a personalised experience crafted just for you.</p>
       <div class="hero-actions">
         <a href="#booking-wrap" class="btn-primary">Book an Appointment</a>
         <a href="#portfolio-wrap" class="btn-ghost">View My Work</a>
       </div>
     </div>
-   <div class="portrait-placeholder">
-  <img src="keziahprofile.jpg" alt="Stylist portrait">
-</div>
-     
+    <div class="hero-portrait">
+      <div class="portrait-frame">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;color:rgba(232,213,183,0.4);">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="28" r="16" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 70c0-16.569 13.431-30 30-30s30 13.431 30 30" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:0.9rem;">Your portrait here</p>
+        </div>
+      </div>
       <div class="portrait-badge">
-        <div class="badge-num">8+</div>
-        <div class="badge-label">Years of<br>experience</div>
+        <div class="badge-num">5★</div>
+        <div class="badge-label">Rated by every<br>happy client</div>
       </div>
       <div class="hero-stats">
-        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">300+ happy clients</span></div>
-        <div class="stat-item"><div class="stat-dot rose"></div><span class="stat-text">4.9★ average rating</span></div>
+        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">Taking bookings</span></div>
+        <div class="stat-item"><div class="stat-dot rose"></div><span class="stat-text">Slots fill fast</span></div>
       </div>
     </div>
   </div>
-</section>
+</div>
 
 <!-- ABOUT -->
 <div id="about-wrap">
-<section id="about">
-  <div class="about-img-grid">
-    
-    <div class="portrait-placeholder">
-  <img src="Keziah.jpeg" alt="Stylist portrait">
-</div>
-  
-  <div class="about-text">
-    <span class="section-eyebrow">About Me</span>
-    <h2 class="section-title">Hello, I'm Keziah — your hair's new best friend.</h2>
-    <p>With over seven years of experience in the hair industry, I am dedicated to creating beautiful, long-lasting styles that help every client feel confident and empowered.</p>
-    <p>After building a strong foundation within salon environments, I chose to work independently to provide a more personalised and client-focused experience.</p>
-    <p>Specialising in cornrows, freestyle braids, boho goddess braids and curly sew-ins, my goal is to create a relaxed and welcoming environment where clients can enjoy a professional service from start to finish. I believe getting your hair done should feel effortless — simply arrive, relax and leave feeling your absolute best.</p>
-    
-    <div class="about-sig">Keziah x</div>
-  </div>
-</section>
+  <section id="about">
+    <div class="about-img-grid">
+      <div class="about-img">work image</div>
+      <div class="about-img">work image</div>
+      <div class="about-img">work image</div>
+    </div>
+    <div class="about-text">
+      <span class="section-eyebrow">About Me</span>
+      <h2 class="section-title">Crafting confidence, one braid at a time</h2>
+      <p>I'm a passionate independent hair stylist based in Medway, Kent, specialising in protective styles that celebrate the beauty and versatility of natural hair.</p>
+      <p>Every client who sits in my chair deserves to feel heard, comfortable, and absolutely stunning. I take the time to understand your hair's unique needs and your personal vision before I begin.</p>
+      <div class="specialty-tags">
+        <span class="tag">Goddess Braids</span>
+        <span class="tag">Boho Styles</span>
+        <span class="tag">Knotless Braids</span>
+        <span class="tag">Kinky Twists</span>
+        <span class="tag">Fulani Braids</span>
+        <span class="tag">Colour &amp; Blonding</span>
+      </div>
+      <div class="about-sig">K. Sho</div>
+    </div>
+  </section>
 </div>
 
 <!-- SERVICES -->
 <div id="services-wrap">
-<section id="services">
-  <div class="services-header">
-    <div>
-      <span class="section-eyebrow">Services & Pricing</span>
-      <h2 class="section-title">What I offer</h2>
-      <p class="section-sub">Every service includes a thorough consultation and personalised aftercare advice.</p>
+  <section id="services">
+    <div class="services-header">
+      <div>
+        <span class="section-eyebrow">Services</span>
+        <h2 class="section-title">What I offer</h2>
+        <p class="section-sub">From intricate braids to bold colour — every service includes a complimentary consultation.</p>
+      </div>
+      <a href="#booking-wrap" class="btn-primary">Book Now</a>
     </div>
-  </div>
-  <div class="services-grid">
-    <div class="service-card featured">
-      <div class="service-icon">✦</div>
-      <div class="service-name">Full Colour & Blonding</div>
-      <div class="service-desc">My signature service. A bespoke blonding appointment covering balayage, highlights, toning, and a glossing treatment for that lit-from-within finish. Time and care, guaranteed.</div>
-      <div class="service-footer">
-        <div>
-          <div class="service-price">From £185</div>
-          <div class="service-duration">3–4 hours</div>
+    <div class="services-grid">
+      <div class="service-card featured">
+        <div class="service-icon">✨</div>
+        <div class="service-name">Boho Braids &amp; Twists</div>
+        <div class="service-desc">Our most popular style — effortlessly free-flowing with added texture and bohemian charm. Human hair included in every price.</div>
+        <div class="service-footer">
+          <div>
+            <div class="service-price">from £110</div>
+            <div class="service-duration">~3–8 hours depending on size</div>
+          </div>
+          <button class="service-book-btn" onclick="bookService('Boho Braids/Twists')">Book</button>
         </div>
-        <button class="service-book-btn" onclick="selectServiceAndBook('Full Colour & Blonding','185')">Book this</button>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">💫</div>
+        <div class="service-name">Knotless Braids &amp; Twists</div>
+        <div class="service-desc">Gentle on your edges, stunning in style. A classic elevated look with a pain-free install.</div>
+        <div class="service-footer">
+          <div>
+            <div class="service-price">from £90</div>
+            <div class="service-duration">~2–7 hours depending on size</div>
+          </div>
+          <button class="service-book-btn" onclick="bookService('Knotless Braids/Twists')">Book</button>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🌸</div>
+        <div class="service-name">Goddess Braids &amp; Twists</div>
+        <div class="service-desc">Bold, sculptural styles with human hair included. Statement-making protective styles that last.</div>
+        <div class="service-footer">
+          <div>
+            <div class="service-price">from £90</div>
+            <div class="service-duration">~3–7.5 hours depending on size</div>
+          </div>
+          <button class="service-book-btn" onclick="bookService('Goddess Braids/Twists')">Book</button>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🎨</div>
+        <div class="service-name">Colour &amp; Blonding</div>
+        <div class="service-desc">Full colour transformations and balayage from £145. Includes a complimentary consultation.</div>
+        <div class="service-footer">
+          <div>
+            <div class="service-price">from £145</div>
+            <div class="service-duration">Consultation required</div>
+          </div>
+          <button class="service-book-btn" onclick="bookService('Balayage')">Book</button>
+        </div>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">💍</div>
+        <div class="service-name">Bridal Styling</div>
+        <div class="service-desc">Your most important day deserves your most beautiful hair. Bespoke bridal looks from £220.</div>
+        <div class="service-footer">
+          <div>
+            <div class="service-price">from £220</div>
+            <div class="service-duration">By appointment</div>
+          </div>
+          <button class="service-book-btn" onclick="bookService('Bridal Styling')">Book</button>
+        </div>
       </div>
     </div>
-    <div class="service-card">
-      <div class="service-icon">✂</div>
-      <div class="service-name">Precision Cut</div>
-      <div class="service-desc">A tailored cut designed for your face shape, texture, and lifestyle — styled and finished to perfection.</div>
-      <div class="service-footer">
-        <div>
-          <div class="service-price">From £75</div>
-          <div class="service-duration">60–75 min</div>
-        </div>
-        <button class="service-book-btn" onclick="selectServiceAndBook('Precision Cut','75')">Book this</button>
-      </div>
-    </div>
-    <div class="service-card">
-      <div class="service-icon">🌿</div>
-      <div class="service-name">Balayage</div>
-      <div class="service-desc">Hand-painted colour for a sun-kissed, natural look with beautifully soft regrowth.</div>
-      <div class="service-footer">
-        <div>
-          <div class="service-price">From £145</div>
-          <div class="service-duration">2.5–3.5 hours</div>
-        </div>
-        <button class="service-book-btn" onclick="selectServiceAndBook('Balayage','145')">Book this</button>
-      </div>
-    </div>
-    <div class="service-card">
-      <div class="service-icon">💍</div>
-      <div class="service-name">Bridal Styling</div>
-      <div class="service-desc">Trial + wedding day styling package. Includes a full consultation and pin curl practice run.</div>
-      <div class="service-footer">
-        <div>
-          <div class="service-price">From £220</div>
-          <div class="service-duration">2–3 hours</div>
-        </div>
-        <button class="service-book-btn" onclick="selectServiceAndBook('Bridal Styling','220')">Book this</button>
-      </div>
-    </div>
-    <div class="service-card">
-      <div class="service-icon">🎨</div>
-      <div class="service-name">Colour Correction</div>
-      <div class="service-desc">Complex colour corrections handled with expertise. Requires a consultation prior to booking.</div>
-      <div class="service-footer">
-        <div>
-          <div class="service-price">POA</div>
-          <div class="service-duration">Varies</div>
-        </div>
-        <button class="service-book-btn" onclick="selectServiceAndBook('Colour Correction','0')">Enquire</button>
-      </div>
-    </div>
-  </div>
-</section>
+  </section>
 </div>
 
 <!-- PORTFOLIO -->
 <div id="portfolio-wrap">
-<section id="portfolio">
-  <div class="portfolio-header">
-    <span class="section-eyebrow">My Work</span>
-    <h2 class="section-title">Fresh from the chair</h2>
-    <p class="section-sub">Real results for real people. Swipe through recent looks from the studio.</p>
-    <div class="portfolio-filters">
-      <button class="filter-btn active" onclick="filterPortfolio(this,'all')">All</button>
-      <button class="filter-btn" onclick="filterPortfolio(this,'Braids')">Braids</button>
-      <button class="filter-btn" onclick="filterPortfolio(this,'Twists')">Twists</button>
-     
+  <section id="portfolio">
+    <div class="portfolio-header">
+      <span class="section-eyebrow">Portfolio</span>
+      <h2 class="section-title">Recent work</h2>
+      <p class="section-sub">Every head of hair tells a story. Here are some of my favourites.</p>
+      <div class="portfolio-filters">
+        <button class="filter-btn active">All</button>
+        <button class="filter-btn">Braids</button>
+        <button class="filter-btn">Twists</button>
+        <button class="filter-btn">Boho</button>
+        <button class="filter-btn">Colour</button>
+        <button class="filter-btn">Bridal</button>
+      </div>
     </div>
-  </div>
-  <div class="portfolio-grid">
-    <div class="portfolio-item" data-cat="colour">
-
-      <div class="portfolio-placeholder">
-         <img src="Fulani Kinky twists.png" alt="FKT">
-        </div>
-     
-      <div class="portfolio-overlay"><span class="portfolio-label">Fulani Kinky Twists</span></div>
+    <div class="portfolio-grid">
+      <div class="portfolio-item">
+        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#4a2850,#6b3a5d);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.3);font-family:'Playfair Display',serif;font-style:italic;">Your photo here</div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Knotless Braids</span></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#5a3060,#3d2840);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Boho Twists</span></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#3d2840,#4a2850);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Goddess Braids</span></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#6b3a5d,#4a2850);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#4a2850,#5a3060);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Kinky Twists</span></div>
+      </div>
+      <div class="portfolio-item">
+        <div class="portfolio-placeholder" style="background:linear-gradient(145deg,#3d2840,#6b3a5d);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(232,213,183,0.2);font-family:'Playfair Display',serif;font-style:italic;font-size:0.8rem;">Photo</div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Feed In Braids</span></div>
+      </div>
     </div>
-    <div class="portfolio-item" data-cat="Twists">
-
-      <div class="portfolio-placeholder">
-         <img src="Fulani Kinky twists 2.jpeg" alt="FKT2">
-        </div>
-
-      <div class="portfolio-overlay"><span class="portfolio-label">Fulani Kinky Twists 2</span></div>
-    </div>
-    <div class="portfolio-item" data-cat="Twists">
-
-      <div class="portfolio-placeholder">
-         <img src="Fulani Braids.jpeg" alt="Fulani Braids">
-        </div>
-
-      <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
-    </div>
-    <div class="portfolio-item" data-cat="Braids">
-
-     <div class="portfolio-placeholder">
-         <img src="Boho Braids.jpeg" alt="Boho Braids" class="top-focus">
-        </div>
-
-      <div class="portfolio-overlay"><span class="portfolio-label">Boho Braids</span></div>
-    </div>
-    <div class="portfolio-item" data-cat="Braids">
-
-      <div class="portfolio-placeholder">
-         <img src="Miracle Knots.jpeg" alt="Miracle Knots">
-        </div>
-
-      <div class="portfolio-overlay"><span class="portfolio-label">Miracle Knots</span></div>
-    </div>
-  </div>
-</section>
+  </section>
 </div>
 
 <!-- BOOKING -->
 <div id="booking-wrap">
-<section id="booking">
-  <div class="booking-info">
-    <span class="section-eyebrow">Book Your Appointment</span>
-    <h2 class="section-title">Reserve your spot in the chair</h2>
-    <p>Appointments are released on the 15th of each month at 12:00pm<br>Your full appointment address will be provided within your booking confirmation email.</p>
-    <div class="booking-policies">
-      <div class="policy-item">
-        <div class="policy-icon">🔒</div>
-        <div class="policy-text">
-          <h4>Secure deposit</h4>
-         <p>A <strong>£15 booking fee </strong> is required to secure your appointment. Booking fees are <strong> non-refundable and non-transferable </strong>unless your appointment is cancelled by KSHO Hair.</p>
-    
-        
-        </div>
-      </div>
-      <div class="policy-item">
-        <div class="policy-icon">📋</div>
-        <div class="policy-text">
-          <h4>Free Consultation</h4>
-          <p>Every booked service comes with a complimentary consultation</p>
-        </div>
-      </div>
-      <div class="policy-item">
-        <div class="policy-icon">🔄</div>
-        <div class="policy-text">
-          <h4>Booking Management & Cancellation Policy</h4>
-          <p>- Appointments cancelled within 24 hours of the appointment may be subject to cancellation charges.</p>
-          <p>- Mobile appointments require <strong>a minimum of 72 hours' notice.</strong></p>
-          <p>- Home appointments may be cancelled or rescheduled <strong> up to 48 hours before the scheduled appointment time</strong>.</p>
-          <p>- Emergencies and unforeseen circumstances will be considered on a case-by-case basis. Please provide as much notice as possible.</p>
-        </div>
-      </div>
-      <div class="policy-item">
-        <div class="policy-icon">💳</div>
-        <div class="policy-text">
-          <h4>Flexible payment</h4>
-          <p>Cash or Bank Transfer.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="booking-form-card">
-    <!-- Step indicators -->
-    <div class="step-indicator">
-      <div class="step-dot active" id="dot-1"></div>
-      <div class="step-dot" id="dot-2"></div>
-      <div class="step-dot" id="dot-3"></div>
-      <div class="step-dot" id="dot-4"></div>
-    </div>
-
-    <!-- Step 1: Service -->
-    <div class="form-step active" id="step-1">
-      <div class="step-title">Choose your service</div>
-      <div class="step-sub">Select the treatment you'd like to book</div>
-      <div class="service-select-grid" id="service-grid">
-        <div class="service-option selected" onclick="selectService(this,'Precision Cut','75')">
-          <div class="svc-name">✂ Precision Cut</div>
-          <div class="svc-price">From £75</div>
-        </div>
-        <div class="service-option" onclick="selectService(this,'Balayage','145')">
-          <div class="svc-name">🌿 Balayage</div>
-          <div class="svc-price">From £145</div>
-        </div>
-        <div class="service-option" onclick="selectService(this,'Full Colour & Blonding','185')">
-          <div class="svc-name">✦ Full Colour</div>
-          <div class="svc-price">From £185</div>
-        </div>
-        <div class="service-option" onclick="selectService(this,'Bridal Styling','220')">
-          <div class="svc-name">💍 Bridal</div>
-          <div class="svc-price">From £220</div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Any notes for me?</label>
-        <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
-      </div>
-      <div class="form-nav">
-        <button class="btn-next" onclick="nextStep(1)">Choose date & time →</button>
-      </div>
-    </div>
-
-    <!-- Step 2: Date & Time -->
-    <div class="form-step" id="step-2">
-      <div class="step-title">Pick your date & time</div>
-      <div class="step-sub">Available slots are shown below</div>
-      <div class="calendar">
-        <div class="cal-header">
-          <button onclick="changeMonth(-1)">‹</button>
-          <span class="cal-month" id="cal-month-label"></span>
-          <button onclick="changeMonth(1)">›</button>
-        </div>
-        <div class="cal-grid" id="cal-grid"></div>
-      </div>
-      <div class="time-slots" id="time-slots"></div>
-      <div class="form-nav">
-        <button class="btn-back" onclick="nextStep(0)">← Back</button>
-        <button class="btn-next" onclick="nextStep(2)">Your details →</button>
-      </div>
-    </div>
-
-    <!-- Step 3: Details -->
-    <div class="form-step" id="step-3">
-      <div class="step-title">Your details</div>
-      <div class="step-sub">So I know who I'm welcoming in</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>First Name</label>
-          <input type="text" placeholder="Emma" id="client-first"/>
-        </div>
-        <div class="form-group">
-          <label>Last Name</label>
-          <input type="text" placeholder="Thompson" id="client-last"/>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" placeholder="emma@example.com" id="client-email"/>
-      </div>
-      <div class="form-group">
-        <label>Phone Number</label>
-        <input type="tel" placeholder="+44 7700 900000" id="client-phone"/>
-      </div>
-      <div class="form-group">
-        <label>Have you visited before?</label>
-        <select id="client-returning">
-          <option>First time visiting</option>
-          <option>Returning client</option>
-        </select>
-      </div>
-      <div class="form-nav">
-        <button class="btn-back" onclick="nextStep(1)">← Back</button>
-        <button class="btn-next" onclick="nextStep(3)">Payment →</button>
-      </div>
-    </div>
-
-    <!-- Step 4: Payment -->
-    <div class="form-step" id="step-4">
-      <div class="step-title">Secure your booking</div>
-      <div class="step-sub">Choose how you'd like to pay today</div>
-      <div class="order-summary">
-        <div class="summary-row"><span>Service</span><span id="sum-service">Precision Cut</span></div>
-        <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
-        <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
-        <div class="summary-row total"><span>Total</span><span id="sum-total">£75</span></div>
-        <div class="summary-row paying"><span>Paying today</span><span id="sum-paying">—</span></div>
-      </div>
-      <div class="payment-options">
-        <div class="payment-option selected" onclick="selectPayment(this,'deposit')" id="pay-deposit">
-          <h4>🔒 Deposit</h4>
-          <p>Secure your slot now</p>
-          <div class="pay-amount" id="deposit-amount">£22</div>
-        </div>
-        <div class="payment-option" onclick="selectPayment(this,'full')" id="pay-full">
-          <h4>✓ Pay in Full</h4>
-          <p>Nothing to pay on the day</p>
-          <div class="pay-amount" id="full-amount">£75</div>
-        </div>
-      </div>
-      <div class="card-fields">
-        <div class="form-group">
-          <label>Card Number</label>
-          <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)"/>
-        </div>
-        <div class="card-row">
-          <div class="form-group">
-            <label>Cardholder Name</label>
-            <input type="text" placeholder="Emma Thompson"/>
+  <section id="booking">
+    <div class="booking-info">
+      <span class="section-eyebrow">Book Your Appointment</span>
+      <h2 class="section-title">Reserve your spot in the chair</h2>
+      <p>Appointments are released on the 15th of each month at 12:00pm. Your full appointment address will be provided within your booking confirmation email.</p>
+      <div class="booking-policies">
+        <div class="policy-item">
+          <div class="policy-icon">🔒</div>
+          <div class="policy-text">
+            <h4>Secure deposit</h4>
+            <p>A <strong>£15 booking fee</strong> is required to secure your appointment. Booking fees are <strong>non-refundable and non-transferable</strong> unless your appointment is cancelled by KSHO Hair.</p>
           </div>
-          <div class="form-group">
-            <label>Expiry</label>
-            <input type="text" placeholder="MM/YY" maxlength="5"/>
+        </div>
+        <div class="policy-item">
+          <div class="policy-icon">📋</div>
+          <div class="policy-text">
+            <h4>Free Consultation</h4>
+            <p>Every booked service comes with a complimentary consultation.</p>
           </div>
-          <div class="form-group">
-            <label>CVV</label>
-            <input type="text" placeholder="123" maxlength="3"/>
+        </div>
+        <div class="policy-item">
+          <div class="policy-icon">🔄</div>
+          <div class="policy-text">
+            <h4>Booking Management &amp; Cancellation Policy</h4>
+            <p>Appointments cancelled within 24 hours may be subject to cancellation charges.</p>
+            <p>Mobile appointments require <strong>a minimum of 72 hours' notice.</strong></p>
+            <p>Home appointments may be cancelled or rescheduled <strong>up to 48 hours before</strong> the scheduled time.</p>
+            <p>Emergencies will be considered on a case-by-case basis.</p>
+          </div>
+        </div>
+        <div class="policy-item">
+          <div class="policy-icon">💳</div>
+          <div class="policy-text">
+            <h4>Payment</h4>
+            <p>Cash or Bank Transfer on the day. A £15 deposit secures your booking.</p>
           </div>
         </div>
       </div>
-      <div class="form-nav">
-        <button class="btn-back" onclick="nextStep(2)">← Back</button>
-        <button class="btn-next" onclick="confirmBooking()">Confirm & Pay</button>
-      </div>
     </div>
 
-    <!-- Success -->
-    <div class="form-step" id="step-success">
-      <div class="booking-success">
-        <div class="success-icon">🌸</div>
-        <h3>You're booked in!</h3>
-        <p>A confirmation email is on its way to you. I can't wait to see you in the chair.</p>
-        <div class="booking-ref" id="booking-ref">REF: #ÉS-0001</div>
-        <p style="margin-top:1rem; font-size:0.82rem;">Have questions before your appointment? <a href="#contact-wrap" style="color:var(--rose)">Drop me a message.</a></p>
+    <div class="booking-form-card">
+      <div class="step-indicator">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+        <div class="step-dot" id="dot-4"></div>
+      </div>
+
+      <!-- Step 1: Service -->
+      <div class="form-step active" id="step-1">
+        <div class="step-title">Choose your service</div>
+        <div class="step-sub">Select a style, then choose your preferred size</div>
+        <div class="category-tabs" id="cat-tabs"></div>
+        <div class="service-panels" id="service-panels"></div>
+        <div class="addon-section">
+          <div class="addon-title">Add-ons</div>
+          <label class="addon-opt">
+            <input type="checkbox" checked disabled> Free consultation included with every booking
+          </label>
+        </div>
+        <div class="form-group" style="margin-top:1rem">
+          <label>Any notes for me?</label>
+          <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
+        </div>
+        <div class="form-nav">
+          <button class="btn-next" onclick="goToStep(2)">Choose date &amp; time →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Date & Time -->
+      <div class="form-step" id="step-2">
+        <div class="step-title">Pick your date &amp; time</div>
+        <div class="step-sub">Available slots shown below — Sundays are unavailable</div>
+        <div class="calendar">
+          <div class="cal-header">
+            <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+            <span class="cal-month" id="cal-month-label"></span>
+            <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+        <div id="time-slots-container">
+          <div class="no-date-msg">Select a date above to see available times</div>
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goToStep(1)">← Back</button>
+          <button class="btn-next" onclick="goToStep(3)">Your details →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Details -->
+      <div class="form-step" id="step-3">
+        <div class="step-title">Your details</div>
+        <div class="step-sub">So I know who I'm welcoming in</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" placeholder="Emma" id="client-first"/>
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" placeholder="Thompson" id="client-last"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" placeholder="emma@example.com" id="client-email"/>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" placeholder="+44 7700 900000" id="client-phone"/>
+        </div>
+        <div class="form-group">
+          <label>Have you visited before?</label>
+          <select id="client-returning">
+            <option>First time visiting</option>
+            <option>Returning client</option>
+          </select>
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goToStep(2)">← Back</button>
+          <button class="btn-next" onclick="goToStep(4)">Review &amp; Pay →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Payment -->
+      <div class="form-step" id="step-4">
+        <div class="step-title">Secure your booking</div>
+        <div class="step-sub">Review your appointment and pay the deposit</div>
+        <div class="order-summary">
+          <div class="summary-row"><span>Service</span><span id="sum-service">—</span></div>
+          <div class="summary-row"><span>Size</span><span id="sum-size">—</span></div>
+          <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
+          <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
+          <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
+          <div class="summary-row paying"><span>Paying today (deposit)</span><span id="sum-paying">£15</span></div>
+        </div>
+        <div class="payment-options">
+          <div class="payment-option selected" onclick="selectPayment(this,'deposit')" id="pay-deposit">
+            <h4>🔒 Deposit</h4>
+            <p>Secure your slot now</p>
+            <div class="pay-amount">£15</div>
+          </div>
+          <div class="payment-option" onclick="selectPayment(this,'full')" id="pay-full">
+            <h4>✓ Pay in Full</h4>
+            <p>Nothing to pay on the day</p>
+            <div class="pay-amount" id="full-amount">—</div>
+          </div>
+        </div>
+        <div class="card-fields">
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)"/>
+          </div>
+          <div class="card-row">
+            <div class="form-group">
+              <label>Cardholder Name</label>
+              <input type="text" placeholder="Emma Thompson"/>
+            </div>
+            <div class="form-group">
+              <label>Expiry</label>
+              <input type="text" placeholder="MM/YY" maxlength="5"/>
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" placeholder="123" maxlength="3"/>
+            </div>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button class="btn-back" onclick="goToStep(3)">← Back</button>
+          <button class="btn-next" onclick="confirmBooking()">Confirm &amp; Pay →</button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div class="form-step" id="step-success">
+        <div class="booking-success">
+          <div class="success-icon">🌸</div>
+          <h3>You're booked in!</h3>
+          <p>A confirmation email is on its way to you. I can't wait to see you in the chair.</p>
+          <div class="booking-ref" id="booking-ref">REF: #KSHO-0001</div>
+          <p style="margin-top:1rem;font-size:0.82rem;">Questions before your appointment? <a href="#contact-wrap" style="color:var(--rose)">Drop me a message.</a></p>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 </div>
 
 <!-- REVIEWS -->
 <div id="reviews-wrap">
-<section id="reviews">
-  <div class="reviews-header">
-    <div>
-      <span class="section-eyebrow">Client Reviews</span>
-      <h2 class="section-title">What my clients say</h2>
-    </div>
-    <div class="overall-rating">
-      <div class="rating-big">4.9</div>
-      <div class="rating-details">
-        <div class="stars">★★★★★</div>
-        <p>From 127 reviews</p>
+  <section id="reviews">
+    <div class="reviews-header">
+      <div>
+        <span class="section-eyebrow">Client Reviews</span>
+        <h2 class="section-title">What my clients say</h2>
+      </div>
+      <div class="overall-rating">
+        <div class="rating-big">5.0</div>
+        <div class="rating-details">
+          <div class="stars">★★★★★</div>
+          <p>Based on all reviews</p>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="reviews-grid">
-    <div class="review-card">
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">"I've been going to Élène for two years now and I genuinely don't trust anyone else with my hair. She listens, she advises, and she delivers every single time. My balayage is always perfect."</p>
-      <div class="review-author">
-        <div class="author-avatar">SJ</div>
-        <div class="author-info"><h4>Sophie J.</h4><p>Balayage client · 3 weeks ago</p></div>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Absolutely love my knotless braids. K took her time, checked in throughout, and the finish is immaculate. Already booked my next appointment!"</p>
+        <div class="review-author">
+          <div class="author-avatar">TJ</div>
+          <div class="author-info"><h4>Tiara J.</h4><p>Knotless Braids</p></div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"The boho twists she did for my holiday were absolutely gorgeous. I got so many compliments. The hair quality she uses is amazing."</p>
+        <div class="review-author">
+          <div class="author-avatar">AS</div>
+          <div class="author-info"><h4>Amara S.</h4><p>Boho Twists</p></div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"I was nervous about going to a new stylist but K made me feel so at ease. She listened to exactly what I wanted and delivered. Will not go anywhere else!"</p>
+        <div class="review-author">
+          <div class="author-avatar">CN</div>
+          <div class="author-info"><h4>Chloé N.</h4><p>Goddess Braids</p></div>
+        </div>
       </div>
     </div>
-    <div class="review-card">
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">"My wedding hair was an absolute dream. Élène did a full trial and made me feel so relaxed on the day. Worth every penny — I felt like a different woman walking down the aisle."</p>
-      <div class="review-author">
-        <div class="author-avatar">LM</div>
-        <div class="author-info"><h4>Laura M.</h4><p>Bridal Styling · 2 months ago</p></div>
+    <div class="leave-review-card">
+      <div class="leave-review-info">
+        <h3>Loved your experience?</h3>
+        <p>Your words mean the world and help other clients find the chair that's right for them. Take a moment to share your thoughts.</p>
+      </div>
+      <div class="review-form">
+        <div class="star-select" id="star-select">
+          <button class="star-btn" onclick="setStars(1)">★</button>
+          <button class="star-btn" onclick="setStars(2)">★</button>
+          <button class="star-btn" onclick="setStars(3)">★</button>
+          <button class="star-btn" onclick="setStars(4)">★</button>
+          <button class="star-btn" onclick="setStars(5)">★</button>
+        </div>
+        <input type="text" placeholder="Your name"/>
+        <textarea rows="4" placeholder="Share your experience..."></textarea>
+        <button class="btn-primary" style="width:100%">Submit Review</button>
       </div>
     </div>
-    <div class="review-card">
-      <div class="review-stars">★★★★★</div>
-      <p class="review-text">"I'd had a botched colour from a previous salon and was genuinely nervous. Élène was patient, honest, and the correction took years off me. Booked in immediately for my next appointment."</p>
-      <div class="review-author">
-        <div class="author-avatar">RC</div>
-        <div class="author-info"><h4>Rachel C.</h4><p>Colour Correction · 1 month ago</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Leave a Review -->
-  <div class="leave-review-card">
-    <div class="leave-review-info">
-      <span class="section-eyebrow" style="color:var(--rose)">Leave a Review</span>
-      <h3>Loved your appointment?</h3>
-      <p>Reviews mean the world to a small independent business. If you've had a great experience, do take a moment to share it — it genuinely helps.</p>
-    </div>
-    <div class="review-form">
-      <div class="star-select" id="star-select">
-        <button class="star-btn active" data-val="1" onclick="setStars(1)">★</button>
-        <button class="star-btn active" data-val="2" onclick="setStars(2)">★</button>
-        <button class="star-btn active" data-val="3" onclick="setStars(3)">★</button>
-        <button class="star-btn active" data-val="4" onclick="setStars(4)">★</button>
-        <button class="star-btn active" data-val="5" onclick="setStars(5)">★</button>
-      </div>
-      <input type="text" placeholder="Your name" id="review-name"/>
-      <textarea rows="4" placeholder="Share your experience — what did you love most?" id="review-text"></textarea>
-      <button class="btn-primary" onclick="submitReview()" style="width:100%">Submit Review</button>
-    </div>
-  </div>
-</section>
+  </section>
 </div>
 
 <!-- CONTACT -->
 <div id="contact-wrap">
-<section id="contact">
-  <div>
-    <span class="section-eyebrow">Get in Touch</span>
-    <h2 class="section-title" style="color:var(--champagne)">Let's talk about your hair</h2>
-    <p style="color:rgba(232,213,183,0.65);line-height:1.7;margin-top:0.5rem;font-size:0.95rem;">Whether you have a question before booking, want to discuss a complex colour, or just want to say hello — I'm always happy to chat.</p>
-    <div class="contact-info-items">
-      <div class="contact-item">
-        <div class="contact-icon">📍</div>
-        <div class="contact-item-text">
-          <h4>Location</h4>
-          <p>Chatham, Kent<br><em style="font-size:0.8rem;color:var(--rose)">Exact address sent on booking confirmation</em></p>
+  <section id="contact">
+    <div class="contact-info">
+      <span class="section-eyebrow">Get in Touch</span>
+      <h2 class="section-title">Let's talk about your hair</h2>
+      <p class="section-sub" style="color:rgba(232,213,183,0.65)">Have a question before booking? Want to discuss a custom style? I'd love to hear from you.</p>
+      <div class="contact-info-items">
+        <div class="contact-item">
+          <div class="contact-icon">📍</div>
+          <div class="contact-item-text">
+            <h4>Location</h4>
+            <p>Medway, Kent (exact address sent on booking confirmation)</p>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📱</div>
+          <div class="contact-item-text">
+            <h4>Instagram</h4>
+            <a href="#" target="_blank">@ksho.hair</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📧</div>
+          <div class="contact-item-text">
+            <h4>Email</h4>
+            <a href="mailto:hello@kshohair.co.uk">hello@kshohair.co.uk</a>
+          </div>
         </div>
       </div>
-      <div class="contact-item">
-        <div class="contact-icon">📧</div>
-        <div class="contact-item-text">
-          <h4>Email</h4>
-          <a href="mailto:hello@elenestyles.com">kshohair@gmail.com</a>
-        </div>
-      </div>
-      <div class="contact-item">
-        <div class="contact-icon">📱</div>
-        <div class="contact-item-text">
-          <h4>Instagram - Contact No.</h4>
-          <a href="https://www.instagram.com/ksho.hair/" target="_blank">@kshohair</a>
-        <p>07517 147325</p>
-        </div>
-      </div>
-      <div class="contact-item">
-        <div class="contact-icon">🕐</div>
-        <div class="contact-item-text">
-          <h4>Opening Hours</h4>
-          
-          <p>Monday: 8:00am – 6:00pm</p>
-          <p>Wednesday: 8:00am – 6:00pm</p>
-          <p>Friday: 8:00am – 6:00pm</p>
-          <p>Saturday: 10:00am – 7:00pm</p>
-          <h4> Tuesday, Thursday & Sunday - Closed</h4>
-        </div>
+      <div class="social-links">
+        <a class="social-btn" href="#" title="Instagram">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        </a>
+        <a class="social-btn" href="#" title="TikTok">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.73a8.18 8.18 0 004.78 1.52V6.79a4.85 4.85 0 01-1.01-.1z"/></svg>
+        </a>
       </div>
     </div>
-    <div class="social-links">
-      <a class="social-btn" title="Instagram" href="#">𝕀</a>
-      <a class="social-btn" title="TikTok" href="#">𝕋</a>
-      <a class="social-btn" title="Facebook" href="#">𝔽</a>
+    <div class="contact-form-card">
+      <h3>Send me a message</h3>
+      <p>I'll get back to you within 24 hours</p>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" placeholder="Emma Thompson"/>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" placeholder="emma@example.com"/>
+      </div>
+      <div class="form-group">
+        <label>What's this about?</label>
+        <select>
+          <option>Enquiry about a service</option>
+          <option>Booking question</option>
+          <option>Cancellation or rescheduling</option>
+          <option>Something else</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea rows="5" placeholder="Tell me what's on your mind..."></textarea>
+      </div>
+      <button class="btn-primary" style="width:100%">Send Message</button>
     </div>
-  </div>
-  <div class="contact-form-card">
-    <h3>Send me a message</h3>
-    <p>I aim to reply within 24 hours on studio days.</p>
-    <div class="form-group">
-      <label>Your Name</label>
-      <input type="text" placeholder="Your full name"/>
-    </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" placeholder="you@example.com"/>
-    </div>
-    <div class="form-group">
-      <label>What's it about?</label>
-      <select>
-        <option>General enquiry</option>
-        <option>Booking question</option>
-        <option>Colour consultation</option>
-        <option>Bridal enquiry</option>
-        <option>Reschedule / cancellation</option>
-        <option>Other</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Message</label>
-      <textarea rows="5" placeholder="Tell me what's on your mind..."></textarea>
-    </div>
-    <button class="btn-primary" style="width:100%" onclick="submitContact(this)">Send Message</button>
-  </div>
-</section>
+  </section>
 </div>
 
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">K.SHO Hair</div>
-  <span class="footer-copy">© 2026 K.SHO Hair. All rights reserved. Independent stylist, Kent.</span>
+  <div class="footer-copy">© 2025 K.SHO Hair. All rights reserved.</div>
   <div class="footer-links">
-    <a href="#">Privacy Policy</a>
-    <a href="#">Terms</a>
     <a href="#booking-wrap">Book Now</a>
+    <a href="#services-wrap">Services</a>
+    <a href="#contact-wrap">Contact</a>
   </div>
 </footer>
 
+<!-- STICKY BOOK -->
+<div class="sticky-book" id="sticky-book">
+  <a href="#booking-wrap">Book Now</a>
+</div>
+
 <script>
-// ── NAV SCROLL ──
+/* ============================================================
+   K.SHO HAIR — FULL SITE SCRIPT
+   ============================================================ */
+
+/* ---- Nav scroll ---- */
 window.addEventListener('scroll', () => {
-  const nav = document.getElementById('main-nav');
-  const sticky = document.getElementById('sticky-book');
-  if (window.scrollY > 80) { nav.classList.add('scrolled'); }
-  else { nav.classList.remove('scrolled'); }
-  if (window.scrollY > 500) { sticky.classList.add('visible'); }
-  else { sticky.classList.remove('visible'); }
+  document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 60);
+  document.getElementById('sticky-book').classList.toggle('visible', window.scrollY > 300);
 });
 
-// ── BOOKING FLOW ──
-let currentStep = 1;
-let booking = { service: 'Precision Cut', price: 75, date: null, time: null, paymentType: 'deposit' };
-
-function nextStep(from) {
-  if (from === 1) {
-    if (!booking.service) { alert('Please choose a service first.'); return; }
-  }
-  if (from === 2) {
-    if (!booking.date) { alert('Please pick a date.'); return; }
-    if (!booking.time) { alert('Please choose a time slot.'); return; }
-    // Update summary
-    document.getElementById('sum-service').textContent = booking.service;
-    document.getElementById('sum-date').textContent = booking.date;
-    document.getElementById('sum-time').textContent = booking.time;
-  }
-  if (from === 3) {
-    const first = document.getElementById('client-first').value.trim();
-    const email = document.getElementById('client-email').value.trim();
-    if (!first || !email) { alert('Please fill in your name and email.'); return; }
-    updatePaymentStep();
-  }
-  const newStep = from + 1;
-  document.getElementById('step-' + currentStep).classList.remove('active');
-  currentStep = newStep;
-  document.getElementById('step-' + currentStep).classList.add('active');
-  updateDots();
+/* ---- Mobile menu ---- */
+function toggleMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
 }
 
-function updateDots() {
-  for (let i = 1; i <= 4; i++) {
-    const dot = document.getElementById('dot-' + i);
-    dot.className = 'step-dot';
-    if (i < currentStep) dot.classList.add('done');
-    else if (i === currentStep) dot.classList.add('active');
-  }
-}
-
-function selectService(el, name, price) {
-  document.querySelectorAll('.service-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  booking.service = name;
-  booking.price = parseInt(price);
-}
-
-function selectServiceAndBook(name, price) {
-  booking.service = name;
-  booking.price = parseInt(price);
-  // select in grid if present
-  document.querySelectorAll('.service-option').forEach(o => {
-    const n = o.querySelector('.svc-name').textContent;
-    if (n.includes(name.split(' ')[0]) || name.includes(o.querySelector('.svc-name').textContent.replace(/^[^\w]+/,''))) {
-      o.classList.add('selected');
-    } else { o.classList.remove('selected'); }
+/* ---- Portfolio filters ---- */
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
   });
-  document.getElementById('booking-wrap').scrollIntoView({ behavior: 'smooth' });
+});
+
+/* ---- Star rating ---- */
+let selectedStars = 0;
+function setStars(n) {
+  selectedStars = n;
+  document.querySelectorAll('.star-btn').forEach((b, i) => b.classList.toggle('active', i < n));
 }
 
-// ── CALENDAR ──
-let calYear, calMonth, selectedDate = null, selectedTime = null;
-const BOOKED_SLOTS = { '15': ['10:00', '14:30'], '18': ['11:00'] };
-const TIMES = ['9:00','10:00','10:30','11:00','12:00','13:30','14:00','14:30','15:30','16:00','17:00'];
+/* ---- Service shortcuts (from service cards) ---- */
+function bookService(catName) {
+  const idx = SERVICES.findIndex(s => s.cat === catName);
+  if (idx > -1) selectCat(idx);
+  document.querySelector('#booking-wrap').scrollIntoView({ behavior: 'smooth' });
+}
 
-function initCalendar() {
+/* ============================================================
+   SERVICES DATA
+   ============================================================ */
+const SERVICES = [
+  {
+    cat: "Goddess Braids/Twists",
+    hairNote: "Hair included: +£80 per bundle of human hair (x1 bundle included in price)",
+    sizes: [
+      { name: "Small",   detail: "~7h 30min", price: 150 },
+      { name: "Smedium", detail: "~6 hours",  price: 130 },
+      { name: "Medium",  detail: "~4h 30min", price: 110 },
+      { name: "Large",   detail: "~3 hours",  price: 90  }
+    ]
+  },
+  {
+    cat: "Boho Braids/Twists",
+    hairNote: "Hair included: £160 (x3 bundles of human hair included in price)",
+    sizes: [
+      { name: "Small",   detail: "~8 hours", price: 180 },
+      { name: "Smedium", detail: "~7 hours", price: 150 },
+      { name: "Medium",  detail: "~5 hours", price: 130 },
+      { name: "Large",   detail: "~3 hours", price: 110 }
+    ]
+  },
+  {
+    cat: "Knotless Braids/Twists",
+    hairNote: null,
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 145 },
+      { name: "Smedium", detail: "~5 hours", price: 125 },
+      { name: "Medium",  detail: "~4 hours", price: 110 },
+      { name: "Large",   detail: "~2 hours", price: 90  }
+    ]
+  },
+  {
+    cat: "French Curls",
+    hairNote: null,
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 160 },
+      { name: "Smedium", detail: "~5 hours", price: 140 },
+      { name: "Medium",  detail: "~4 hours", price: 120 }
+    ]
+  },
+  {
+    cat: "Boho French Curls",
+    hairNote: null,
+    sizes: [
+      { name: "Small",   detail: "~7h 30min", price: 190 },
+      { name: "Smedium", detail: "~5h 30min", price: 170 },
+      { name: "Medium",  detail: "~4h 30min", price: 150 }
+    ]
+  },
+  {
+    cat: "Fulani Braids/Twists",
+    hairNote: null,
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 150 },
+      { name: "Smedium", detail: "~5 hours", price: 130 },
+      { name: "Medium",  detail: "~4 hours", price: 120 },
+      { name: "Large",   detail: "~2 hours", price: 100 }
+    ]
+  },
+  {
+    cat: "Fulani French Curls",
+    hairNote: null,
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 160 },
+      { name: "Smedium", detail: "~5 hours", price: 140 },
+      { name: "Medium",  detail: "~4 hours", price: 130 }
+    ]
+  },
+  {
+    cat: "Kinky Twists",
+    hairNote: "Hair included in price",
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 140 },
+      { name: "Smedium", detail: "~5 hours", price: 120 },
+      { name: "Medium",  detail: "~4 hours", price: 95  }
+    ]
+  },
+  {
+    cat: "Feed In / Stitch Braids",
+    hairNote: "Hair included. £10 extra for every 2 cornrows added.",
+    sizes: [
+      { name: "2–4 cornrows",  detail: "~1h 30min", price: 50 },
+      { name: "4–6 cornrows",  detail: "~2h 30min", price: 60 },
+      { name: "8–10 cornrows", detail: "~3h 30min", price: 70 },
+      { name: "10+ cornrows",  detail: "~4 hours",  price: 90 }
+    ]
+  },
+  {
+    cat: "Miracle Knots (Hair Provided)",
+    hairNote: "Hair provided by stylist: +£160 added to service price",
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 100 },
+      { name: "Smedium", detail: "~5 hours", price: 90  },
+      { name: "Medium",  detail: "~4 hours", price: 80  },
+      { name: "Large",   detail: "~2 hours", price: 70  }
+    ]
+  },
+  {
+    cat: "Miracle Knots (Own Hair)",
+    hairNote: "Please bring your own hair to the appointment",
+    sizes: [
+      { name: "Small",   detail: "~7 hours", price: 100 },
+      { name: "Smedium", detail: "~5 hours", price: 90  },
+      { name: "Medium",  detail: "~4 hours", price: 80  },
+      { name: "Large",   detail: "~2 hours", price: 70  }
+    ]
+  },
+  {
+    cat: "Feed In + Sew In",
+    hairNote: null,
+    sizes: [
+      { name: "Small",  detail: "", price: 100 },
+      { name: "Medium", detail: "", price: 80  },
+      { name: "Large",  detail: "", price: 70  }
+    ]
+  },
+  {
+    cat: "Natural Hair Braids/Twists",
+    hairNote: null,
+    sizes: [
+      { name: "Small",   detail: "~3 hours", price: 90 },
+      { name: "Smedium", detail: "~2 hours", price: 70 },
+      { name: "Medium",  detail: "~1 hour",  price: 60 },
+      { name: "Large",   detail: "~45 min",  price: 50 }
+    ]
+  },
+  {
+    cat: "Wig Cornrows",
+    hairNote: null,
+    sizes: [{ name: "Standard", detail: "", price: 15 }]
+  },
+  {
+    cat: "Precision Cut",
+    hairNote: null,
+    sizes: [{ name: "Standard", detail: "", price: 75 }]
+  },
+  {
+    cat: "Balayage",
+    hairNote: null,
+    sizes: [{ name: "Standard", detail: "", price: 145 }]
+  },
+  {
+    cat: "Full Colour & Blonding",
+    hairNote: null,
+    sizes: [{ name: "Standard", detail: "", price: 185 }]
+  },
+  {
+    cat: "Bridal Styling",
+    hairNote: null,
+    sizes: [{ name: "Standard", detail: "", price: 220 }]
+  }
+];
+
+/* ---- Booking State ---- */
+let selectedCat  = 0;
+let selectedSize = { price: SERVICES[0].sizes[0].price, name: SERVICES[0].sizes[0].name };
+let payMode      = 'deposit';
+let calYear, calMonth;
+let selectedDate = null;
+let selectedTime = null;
+
+/* ---- Build service UI ---- */
+function buildServiceUI() {
+  const tabs   = document.getElementById('cat-tabs');
+  const panels = document.getElementById('service-panels');
+
+  SERVICES.forEach((svc, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'cat-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = svc.cat;
+    tab.onclick = () => selectCat(i);
+    tabs.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'service-panel' + (i === 0 ? ' active' : '');
+    panel.id = 'panel-' + i;
+
+    if (svc.hairNote) {
+      const note = document.createElement('div');
+      note.className = 'hair-note';
+      note.textContent = svc.hairNote;
+      panel.appendChild(note);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'size-grid';
+
+    svc.sizes.forEach((sz, j) => {
+      const opt = document.createElement('div');
+      opt.className = 'size-opt' + (i === 0 && j === 0 ? ' selected' : '');
+      opt.innerHTML =
+        '<div class="svc-size-name">' + sz.name + '</div>' +
+        (sz.detail ? '<div class="svc-size-detail">' + sz.detail + '</div>' : '') +
+        '<div class="svc-size-price">£' + sz.price + '</div>';
+      opt.onclick = () => selectSize(i, j, opt, sz);
+      grid.appendChild(opt);
+    });
+
+    panel.appendChild(grid);
+    panels.appendChild(panel);
+  });
+}
+
+function selectCat(i) {
+  selectedCat  = i;
+  selectedSize = {};
+  document.querySelectorAll('.cat-tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
+  document.querySelectorAll('.service-panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
+  // Auto-select first size of new cat
+  const firstOpt = document.querySelector('#panel-' + i + ' .size-opt');
+  if (firstOpt) {
+    firstOpt.classList.add('selected');
+    const sz = SERVICES[i].sizes[0];
+    selectedSize = { price: sz.price, name: sz.name };
+  }
+}
+
+function selectSize(catIdx, szIdx, el, sz) {
+  document.querySelectorAll('#panel-' + catIdx + ' .size-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSize = { price: sz.price, name: sz.name };
+}
+
+/* ---- Step navigation ---- */
+function goToStep(n) {
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i < n - 1) d.classList.add('done');
+    else if (i === n - 1) d.classList.add('active');
+  });
+  if (n === 4) updatePaySummary();
+  document.getElementById('step-' + n).classList.add('active');
+}
+
+/* ---- Payment ---- */
+function selectPayment(el, mode) {
+  payMode = mode;
+  document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  updatePaySummary();
+}
+
+function updatePaySummary() {
+  const price = selectedSize.price || 0;
+  document.getElementById('sum-service').textContent = SERVICES[selectedCat].cat;
+  document.getElementById('sum-size').textContent    = selectedSize.name || '—';
+  document.getElementById('sum-date').textContent    = selectedDate || '—';
+  document.getElementById('sum-time').textContent    = selectedTime || '—';
+  document.getElementById('sum-total').textContent   = price ? '£' + price : '—';
+  document.getElementById('full-amount').textContent = price ? '£' + price : '—';
+  document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£15 deposit' : (price ? '£' + price : '—');
+}
+
+/* ---- Confirm ---- */
+function confirmBooking() {
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+  document.getElementById('booking-ref').textContent = 'REF: #KSHO-' + Math.floor(1000 + Math.random() * 9000);
+  document.getElementById('step-success').classList.add('active');
+}
+
+/* ---- Card formatting ---- */
+function fmtCard(el) {
+  let v = el.value.replace(/\D/g, '').substring(0, 16);
+  el.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/* ---- Calendar ---- */
+const DAYS   = ['Mo','Tu','We','Th','Fr','Sa','Su'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const TIMES  = ['9:00am','10:00am','11:00am','12:00pm','1:00pm','2:00pm','3:00pm','4:00pm'];
+
+function initCal() {
   const now = new Date();
-  calYear = now.getFullYear(); calMonth = now.getMonth();
-  renderCalendar();
+  calYear   = now.getFullYear();
+  calMonth  = now.getMonth();
+  renderCal();
 }
 
-function renderCalendar() {
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('cal-month-label').textContent = months[calMonth] + ' ' + calYear;
+function changeMonth(d) {
+  calMonth += d;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCal();
+}
+
+function renderCal() {
+  document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
-  ['M','T','W','T','F','S','S'].forEach(d => {
-    const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = d; grid.appendChild(el);
+
+  DAYS.forEach(d => {
+    const l = document.createElement('div');
+    l.className = 'cal-day-label';
+    l.textContent = d;
+    grid.appendChild(l);
   });
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const offset = (firstDay + 6) % 7;
-  const days = new Date(calYear, calMonth + 1, 0).getDate();
-  const today = new Date();
-  for (let i = 0; i < offset; i++) {
-    const el = document.createElement('div'); el.className = 'cal-day empty'; grid.appendChild(el);
+
+  const first = new Date(calYear, calMonth, 1);
+  let startDay = first.getDay();
+  startDay = startDay === 0 ? 6 : startDay - 1; // Monday-first
+
+  for (let i = 0; i < startDay; i++) {
+    const e = document.createElement('div');
+    e.className = 'cal-day empty';
+    grid.appendChild(e);
   }
-  for (let d = 1; d <= days; d++) {
-    const el = document.createElement('div'); el.className = 'cal-day';
+
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt   = new Date(calYear, calMonth, d);
+    const el   = document.createElement('div');
+    const past = dt < today;
+    const dow  = dt.getDay();
+    const avail = !past && dow !== 0; // Sundays unavailable
+    el.className = 'cal-day ' + (avail ? 'available' : 'disabled');
+    if (!past && !avail) el.title = 'Sundays unavailable';
+    // Mark today
+    const isToday = dt.toDateString() === today.toDateString();
+    if (isToday && avail) el.classList.add('today');
     el.textContent = d;
-    const date = new Date(calYear, calMonth, d);
-    const dayOfWeek = date.getDay();
-    const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const isSunMon = dayOfWeek === 0 || dayOfWeek === 1;
-    if (isPast || isSunMon) { el.classList.add('disabled'); }
-    else {
-      const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
-      if (isToday) el.classList.add('today');
-      if (selectedDate === d + '' + calMonth + calYear) el.classList.add('selected');
-      el.onclick = () => selectDate(d, el);
-    }
+    if (avail) el.onclick = () => pickDate(d, el);
     grid.appendChild(el);
   }
 }
 
-function selectDate(d, el) {
+function pickDate(d, el) {
   document.querySelectorAll('.cal-day').forEach(x => x.classList.remove('selected'));
   el.classList.add('selected');
-  selectedDate = d + '' + calMonth + calYear;
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  booking.date = d + ' ' + months[calMonth] + ' ' + calYear;
-  renderTimeSlots(d);
+  selectedDate = d + ' ' + MONTHS[calMonth] + ' ' + calYear;
+  selectedTime = null;
+  renderTimes();
 }
 
-function renderTimeSlots(day) {
-  const container = document.getElementById('time-slots');
+function renderTimes() {
+  const container = document.getElementById('time-slots-container');
   container.innerHTML = '';
-  const bookedForDay = BOOKED_SLOTS[day] || [];
+  if (!selectedDate) {
+    container.innerHTML = '<div class="no-date-msg">Select a date above to see available times</div>';
+    return;
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'time-slots';
+
   TIMES.forEach(t => {
-    const el = document.createElement('button');
-    el.className = 'time-slot'; el.textContent = t;
-    if (bookedForDay.includes(t)) { el.classList.add('booked'); el.disabled = true; }
-    else { el.onclick = () => selectTime(t, el); }
-    container.appendChild(el);
+    const el = document.createElement('div');
+    el.className = 'time-slot';
+    el.textContent = t;
+    el.onclick = () => {
+      document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedTime = t;
+    };
+    wrap.appendChild(el);
   });
+
+  container.appendChild(wrap);
 }
 
-function selectTime(t, el) {
-  document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
-  el.classList.add('selected');
-  booking.time = t;
-  selectedTime = t;
-}
-
-function changeMonth(dir) {
-  calMonth += dir;
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  renderCalendar();
-}
-
-// ── PAYMENT ──
-function updatePaymentStep() {
-  const price = booking.price;
-  const deposit = Math.round(price * 0.30);
-  document.getElementById('sum-total').textContent = price > 0 ? '£' + price : 'POA';
-  document.getElementById('deposit-amount').textContent = '£' + deposit;
-  document.getElementById('full-amount').textContent = price > 0 ? '£' + price : 'POA';
-  updatePayingAmount();
-}
-
-function selectPayment(el, type) {
-  document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  booking.paymentType = type;
-  updatePayingAmount();
-}
-
-function updatePayingAmount() {
-  const price = booking.price;
-  const deposit = Math.round(price * 0.30);
-  const paying = booking.paymentType === 'deposit' ? '£' + deposit : (price > 0 ? '£' + price : 'POA');
-  document.getElementById('sum-paying').textContent = paying;
-}
-
-function formatCard(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,16);
-  input.value = v.replace(/(.{4})/g,'$1 ').trim();
-}
-
-function confirmBooking() {
-  const cardNum = document.querySelector('.card-fields input').value.replace(/\s/g,'');
-  if (cardNum.length < 16) { alert('Please enter a valid card number.'); return; }
-  document.getElementById('step-4').classList.remove('active');
-  const ref = '#ÉS-' + Math.floor(1000 + Math.random() * 9000);
-  document.getElementById('booking-ref').textContent = 'REF: ' + ref;
-  document.getElementById('step-success').classList.add('active');
-  document.querySelectorAll('.step-dot').forEach(d => d.classList.add('done'));
-}
-
-// ── PORTFOLIO FILTER ──
-function filterPortfolio(btn, cat) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.portfolio-item').forEach(item => {
-    if (cat === 'all' || item.dataset.cat === cat) {
-      item.style.display = '';
-    } else {
-      item.style.display = 'none';
-    }
-  });
-}
-
-// ── REVIEWS ──
-let currentStars = 5;
-function setStars(n) {
-  currentStars = n;
-  document.querySelectorAll('.star-btn').forEach(b => {
-    b.classList.toggle('active', parseInt(b.dataset.val) <= n);
-  });
-}
-function submitReview() {
-  const name = document.getElementById('review-name').value.trim();
-  const text = document.getElementById('review-text').value.trim();
-  if (!name || !text) { alert('Please fill in your name and review.'); return; }
-  // Inject review into grid
-  const grid = document.querySelector('.reviews-grid');
-  const card = document.createElement('div'); card.className = 'review-card';
-  const stars = '★'.repeat(currentStars) + '☆'.repeat(5 - currentStars);
-  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  card.innerHTML = `
-    <div class="review-stars">${stars}</div>
-    <p class="review-text">"${text}"</p>
-    <div class="review-author">
-      <div class="author-avatar">${initials}</div>
-      <div class="author-info"><h4>${name}</h4><p>Just now</p></div>
-    </div>`;
-  grid.prepend(card);
-  document.getElementById('review-name').value = '';
-  document.getElementById('review-text').value = '';
-  setStars(5);
-  alert('Thank you for your review! 🌸');
-}
-
-// ── CONTACT ──
-function submitContact(btn) {
-  btn.textContent = 'Message sent! 🌸';
-  btn.style.background = 'var(--success)';
-  btn.disabled = true;
-  setTimeout(() => { btn.textContent = 'Send Message'; btn.style.background = ''; btn.disabled = false; }, 3000);
-}
-
-// ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
-  initCalendar();
-  updateDots();
-});
+/* ---- Init ---- */
+buildServiceUI();
+initCal();
 </script>
 </body>
 </html>

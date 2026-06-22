@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>K SHO Hair — Independent Hair Stylist</title>
+<title>K.SHO Hair — Independent Hair Stylist</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -126,13 +126,12 @@
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; position: relative;
   }
-  .portrait-placeholder img {
+ .portrait-placeholder img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-  }
   .portrait-placeholder svg { width: 80px; height: 80px; }
   .portrait-placeholder p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem; }
   .portrait-badge {
@@ -261,16 +260,27 @@
     cursor: pointer;
     transition: transform 0.25s;
   }
+
+  .top-focus {
+  object-position: center 35%;
+}
   .portfolio-item:hover { transform: scale(1.02); }
   .portfolio-item:nth-child(1) { grid-column: span 2; grid-row: span 2; aspect-ratio: 1; }
   .portfolio-item:not(:nth-child(1)) { aspect-ratio: 1; }
   .portfolio-placeholder {
-    width: 100%; height: 100%; min-height: 140px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 0.6rem; color: rgba(232,213,183,0.3);
-    font-style: italic; font-family: 'Playfair Display', serif; font-size: 0.8rem;
-    padding: 1rem;
-  }
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.portfolio-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  
+  
+}
   .portfolio-overlay {
     position: absolute; inset: 0; background: linear-gradient(to top, rgba(45,27,46,0.85) 0%, transparent 50%);
     opacity: 0; transition: opacity 0.25s; display: flex; align-items: flex-end; padding: 1rem;
@@ -536,7 +546,7 @@
 
 <!-- NAV -->
 <nav id="main-nav">
-  <div class="nav-logo">K SHO Hair </div>
+  <div class="nav-logo">K.SHO Hair</div>
   <ul class="nav-links">
     <li><a href="#about-wrap">About</a></li>
     <li><a href="#services-wrap">Services</a></li>
@@ -573,24 +583,23 @@
     <div class="hero-text">
       <span class="hero-eyebrow">Independent Hair Stylist · Kent</span>
       <h1 class="hero-title">Where hair becomes <em>your story</em></h1>
-      <p class="hero-sub">Precision cuts, transformative colour, and bespoke styling tailored entirely to you. Every appointment is a collaboration, every result a confidence boost.</p>
+      <p class="hero-sub">Specialist braids, twists, and protective styling tailored entirely to you. Every appointment is personal, every style expertly crafted, and every result designed to leave you feeling confident and beautiful.</p>
       <div class="hero-actions">
         <a href="#booking-wrap" class="btn-primary">Book an Appointment</a>
         <a href="#portfolio-wrap" class="btn-ghost">View My Work</a>
       </div>
     </div>
- <div class="portrait-placeholder">
-  <img src="keziahprofile.jpg" alt="Stylist portrait">
+   <div class="portrait-placeholder">
+  <img src="C:\Users\micha\OneDrive\Pictures\keziahprofile.jpg" alt="Stylist portrait">
 </div>
-      </div>
+     
       <div class="portrait-badge">
         <div class="badge-num">8+</div>
         <div class="badge-label">Years of<br>experience</div>
       </div>
       <div class="hero-stats">
-        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">500+ happy clients</span></div>
+        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">300+ happy clients</span></div>
         <div class="stat-item"><div class="stat-dot rose"></div><span class="stat-text">4.9★ average rating</span></div>
-        <div class="stat-item"><div class="stat-dot"></div><span class="stat-text">Fully insured</span></div>
       </div>
     </div>
   </div>
@@ -600,10 +609,11 @@
 <div id="about-wrap">
 <section id="about">
   <div class="about-img-grid">
-    <div class="about-img">Studio</div>
-    <div class="about-img">At work</div>
-    <div class="about-img">The space</div>
-  </div>
+    
+    <div class="portrait-placeholder">
+  <img src="C:\Users\micha\Downloads\Keziah.jpeg" alt="Stylist portrait">
+</div>
+  
   <div class="about-text">
     <span class="section-eyebrow">About Me</span>
     <h2 class="section-title">Hello, I'm Keziah — your hair's new best friend.</h2>
@@ -707,49 +717,51 @@
     <p class="section-sub">Real results for real people. Swipe through recent looks from the studio.</p>
     <div class="portfolio-filters">
       <button class="filter-btn active" onclick="filterPortfolio(this,'all')">All</button>
-      <button class="filter-btn" onclick="filterPortfolio(this,'colour')">Colour</button>
-      <button class="filter-btn" onclick="filterPortfolio(this,'cuts')">Cuts</button>
-      <button class="filter-btn" onclick="filterPortfolio(this,'bridal')">Bridal</button>
-      <button class="filter-btn" onclick="filterPortfolio(this,'creative')">Creative</button>
+      <button class="filter-btn" onclick="filterPortfolio(this,'Braids')">Braids</button>
+      <button class="filter-btn" onclick="filterPortfolio(this,'Twists')">Twists</button>
+     
     </div>
   </div>
   <div class="portfolio-grid">
     <div class="portfolio-item" data-cat="colour">
+
       <div class="portfolio-placeholder">
-        <img src="Fulani Braids.jpeg" alt="Fulani Braids">
+         <img src="C:\Users\micha\Downloads\Fulani Kinky twists.png" alt="FKT">
         </div>
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
-        Platinum Balayage
-      </div>
-      <div class="portfolio-overlay"><span class="portfolio-label">Platinum Balayage</span></div>
+     
+      <div class="portfolio-overlay"><span class="portfolio-label">Fulani Kinky Twists</span></div>
     </div>
-    <div class="portfolio-item" data-cat="cuts">
+    <div class="portfolio-item" data-cat="Twists">
+
       <div class="portfolio-placeholder">
-        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
-        Bob Cut
-      </div>
-      <div class="portfolio-overlay"><span class="portfolio-label">The Perfect Bob</span></div>
+         <img src="C:\Users\micha\Downloads\Fulani Kinky twists 2.jpeg" alt="FKT2">
+        </div>
+
+      <div class="portfolio-overlay"><span class="portfolio-label">Fulani Kinky Twists 2</span></div>
     </div>
-    <div class="portfolio-item" data-cat="colour">
+    <div class="portfolio-item" data-cat="Twists">
+
       <div class="portfolio-placeholder">
-        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
-        Copper Gloss
-      </div>
-      <div class="portfolio-overlay"><span class="portfolio-label">Copper Gloss</span></div>
+         <img src="C:\Users\micha\Downloads\Fulani Braids.jpeg" alt="Fulani Braids">
+        </div>
+
+      <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
     </div>
-    <div class="portfolio-item" data-cat="bridal">
-      <div class="portfolio-placeholder">
-        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
-        Bridal Updo
-      </div>
-      <div class="portfolio-overlay"><span class="portfolio-label">Romantic Bridal Updo</span></div>
+    <div class="portfolio-item" data-cat="Braids">
+
+     <div class="portfolio-placeholder">
+         <img src="C:\Users\micha\Downloads\Boho Braids.jpeg" alt="Boho Braids" class="top-focus">
+        </div>
+
+      <div class="portfolio-overlay"><span class="portfolio-label">Boho Braids</span></div>
     </div>
-    <div class="portfolio-item" data-cat="creative">
+    <div class="portfolio-item" data-cat="Braids">
+
       <div class="portfolio-placeholder">
-        <svg width="30" height="30" viewBox="0 0 40 40" fill="none"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="15" cy="15" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 26l9-9 7 7 5-5 7 7" stroke="currentColor" stroke-width="1.5"/></svg>
-        Vivid Violet
-      </div>
-      <div class="portfolio-overlay"><span class="portfolio-label">Vivid Violet</span></div>
+         <img src="C:\Users\micha\Downloads\Miracle Knots.jpeg" alt="Miracle Knots">
+        </div>
+
+      <div class="portfolio-overlay"><span class="portfolio-label">Miracle Knots</span></div>
     </div>
   </div>
 </section>
@@ -761,34 +773,39 @@
   <div class="booking-info">
     <span class="section-eyebrow">Book Your Appointment</span>
     <h2 class="section-title">Reserve your spot in the chair</h2>
-    <p>Slots fill up fast — book ahead to secure your preferred date. A deposit locks in your appointment and gives you priority rescheduling.</p>
+    <p>Appointments are released on the 15th of each month at 12:00pm<br>Your full appointment address will be provided within your booking confirmation email.</p>
     <div class="booking-policies">
       <div class="policy-item">
         <div class="policy-icon">🔒</div>
         <div class="policy-text">
           <h4>Secure deposit</h4>
-          <p>A 30% deposit is taken at booking and deducted from your final balance on the day.</p>
-        </div>
-      </div>
-      <div class="policy-item">
-        <div class="policy-icon">🔄</div>
-        <div class="policy-text">
-          <h4>Free rescheduling</h4>
-          <p>Cancel or reschedule with 48 hours' notice and your deposit transfers to your new slot.</p>
+         <p>A <strong>£15 booking fee </strong> is required to secure your appointment. Booking fees are <strong> non-refundable and non-transferable </strong>unless your appointment is cancelled by KSHO Hair.</p>
+    
+        
         </div>
       </div>
       <div class="policy-item">
         <div class="policy-icon">📋</div>
         <div class="policy-text">
-          <h4>Consultation included</h4>
-          <p>Every appointment starts with a proper sit-down to make sure we're aligned on your vision.</p>
+          <h4>Free Consultation</h4>
+          <p>Every booked service comes with a complimentary consultation</p>
+        </div>
+      </div>
+      <div class="policy-item">
+        <div class="policy-icon">🔄</div>
+        <div class="policy-text">
+          <h4>Booking Management & Cancellation Policy</h4>
+          <p>- Appointments cancelled within 24 hours of the appointment may be subject to cancellation charges.</p>
+          <p>- Mobile appointments require <strong>a minimum of 72 hours' notice.</strong></p>
+          <p>- Home appointments may be cancelled or rescheduled <strong> up to 48 hours before the scheduled appointment time</strong>.</p>
+          <p>- Emergencies and unforeseen circumstances will be considered on a case-by-case basis. Please provide as much notice as possible.</p>
         </div>
       </div>
       <div class="policy-item">
         <div class="policy-icon">💳</div>
         <div class="policy-text">
           <h4>Flexible payment</h4>
-          <p>Pay deposit, full amount, or split — all major cards accepted.</p>
+          <p>Cash or Bank Transfer.</p>
         </div>
       </div>
     </div>
@@ -970,7 +987,7 @@
   <div class="reviews-grid">
     <div class="review-card">
       <div class="review-stars">★★★★★</div>
-      <p class="review-text">"I've been going to Keziah for two years now and I genuinely don't trust anyone else with my hair. She listens, she advises, and she delivers every single time. My balayage is always perfect."</p>
+      <p class="review-text">"I've been going to Élène for two years now and I genuinely don't trust anyone else with my hair. She listens, she advises, and she delivers every single time. My balayage is always perfect."</p>
       <div class="review-author">
         <div class="author-avatar">SJ</div>
         <div class="author-info"><h4>Sophie J.</h4><p>Balayage client · 3 weeks ago</p></div>
@@ -978,7 +995,7 @@
     </div>
     <div class="review-card">
       <div class="review-stars">★★★★★</div>
-      <p class="review-text">"My wedding hair was an absolute dream. Keziah did a full trial and made me feel so relaxed on the day. Worth every penny — I felt like a different woman walking down the aisle."</p>
+      <p class="review-text">"My wedding hair was an absolute dream. Élène did a full trial and made me feel so relaxed on the day. Worth every penny — I felt like a different woman walking down the aisle."</p>
       <div class="review-author">
         <div class="author-avatar">LM</div>
         <div class="author-info"><h4>Laura M.</h4><p>Bridal Styling · 2 months ago</p></div>
@@ -986,7 +1003,7 @@
     </div>
     <div class="review-card">
       <div class="review-stars">★★★★★</div>
-      <p class="review-text">"I'd had a botched colour from a previous salon and was genuinely nervous. Keziah was patient, honest, and the correction took years off me. Booked in immediately for my next appointment."</p>
+      <p class="review-text">"I'd had a botched colour from a previous salon and was genuinely nervous. Élène was patient, honest, and the correction took years off me. Booked in immediately for my next appointment."</p>
       <div class="review-author">
         <div class="author-avatar">RC</div>
         <div class="author-info"><h4>Rachel C.</h4><p>Colour Correction · 1 month ago</p></div>
@@ -1028,29 +1045,35 @@
       <div class="contact-item">
         <div class="contact-icon">📍</div>
         <div class="contact-item-text">
-          <h4>Studio location</h4>
-          <p>Private studio, Shoreditch, London E1<br><em style="font-size:0.8rem;color:var(--rose)">Exact address sent on booking confirmation</em></p>
+          <h4>Location</h4>
+          <p>Chatham, Kent<br><em style="font-size:0.8rem;color:var(--rose)">Exact address sent on booking confirmation</em></p>
         </div>
       </div>
       <div class="contact-item">
         <div class="contact-icon">📧</div>
         <div class="contact-item-text">
           <h4>Email</h4>
-          <a href="mailto:hello@elenestyles.com">hello@elenestyles.com</a>
+          <a href="mailto:hello@elenestyles.com">kshohair@gmail.com</a>
         </div>
       </div>
       <div class="contact-item">
         <div class="contact-icon">📱</div>
         <div class="contact-item-text">
-          <h4>Instagram DMs</h4>
-          <a href="#" target="_blank">@elenestyles</a>
+          <h4>Instagram - Contact No.</h4>
+          <a href="https://www.instagram.com/ksho.hair/" target="_blank">@kshohair</a>
+        <p>07517 147325</p>
         </div>
       </div>
       <div class="contact-item">
         <div class="contact-icon">🕐</div>
         <div class="contact-item-text">
-          <h4>Studio hours</h4>
-          <p>Tue–Sat · 9:00am – 6:00pm<br>Closed Sun & Mon</p>
+          <h4>Opening Hours</h4>
+          
+          <p>Monday: 8:00am – 6:00pm</p>
+          <p>Wednesday: 8:00am – 6:00pm</p>
+          <p>Friday: 8:00am – 6:00pm</p>
+          <p>Saturday: 10:00am – 7:00pm</p>
+          <h4> Tuesday, Thursday & Sunday - Closed</h4>
         </div>
       </div>
     </div>
@@ -1093,8 +1116,8 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">K SHO Hair</div>
-  <span class="footer-copy">© 2026 K SHO Hair. All rights reserved. Independent stylist, Kent.</span>
+  <div class="footer-logo">K.SHO Hair</div>
+  <span class="footer-copy">© 2026 K.SHO Hair. All rights reserved. Independent stylist, Kent.</span>
   <div class="footer-links">
     <a href="#">Privacy Policy</a>
     <a href="#">Terms</a>

@@ -1645,7 +1645,7 @@ async function confirmBooking() {
     const data = await res.json();
 
     if (data && data.url) {
-      window.location = data.url;          // off to Stripe's secure payment page
+      window.location.href = "/.netlify/functions/confirm-payment";          // off to Stripe's secure payment page
     } else {
       alert('Something went wrong starting payment. Please try again.');
       if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay →'; }

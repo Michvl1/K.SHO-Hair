@@ -5,10 +5,3 @@
   functions = "netlify/functions"
   # Serve the site from the repo root (index.html, images, etc.)
   publish = "."
-
-# Lets the frontend keep calling /api/create-checkout-session
-# while it actually runs as a Netlify Function.
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200

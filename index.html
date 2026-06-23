@@ -1631,18 +1631,20 @@ async function confirmBooking() {
   }
 
   try {
-    const res = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        payMode,
-        totalPrice,
-        service: SERVICES[selectedCat].cat,
-        size: selectedSize.name,
-        dateStr: selectedDate,
-        timeStr: selectedTime,
-      }),
-    });
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    payMode,
+    totalPrice,
+    service: SERVICES[selectedCat].cat,
+    size: selectedSize.name,
+    dateStr: selectedDate,
+    timeStr: selectedTime,
+  })
+});
 
     const data = await res.json();
 

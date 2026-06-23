@@ -1620,13 +1620,15 @@ async function confirmBooking() {
   const basePrice  = selectedSize.price || 0;
   const totalPrice = basePrice + getAddonTotal();
 
-  // Basic guard: make sure a date & time were picked
   if (!selectedDate || !selectedTime) {
     alert('Please choose a date and time before paying.');
     return;
   }
 
-  if (btn) { btn.disabled = true; btn.textContent = 'Redirecting to payment…'; }
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Redirecting to payment…';
+  }
 
   try {
     const res = await fetch('/api/create-checkout-session', {
@@ -1636,7 +1638,7 @@ async function confirmBooking() {
         payMode,
         totalPrice,
         service: SERVICES[selectedCat].cat,
-        size:    selectedSize.name,
+        size: selectedSize.name,
         dateStr: selectedDate,
         timeStr: selectedTime,
       }),
@@ -1645,14 +1647,20 @@ async function confirmBooking() {
     const data = await res.json();
 
     if (data && data.url) {
-      window.location.href = "/.netlify/functions/confirm-payment";          // off to Stripe's secure payment page
+      window.location.href = data.url; // ✅ FIXED
     } else {
       alert('Something went wrong starting payment. Please try again.');
-      if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay →'; }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Confirm & Pay →';
+      }
     }
   } catch (e) {
     alert('Payment could not be started. Please check your connection and try again.');
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirm & Pay →'; }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Confirm & Pay →';
+    }
   }
 }
 

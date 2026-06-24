@@ -1,9 +1,7 @@
 {
-  "name": "ksho-hair-stripe",
+  "name": "ksho-hair",
   "version": "1.0.0",
-  "private": true,
-  "description": "Stripe Checkout integration for K.SHO Hair booking (Netlify)",
   "dependencies": {
-    "stripe": "^16.0.0"
+    "stripe": "^17.0.0"
   }
 }

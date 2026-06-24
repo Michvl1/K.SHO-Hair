@@ -363,7 +363,7 @@
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--rose); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-  /* ── STRIPE REDIRECT NOTE ── */
+  /* ── CONFIRM NOTE ── */
   .stripe-redirect-note {
     background: rgba(124,174,158,0.1); border: 1px solid rgba(124,174,158,0.35);
     border-radius: 0.9rem; padding: 0.9rem 1.1rem;
@@ -968,14 +968,14 @@
         </div>
         <div class="form-nav">
           <button class="btn-back" onclick="goToStep(2)">← Back</button>
-          <button class="btn-next" onclick="goToStep(4)">Review &amp; Pay →</button>
+          <button class="btn-next" onclick="goToStep(4)">Review &amp; Confirm →</button>
         </div>
       </div>
 
-      <!-- Step 4: Payment -->
+      <!-- Step 4: Confirm -->
       <div class="form-step" id="step-4">
-        <div class="step-title">Secure your booking</div>
-        <div class="step-sub">Review your appointment and pay the deposit</div>
+        <div class="step-title">Confirm your booking</div>
+        <div class="step-sub">Review your appointment details below</div>
         <div class="order-summary">
           <div class="summary-row"><span>Service</span><span id="sum-service">—</span></div>
           <div class="summary-row"><span>Size</span><span id="sum-size">—</span></div>
@@ -983,7 +983,7 @@
           <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
           <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
           <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
-          <div class="summary-row paying"><span>Paying today (deposit)</span><span id="sum-paying">£15</span></div>
+          <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">£15</span></div>
         </div>
         <div class="payment-options">
           <div class="payment-option selected" onclick="selectPayment(this,'deposit')" id="pay-deposit">
@@ -999,11 +999,11 @@
         </div>
         <div class="stripe-redirect-note">
           <span>🔒</span>
-          <span>You'll be taken to our secure Stripe payment page to complete payment. Your card details are never stored on this site.</span>
+          <span>A £15 deposit secures your slot, payable by cash or bank transfer. Your full appointment address and payment details will be sent in your booking confirmation email.</span>
         </div>
         <div class="form-nav">
           <button class="btn-back" onclick="goToStep(3)">← Back</button>
-          <button class="btn-next" id="confirm-pay-btn" onclick="confirmBooking()">Confirm &amp; Pay →</button>
+          <button class="btn-next" id="confirm-pay-btn" onclick="confirmBooking()">Confirm Booking →</button>
         </div>
       </div>
 
@@ -1614,56 +1614,23 @@ function updatePaySummary() {
   document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£15 deposit' : (totalPrice ? '£' + totalPrice : '—');
 }
 
-/* ---- Confirm & Pay — redirect to Stripe Checkout ---- */
-async function confirmBooking() {
-  const btn = document.getElementById('confirm-pay-btn');
-  const basePrice  = selectedSize.price || 0;
-  const totalPrice = basePrice + getAddonTotal();
-
+/* ---- Confirm booking — dummy checkout (no real payment) ---- */
+function confirmBooking() {
   if (!selectedDate || !selectedTime) {
-    alert('Please choose a date and time before paying.');
+    alert('Please choose a date and time before continuing.');
     return;
   }
 
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = 'Redirecting to payment…';
-  }
-
-  try {
-    const res = await fetch('/.netlify/functions/create-checkout-session', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    payMode,
-    totalPrice,
-    service: SERVICES[selectedCat].cat,
-    size: selectedSize.name,
-    dateStr: selectedDate,
-    timeStr: selectedTime,
-  })
-});
-
-    const data = await res.json();
-
-    if (data && data.url) {
-      window.location.href = data.url; // ✅ FIXED
-    } else {
-      alert('Something went wrong starting payment. Please try again.');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Confirm & Pay →';
-      }
-    }
-  } catch (e) {
-    alert('Payment could not be started. Please check your connection and try again.');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Confirm & Pay →';
-    }
-  }
+  // Dummy checkout: no payment is processed. Just show the confirmation screen.
+  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step-dot').forEach(d => {
+    d.classList.remove('active');
+    d.classList.add('done');
+  });
+  document.getElementById('booking-ref').textContent =
+    'REF: #KSHO-' + Math.floor(1000 + Math.random() * 9000);
+  document.getElementById('step-success').classList.add('active');
+  document.querySelector('#booking-wrap').scrollIntoView({ behavior: 'smooth' });
 }
 
 /* ---- Calendar ---- */
@@ -1764,24 +1731,6 @@ function renderTimes() {
 /* ---- Init ---- */
 buildServiceUI();
 initCal();
-
-/* ---- Returned from Stripe Checkout ---- */
-// Stripe sends the client back to ?booking=success on payment.
-// NOTE: this only SHOWS the confirmation. The booking should be recorded
-// server-side via the webhook (api/webhook.js) — see SETUP.md.
-(function handleStripeReturn() {
-  const params = new URLSearchParams(location.search);
-  if (params.get('booking') === 'success') {
-    document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.step-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
-    document.getElementById('booking-ref').textContent = 'REF: #KSHO-' + Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('step-success').classList.add('active');
-    document.querySelector('#booking-wrap').scrollIntoView();
-  } else if (params.get('booking') === 'cancelled') {
-    // They backed out of the Stripe page — drop them back on the payment step.
-    document.querySelector('#booking-wrap').scrollIntoView();
-  }
-})();
 </script>
 </body>
 </html>

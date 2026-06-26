@@ -6,6 +6,47 @@
 <title>K.SHO Hair — Independent Hair Stylist</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
+
+  .home-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #2563eb;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.lower-image {
+  object-position: center 35%;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.image-grid img {
+  width: 100%;
+  height: 75%;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+
+  
+}
+.about-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.home-btn:hover {
+    background-color: #1d4ed8;
+}
   :root {
     --plum: #2D1B2E;
     --plum-mid: #3D2840;
@@ -371,6 +412,18 @@
     display: flex; gap: 0.6rem; align-items: flex-start;
   }
 
+  /* ── T&C + ERRORS ── */
+  .tc-row { display: flex; gap: 0.6rem; align-items: flex-start; margin: 1.1rem 0 0.2rem; }
+  .tc-row input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--rose); cursor: pointer; flex-shrink: 0; }
+  .tc-row label { font-size: 0.82rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
+  .tc-row a { color: var(--rose); text-decoration: underline; }
+  .form-error {
+    color: #c0392b; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.25);
+    border-radius: 0.7rem; padding: 0.6rem 0.9rem; font-size: 0.82rem; line-height: 1.5;
+    margin-top: 0.8rem; display: none;
+  }
+  .form-error.show { display: block; }
+
   /* ── CALENDAR ── */
   .calendar { background: var(--ivory); border-radius: 1.2rem; padding: 1rem; }
   .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
@@ -644,18 +697,20 @@
 <!-- ABOUT -->
 <div id="about-wrap">
   <section id="about">
-    <div class="about-img-grid">
-      <div class="about-img">work image</div>
-      <div class="about-img">work image</div>
-      <div class="about-img">work image</div>
-    </div>
+    
+
+    <div class="image-grid">
+  <img src="C:\Users\micha\Downloads\Keziah.jpeg" alt="Keziah">
+  </div>
+
     <div class="about-text">
       <span class="section-eyebrow">About Me</span>
       <h2 class="section-title">Crafting confidence, one braid at a time</h2>
       <p>I'm a passionate independent hair stylist based in Medway, Kent, specialising in protective styles that celebrate the beauty and versatility of natural hair.</p>
       <p>Every client who sits in my chair deserves to feel heard, comfortable, and absolutely stunning. I take the time to understand your hair's unique needs and your personal vision before I begin.</p>
+    <div class="about-sig">Keziah x</div>
     </div>
-      <div class="about-sig">Keziah x</div>
+      
     </div>
   </section>
 </div>
@@ -748,40 +803,36 @@
     <div class="portfolio-grid">
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="photo1.jpg" alt="Knotless Braids"/>
+          <img src="C:\Users\micha\Downloads\Fulani Kinky twists 2.jpeg" alt="Fulani Kinky Twists"/>
         </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Knotless Braids</span></div>
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="photo2.jpg" alt="Boho Twists"/>
+          <img src="C:\Users\micha\Downloads\Fulani Kinky twists.png" alt="Fulani Kinky Twists"/>
         </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Boho Twists</span></div>
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="photo3.jpg" alt="Goddess Braids"/>
+          <img src="C:\Users\micha\Downloads\Fulani Braids.jpeg" alt="Fulani Braids"/>
         </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Goddess Braids</span></div>
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="photo4.jpg" alt="Fulani Braids"/>
+          <img src="C:\Users\micha\Downloads\Boho Braids.jpeg" alt="Boho Braids" class="lower-image"/>
         </div>
         <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
       </div>
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
-          <img src="photo5.jpg" alt="Kinky Twists"/>
+          <img src="C:\Users\micha\Downloads\Miracle Knots.jpeg" alt="Miracle Knots"/>
         </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Kinky Twists</span></div>
+        <div class="portfolio-overlay"><span class="portfolio-label">Miracle Knots</span></div>
       </div>
-      <div class="portfolio-item">
-        <div class="portfolio-placeholder">
-          <img src="photo6.jpg" alt="Feed In Braids"/>
-        </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Feed In Braids</span></div>
-      </div>
+     
+
     </div>
   </section>
 </div>
@@ -952,11 +1003,11 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Email Address</label>
+          <label>Email Address (required)</label>
           <input type="email" placeholder="emma@example.com" id="client-email"/>
         </div>
         <div class="form-group">
-          <label>Phone Number</label>
+          <label>Phone Number (required)</label>
           <input type="tel" placeholder="+44 7700 900000" id="client-phone"/>
         </div>
         <div class="form-group">
@@ -999,11 +1050,16 @@
         </div>
         <div class="stripe-redirect-note">
           <span>🔒</span>
-          <span>A £15 deposit secures your slot, payable by cash or bank transfer. Your full appointment address and payment details will be sent in your booking confirmation email.</span>
+          <span>No payment is taken now. Once I receive your order I'll email you a secure payment link (and your full appointment address) to confirm your slot. The £15 booking fee is non-refundable unless K.SHO Hair cancels.</span>
         </div>
+        <div class="tc-row">
+          <input type="checkbox" id="agree-tc"/>
+          <label for="agree-tc">I confirm my phone number and email are correct, and I agree to the <a href="#booking-wrap">booking &amp; cancellation terms</a>.</label>
+        </div>
+        <div class="form-error" id="confirm-error">Please complete the required details and accept the terms.</div>
         <div class="form-nav">
           <button class="btn-back" onclick="goToStep(3)">← Back</button>
-          <button class="btn-next" id="confirm-pay-btn" onclick="confirmBooking()">Confirm Booking →</button>
+          <button class="btn-next" id="confirm-pay-btn" onclick="confirmBooking()">Send Order →</button>
         </div>
       </div>
 
@@ -1011,9 +1067,11 @@
       <div class="form-step" id="step-success">
         <div class="booking-success">
           <div class="success-icon">🌸</div>
-          <h3>You're booked in!</h3>
-          <p>A confirmation email is on its way to you. I can't wait to see you in the chair.</p>
-          <div class="booking-ref" id="booking-ref">REF: #KSHO-0001</div>
+          <h3>Order sent!</h3>
+          <p>Thank you — your booking request is with me. I'll email you shortly with a secure payment link to confirm your slot, along with your full appointment address.</p>
+          <div class="booking-ref" id="booking-ref">ORDER REF: #KSHO-0001</div>
+          
+          <a href="index.html" class="home-btn">Return Home</a>
           <p style="margin-top:1rem;font-size:0.82rem;">Questions before your appointment? <a href="#contact-wrap" style="color:var(--rose)">Drop me a message.</a></p>
         </div>
       </div>
@@ -1102,23 +1160,24 @@
         <div class="contact-item">
           <div class="contact-icon">📱</div>
           <div class="contact-item-text">
-            <h4>Instagram</h4>
-            <a href="#" target="_blank">@ksho.hair</a>
+            <h4>Contact No.</h4>
+            <a href="#" target="_blank">07517147325</a>
           </div>
         </div>
         <div class="contact-item">
           <div class="contact-icon">📧</div>
           <div class="contact-item-text">
             <h4>Email</h4>
-            <a href="mailto:hello@kshohair.co.uk">hello@kshohair.co.uk</a>
+            <p>Kshohair@gmail.com</p>
+            <a href="mailto:kshohair@gmail.com"></a>
           </div>
         </div>
       </div>
       <div class="social-links">
-        <a class="social-btn" href="#" title="Instagram">
+        <a class="social-btn" a href="https://www.instagram.com/ksho.hair/" title="Instagram">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
         </a>
-        <a class="social-btn" href="#" title="TikTok">
+        <a class="social-btn" href="https://www.tiktok.com/@kshohair" title="TikTok">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.73a8.18 8.18 0 004.78 1.52V6.79a4.85 4.85 0 01-1.01-.1z"/></svg>
         </a>
       </div>
@@ -1155,7 +1214,7 @@
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">K.SHO Hair</div>
-  <div class="footer-copy">© 2025 K.SHO Hair. All rights reserved.</div>
+  <div class="footer-copy">© 2026 K.SHO Hair. All rights reserved.</div>
   <div class="footer-links">
     <a href="#booking-wrap">Book Now</a>
     <a href="#services-wrap">Services</a>
@@ -1168,10 +1227,52 @@
   <a href="#booking-wrap">Book Now</a>
 </div>
 
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdYFmUbQlRXx0Hp0BOBpRlp5GLvqTh0fA",
+    authDomain: "kshohair1.firebaseapp.com",
+    projectId: "kshohair1",
+    storageBucket: "kshohair1.firebasestorage.app",
+    messagingSenderId: "1074287585319",
+    appId: "1:1074287585319:web:5a1ce51466e42df2278602",
+    measurementId: "G-7K33M3BNQF"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
+
 <script>
 /* ============================================================
    K.SHO HAIR — FULL SITE SCRIPT
    ============================================================ */
+
+/* ============================================================
+   ORDER SUBMISSION CONFIG   ←←←  EDIT THESE TWO LINES
+   ------------------------------------------------------------
+   1) Get a FREE access key at https://web3forms.com (takes ~30 secs).
+      Sign up with the email where you want to RECEIVE orders
+      (e.g. hello@kshohair.co.uk), then paste the key below.
+   ============================================================ */
+const WEB3FORMS_ACCESS_KEY = "68d9739f-57f2-47dd-bd4f-89223b2fbeef";
+// Just for your own reference inside the order email:
+const BUSINESS_EMAIL = "kshohair@gmail.com";
+
+let currentOrderRef = null;
+function generateOrderRef() {
+  return 'KSHO-' + Math.floor(1000 + Math.random() * 9000);
+}
 
 /* ---- Nav scroll ---- */
 window.addEventListener('scroll', () => {
@@ -1339,26 +1440,6 @@ const SERVICES = [
     cat: "Wig Cornrows",
     hairNote: null,
     sizes: [{ name: "Standard", detail: "", price: 15 }]
-  },
-  {
-    cat: "Precision Cut",
-    hairNote: null,
-    sizes: [{ name: "Standard", detail: "", price: 75 }]
-  },
-  {
-    cat: "Balayage",
-    hairNote: null,
-    sizes: [{ name: "Standard", detail: "", price: 145 }]
-  },
-  {
-    cat: "Full Colour & Blonding",
-    hairNote: null,
-    sizes: [{ name: "Standard", detail: "", price: 185 }]
-  },
-  {
-    cat: "Bridal Styling",
-    hairNote: null,
-    sizes: [{ name: "Standard", detail: "", price: 220 }]
   }
 ];
 
@@ -1614,21 +1695,116 @@ function updatePaySummary() {
   document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£15 deposit' : (totalPrice ? '£' + totalPrice : '—');
 }
 
-/* ---- Confirm booking — dummy checkout (no real payment) ---- */
-function confirmBooking() {
-  if (!selectedDate || !selectedTime) {
-    alert('Please choose a date and time before continuing.');
-    return;
-  }
+/* ============================================================
+   SEND ORDER — validates, emails the booking to the salon,
+   then shows the confirmation screen with an order number.
+   ============================================================ */
+async function confirmBooking() {
+  const errEl = document.getElementById('confirm-error');
+  const btn   = document.getElementById('confirm-pay-btn');
+  const showErr = (m) => { errEl.textContent = m; errEl.classList.add('show'); };
+  errEl.classList.remove('show');
 
-  // Dummy checkout: no payment is processed. Just show the confirmation screen.
+  // Gather client details
+  const first     = document.getElementById('client-first').value.trim();
+  const last      = document.getElementById('client-last').value.trim();
+  const email     = document.getElementById('client-email').value.trim();
+  const phone     = document.getElementById('client-phone').value.trim();
+  const returning = document.getElementById('client-returning').value;
+  const notes     = document.getElementById('client-notes').value.trim();
+  const agreed    = document.getElementById('agree-tc').checked;
+
+  // Validate
+  if (!selectedDate || !selectedTime) { showErr('Please choose a date and time first.'); goToStep(2); return; }
+  if (!first || !last) { alert('Please enter your first and last name.'); goToStep(3); return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('Please enter a valid email address.'); goToStep(3); return; }
+  if (phone.replace(/\D/g, '').length < 7) { alert('Please enter a valid phone number so I can reach you.'); goToStep(3); return; }
+  if (!agreed) { showErr('Please tick the box to accept the booking terms before sending.'); return; }
+
+  // Totals
+  const basePrice = selectedSize.price || 0;
+  const total     = basePrice + getAddonTotal();
+  const payChoice = payMode === 'deposit'
+    ? '£15 deposit now, remainder (£' + (total - 15) + ') on the day'
+    : 'Paying in full — £' + total;
+
+  currentOrderRef = generateOrderRef();
+
+  const summary =
+    'NEW BOOKING REQUEST — ' + currentOrderRef + '\n\n' +
+    'Service: ' + SERVICES[selectedCat].cat + '\n' +
+    'Size: ' + (selectedSize.name || '—') + '\n' +
+    'Add-ons: ' + getAddonSummaryText() + '\n' +
+    'Date: ' + selectedDate + '\n' +
+    'Time: ' + selectedTime + '\n' +
+    'Total on the day: £' + total + '\n' +
+    'Payment preference: ' + payChoice + '\n\n' +
+    'Client: ' + first + ' ' + last + '\n' +
+    'Email: ' + email + '\n' +
+    'Phone: ' + phone + '\n' +
+    'Client type: ' + returning + '\n' +
+    'Notes: ' + (notes || '—') + '\n\n' +
+    'ACTION: reply to this client with a payment link to confirm their slot.';
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY.indexOf('PASTE') === 0) {
+      throw new Error('the order email isn’t set up yet');
+    }
+
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last,
+        from_name: 'K.SHO Hair Website',
+        order_ref: currentOrderRef,
+        service: SERVICES[selectedCat].cat,
+        size: selectedSize.name || '',
+        addons: getAddonSummaryText(),
+        date: selectedDate,
+        time: selectedTime,
+        total: '£' + total,
+        payment_preference: payChoice,
+        client_name: first + ' ' + last,
+        client_email: email,
+        client_phone: phone,
+        client_type: returning,
+        notes: notes || '—',
+        message: summary
+      })
+    });
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'the email service rejected the request');
+
+    /* ── OPTIONAL: also save to Firebase (see note at bottom of this file) ──
+    if (typeof saveOrderToFirebase === 'function') {
+      saveOrderToFirebase({
+        ref: currentOrderRef, service: SERVICES[selectedCat].cat,
+        size: selectedSize.name, addons: getAddonSummaryText(),
+        date: selectedDate, time: selectedTime, total: total,
+        name: first + ' ' + last, email, phone, notes
+      });
+    }
+    */
+
+    showSuccess();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    showErr('Sorry — I couldn’t send your order just now (' + err.message + '). Please try again, or message me directly and I’ll sort it.');
+  }
+}
+
+function showSuccess() {
+  document.getElementById('booking-ref').textContent = 'ORDER REF: #' + currentOrderRef;
   document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.step-dot').forEach(d => {
-    d.classList.remove('active');
-    d.classList.add('done');
-  });
-  document.getElementById('booking-ref').textContent =
-    'REF: #KSHO-' + Math.floor(1000 + Math.random() * 9000);
+  document.querySelectorAll('.step-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
   document.getElementById('step-success').classList.add('active');
   document.querySelector('#booking-wrap').scrollIntoView({ behavior: 'smooth' });
 }
@@ -1731,6 +1907,28 @@ function renderTimes() {
 /* ---- Init ---- */
 buildServiceUI();
 initCal();
+
+/* ============================================================
+   OPTIONAL — SAVE ORDERS TO A FIREBASE DATABASE (as well as / instead of email)
+   ------------------------------------------------------------
+   1. Create a project at https://console.firebase.google.com
+   2. Add a Web App, then enable "Firestore Database".
+   3. Paste these two <script> tags just ABOVE the main <script> block,
+      filling in your own firebaseConfig from the Firebase console:
+
+      <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp }
+          from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        const firebaseConfig = { ...paste your Firebase config object here... };
+        const app = initializeApp(firebaseConfig);
+        const db  = getFirestore(app);
+        window.saveOrderToFirebase = (order) =>
+          addDoc(collection(db, "bookings"), { ...order, createdAt: serverTimestamp() });
+      <\/script>
+
+   4. Uncomment the saveOrderToFirebase(...) block inside confirmBooking() above.
+   ============================================================ */
 </script>
 </body>
 </html>

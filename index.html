@@ -800,7 +800,7 @@
       <p class="section-sub">Every head of hair tells a story. Here are some of my favourites.</p>
      
     </div>
-    <div class="portfolio-grid">
+    <div class="portfolio-grid" id="portfolio-grid">
       <div class="portfolio-item">
         <div class="portfolio-placeholder">
           <img src="Img/Fulani Kinky twists.png" alt="Fulani Kinky Twists"/>
@@ -1227,6 +1227,56 @@
   <a href="#booking-wrap">Book Now</a>
 </div>
 
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdYFmUbQlRXx0Hp0BOBpRlp5GLvqTh0fA",
+    authDomain: "kshohair1.firebaseapp.com",
+    projectId: "kshohair1",
+    storageBucket: "kshohair1.firebasestorage.app",
+    messagingSenderId: "1074287585319",
+    appId: "1:1074287585319:web:5a1ce51466e42df2278602",
+    measurementId: "G-7K33M3BNQF"
+  };
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  async function loadCol(name){
+    try{
+      const s = await getDocs(query(collection(db,name), orderBy('order')));
+      return s.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){
+      try{ const s=await getDocs(collection(db,name)); return s.docs.map(d=>({id:d.id,...d.data()})); }
+      catch(_){ return []; }
+    }
+  }
+  async function loadDoc(name,id){
+    try{ let out=null; const s=await getDocs(collection(db,name)); s.forEach(d=>{ if(d.id===id) out=d.data(); }); return out; }
+    catch(e){ return null; }
+  }
+
+  // Lets your booking form save requests into the dashboard's Bookings tab.
+  window.kshoSaveBooking = (order)=>
+    addDoc(collection(db,'bookings'), { ...order, status:'new', createdAt: serverTimestamp() })
+      .catch(err=> console.warn('Booking not saved to Firestore:', err));
+
+  (async () => {
+    const [svcs, pf] = await Promise.all([loadCol('services'), loadCol('portfolio')]);
+    const content  = await loadDoc('content','main');
+    const settings = await loadDoc('settings','main');
+    window.KSHO = {
+      services:  svcs.filter(s=>!s.hidden),
+      portfolio: pf,
+      content:   content  || null,
+      settings:  settings || null
+    };
+    window.__kshoReady = true;
+    window.dispatchEvent(new Event('ksho:ready'));
+  })();
+</script>
 
 <script type="module">
   // Import the functions you need from the SDKs you need
@@ -1310,7 +1360,7 @@ function bookService(catName) {
 /* ============================================================
    SERVICES DATA
    ============================================================ */
-const SERVICES = [
+let SERVICES = [
   {
     cat: "Goddess Braids/Twists",
     hairNote: "Hair included: +£80 per bundle of human hair (x1 bundle included in price)",
@@ -1792,7 +1842,12 @@ async function confirmBooking() {
       });
     }
     */
-
+if (window.kshoSaveBooking) window.kshoSaveBooking({
+           ref: currentOrderRef, service: SERVICES[selectedCat].cat,
+           size: selectedSize.name || '', addons: getAddonSummaryText(),
+           date: selectedDate, time: selectedTime, total: total,
+           name: first + ' ' + last, email, phone, notes: notes || '—'
+         });
     showSuccess();
   } catch (err) {
     btn.disabled = false;
@@ -1905,9 +1960,67 @@ function renderTimes() {
 }
 
 /* ---- Init ---- */
-buildServiceUI();
-initCal();
-
+let __kshoBooted = false;
+function kshoBoot(){
+  if (__kshoBooted) return; __kshoBooted = true;
+  try { if (window.KSHO && window.KSHO.services && window.KSHO.services.length) SERVICES = window.KSHO.services; } catch(e){}
+  buildServiceUI();
+  initCal();
+  applyDynamicContent();
+  renderDynamicPortfolio();
+  applyDynamicSettings();
+}
+function renderDynamicPortfolio(){
+  const items = (window.KSHO && window.KSHO.portfolio) || [];
+  if (!items.length) return;                       // keep the built-in photos
+  const grid = document.getElementById('portfolio-grid');
+  if (!grid) return;
+  grid.innerHTML = items.map(p => {
+    const src = p.img || p.url || '';
+    return '<div class="portfolio-item"><div class="portfolio-placeholder">'
+         + '<img src="'+src+'" alt="'+(p.label||'')+'"></div>'
+         + '<div class="portfolio-overlay"><span class="portfolio-label">'+(p.label||'')+'</span></div></div>';
+  }).join('');
+}
+function applyDynamicContent(){
+  const c = window.KSHO && window.KSHO.content; if (!c) return;
+  const setHTML = (sel,v)=>{ if(v==null) return; const el=document.querySelector(sel); if(el) el.innerHTML=v; };
+  const setText = (sel,v)=>{ if(v==null) return; const el=document.querySelector(sel); if(el) el.textContent=v; };
+  const setSrc  = (sel,v)=>{ if(!v) return; const el=document.querySelector(sel); if(el) el.src=v; };
+  const setHref = (sel,v)=>{ if(!v) return; const el=document.querySelector(sel); if(el) el.href=v; };
+  setHTML('.hero-title', c.heroTitle);
+  setText('.hero-sub',   c.heroSub);
+  setSrc('.hero-portrait img', c.profileImg);
+  setSrc('.image-grid img',    c.aboutImg);
+  if (c.yearsExp) setText('.badge-num', c.yearsExp);
+  const ap = document.querySelectorAll('.about-text p');
+  if (ap[0] && c.aboutP1) ap[0].textContent = c.aboutP1;
+  if (ap[1] && c.aboutP2) ap[1].textContent = c.aboutP2;
+  // contact block
+  const phone = document.querySelector('.contact-item:nth-child(2) a'); if (phone && c.phone) phone.textContent = c.phone;
+  const emailP= document.querySelector('.contact-item:nth-child(3) p'); if (emailP && c.email) emailP.textContent = c.email;
+  setText('.contact-item:nth-child(1) p', c.location);
+  // social links (1st = instagram, 2nd = tiktok)
+  const socials = document.querySelectorAll('.social-btn');
+  if (socials[0] && c.instagram) socials[0].href = c.instagram;
+  if (socials[1] && c.tiktok)    socials[1].href = c.tiktok;
+}
+function applyDynamicSettings(){
+  const s = window.KSHO && window.KSHO.settings; if (!s) return;
+  if (s.times){
+    const arr = s.times.split(',').map(x=>x.trim()).filter(Boolean);
+    if (arr.length && typeof TIMES !== 'undefined'){ TIMES.length=0; arr.forEach(t=>TIMES.push(t)); }
+  }
+  // booking fee text on the deposit option, if you set a custom value
+  if (s.bookingFee!=null){
+    document.querySelectorAll('#pay-deposit .pay-amount, #sum-paying').forEach(el=>{
+      if(el.id==='sum-paying') return; el.textContent='£'+s.bookingFee;
+    });
+  }
+}
+if (window.__kshoReady) kshoBoot();
+else window.addEventListener('ksho:ready', kshoBoot);
+setTimeout(kshoBoot, 3500);   // safety net if Firebase is slow / blocked
 /* ============================================================
    OPTIONAL — SAVE ORDERS TO A FIREBASE DATABASE (as well as / instead of email)
    ------------------------------------------------------------

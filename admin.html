@@ -124,6 +124,37 @@
   .status.new{background:rgba(196,137,154,.15);color:var(--rose-dark)}
   .status.confirmed{background:rgba(94,154,130,.15);color:var(--success)}
 
+  /* ---------- AVAILABILITY ---------- */
+  .wd-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+  .wd-chip{border:1.5px solid var(--line);background:var(--ivory);color:var(--muted);border-radius:100px;
+    padding:.35rem .8rem;font-size:.8rem;font-weight:500}
+  .wd-chip.on{background:var(--plum);color:var(--champagne);border-color:var(--plum)}
+  .avail-cal{margin-top:1.4rem;border-top:1px solid var(--line);padding-top:1.2rem}
+  .ac-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+  .ac-month{font-family:'Playfair Display',serif;font-weight:600;font-size:1.05rem;color:var(--plum)}
+  .cal-nav{background:none;border:1px solid var(--line);border-radius:.5rem;width:34px;height:34px;
+    color:var(--plum);font-size:1.1rem;display:flex;align-items:center;justify-content:center}
+  .cal-nav:hover{border-color:var(--rose);color:var(--rose-dark)}
+  .ac-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem}
+  .ac-dl{text-align:center;font-size:.7rem;font-weight:700;color:var(--muted);padding:.3rem 0;letter-spacing:.04em}
+  .ac-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:.6rem;
+    font-size:.86rem;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:.12s;position:relative}
+  .ac-day.empty{cursor:default}
+  .ac-day.past{color:rgba(0,0,0,.18);cursor:not-allowed}
+  .ac-day.open{background:rgba(94,154,130,.12);color:#3f6f5c;border-color:rgba(94,154,130,.25)}
+  .ac-day.open:hover{border-color:var(--success)}
+  .ac-day.closed{background:rgba(192,57,43,.1);color:var(--danger);border-color:rgba(192,57,43,.25);text-decoration:line-through}
+  .ac-day.closed:hover{border-color:var(--danger)}
+  .ac-day.recur{background:repeating-linear-gradient(45deg,rgba(122,110,126,.08),rgba(122,110,126,.08) 4px,transparent 4px,transparent 8px);
+    color:var(--muted);border-color:var(--line);text-decoration:line-through}
+  .ac-day.recur:hover{border-color:var(--rose)}
+  .ac-day.today::after{content:'';position:absolute;bottom:5px;width:4px;height:4px;border-radius:50%;background:var(--rose)}
+  .ac-legend{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:1rem;font-size:.76rem;color:var(--muted)}
+  .ac-legend i.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:.35rem;vertical-align:-1px}
+  .ac-legend i.open{background:rgba(94,154,130,.4)}
+  .ac-legend i.closed{background:rgba(192,57,43,.4)}
+  .ac-legend i.recur{background:repeating-linear-gradient(45deg,rgba(122,110,126,.3),rgba(122,110,126,.3) 3px,transparent 3px,transparent 6px);border:1px solid var(--line)}
+
   /* ---------- MISC ---------- */
   .empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
   .empty .big{font-size:2.2rem;margin-bottom:.6rem}
@@ -188,6 +219,7 @@
       <button class="navbtn active" data-page="services"><span class="ico">✂️</span><span class="lbl">Services</span></button>
       <button class="navbtn" data-page="portfolio"><span class="ico">🖼️</span><span class="lbl">Portfolio</span></button>
       <button class="navbtn" data-page="content"><span class="ico">📝</span><span class="lbl">Page content</span></button>
+      <button class="navbtn" data-page="availability"><span class="ico">🗓️</span><span class="lbl">Availability</span></button>
       <button class="navbtn" data-page="bookings"><span class="ico">📅</span><span class="lbl">Bookings</span></button>
       <button class="navbtn" data-page="settings"><span class="ico">⚙️</span><span class="lbl">Settings</span></button>
     </nav>
@@ -234,6 +266,39 @@
           <button class="btn btn-primary btn-sm" id="save-content-btn">Save content</button>
         </div>
         <div id="content-form"><div class="loading">Loading content…</div></div>
+      </section>
+
+      <!-- AVAILABILITY -->
+      <section class="page" id="page-availability">
+        <div class="page-head">
+          <div>
+            <span class="eyebrow">Open days</span>
+            <h2>Availability calendar</h2>
+            <p>Tap any day to switch it between open and closed. Closed days show no time slots on your booking form. Changes save automatically.</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:560px">
+          <div class="avail-recurring">
+            <span class="label">Closed every…</span>
+            <div class="wd-chips" id="wd-chips"></div>
+            <p style="font-size:.76rem;color:var(--muted);margin-top:.5rem">Pick weekdays you're always closed (e.g. Sunday). You can still open a single one of those days by tapping it in the calendar below.</p>
+          </div>
+
+          <div class="avail-cal">
+            <div class="ac-head">
+              <button class="cal-nav" id="ac-prev" title="Previous month">‹</button>
+              <span class="ac-month" id="ac-month"></span>
+              <button class="cal-nav" id="ac-next" title="Next month">›</button>
+            </div>
+            <div class="ac-grid" id="ac-grid"></div>
+            <div class="ac-legend">
+              <span><i class="dot open"></i> Open</span>
+              <span><i class="dot closed"></i> Closed</span>
+              <span><i class="dot recur"></i> Weekly closure</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- BOOKINGS -->
@@ -399,7 +464,7 @@ $$('.navbtn').forEach(b=> b.addEventListener('click', ()=>{
 }));
 
 /* ===== LOAD EVERYTHING ===== */
-function loadAll(){ loadServices(); loadPortfolio(); loadContent(); loadSettings(); loadBookings(); }
+function loadAll(){ loadServices(); loadPortfolio(); loadContent(); loadSettings(); loadBookings(); loadAvailability(); }
 
 async function fetchOrdered(name){
   try{
@@ -813,6 +878,129 @@ async function loadBookings(){
   }));
 }
 $('#refresh-bk-btn').addEventListener('click', loadBookings);
+
+/* =========================================================
+   AVAILABILITY
+   Data model:  settings/availability =
+     { closedWeekdays:[0..6], blockedDates:["YYYY-MM-DD"], openDates:["YYYY-MM-DD"] }
+   - closedWeekdays: weekdays you're always closed (0=Sun … 6=Sat)
+   - blockedDates:   specific days switched OFF
+   - openDates:      specific days switched ON (overrides a weekly closure)
+   ========================================================= */
+const WD_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let avail = { closedWeekdays:[0], blockedDates:[], openDates:[] };
+let acYear, acMonth, acSaveTimer;
+
+const dkey = (y,m,d)=> y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+
+async function loadAvailability(){
+  try{
+    const data = await loadAvailDoc();
+    avail = {
+      closedWeekdays: Array.isArray(data?.closedWeekdays) ? data.closedWeekdays : [0],
+      blockedDates:   Array.isArray(data?.blockedDates)   ? data.blockedDates   : [],
+      openDates:      Array.isArray(data?.openDates)      ? data.openDates      : []
+    };
+  }catch(e){ /* defaults */ }
+  const now=new Date(); acYear=now.getFullYear(); acMonth=now.getMonth();
+  renderWeekdayChips();
+  renderAvailCal();
+}
+async function loadAvailDoc(){
+  let out=null;
+  const snap=await getDocs(collection(db,'settings'));
+  snap.forEach(d=>{ if(d.id==='availability') out=d.data(); });
+  return out;
+}
+function saveAvailability(){
+  clearTimeout(acSaveTimer);
+  acSaveTimer=setTimeout(async ()=>{
+    try{ await setDoc(doc(db,'settings','availability'), avail, {merge:false}); toast('Availability saved'); }
+    catch(e){ toast('Save failed: '+e.message,true); }
+  },350);
+}
+
+function renderWeekdayChips(){
+  const wrap=$('#wd-chips'); wrap.innerHTML='';
+  // Display Mon→Sun for UK convention, but store JS weekday numbers (0=Sun)
+  [1,2,3,4,5,6,0].forEach(wd=>{
+    const b=document.createElement('button');
+    b.className='wd-chip'+(avail.closedWeekdays.includes(wd)?' on':'');
+    b.textContent=WD_LABELS[wd];
+    b.addEventListener('click',()=>{
+      if(avail.closedWeekdays.includes(wd)) avail.closedWeekdays=avail.closedWeekdays.filter(x=>x!==wd);
+      else avail.closedWeekdays.push(wd);
+      b.classList.toggle('on');
+      saveAvailability();
+      renderAvailCal();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+$('#ac-prev').addEventListener('click',()=>{ acMonth--; if(acMonth<0){acMonth=11;acYear--;} renderAvailCal(); });
+$('#ac-next').addEventListener('click',()=>{ acMonth++; if(acMonth>11){acMonth=0;acYear++;} renderAvailCal(); });
+
+// Effective open/closed state for a date (mirrors the public site helper)
+function dayState(y,m,d){
+  const key=dkey(y,m,d);
+  const dow=new Date(y,m,d).getDay();
+  if(avail.openDates.includes(key)) return 'open';
+  if(avail.blockedDates.includes(key)) return 'closed';
+  if(avail.closedWeekdays.includes(dow)) return 'recur';
+  return 'open';
+}
+
+function renderAvailCal(){
+  $('#ac-month').textContent = MONTHS[acMonth]+' '+acYear;
+  const grid=$('#ac-grid'); grid.innerHTML='';
+  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(l=>{
+    const e=document.createElement('div'); e.className='ac-dl'; e.textContent=l; grid.appendChild(e);
+  });
+  const first=new Date(acYear,acMonth,1);
+  let start=first.getDay(); start=start===0?6:start-1; // Monday-first
+  for(let i=0;i<start;i++){ const e=document.createElement('div'); e.className='ac-day empty'; grid.appendChild(e); }
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const days=new Date(acYear,acMonth+1,0).getDate();
+  for(let d=1;d<=days;d++){
+    const dt=new Date(acYear,acMonth,d);
+    const el=document.createElement('div');
+    el.textContent=d;
+    const past = dt<today;
+    if(past){ el.className='ac-day past'; grid.appendChild(el); continue; }
+    const state=dayState(acYear,acMonth,d);   // open | closed | recur
+    el.className='ac-day '+state;
+    if(dt.toDateString()===new Date().toDateString()) el.classList.add('today');
+    el.title = state==='open' ? 'Open — tap to close' : 'Closed — tap to open';
+    el.addEventListener('click',()=> toggleAvailDay(acYear,acMonth,d));
+    grid.appendChild(el);
+  }
+}
+
+function toggleAvailDay(y,m,d){
+  const key=dkey(y,m,d);
+  const dow=new Date(y,m,d).getDay();
+  const recurringClosed=avail.closedWeekdays.includes(dow);
+  const state=dayState(y,m,d);
+  const isOpen = state==='open';
+
+  // remove key from both lists first, then set the intended one
+  avail.blockedDates=avail.blockedDates.filter(k=>k!==key);
+  avail.openDates=avail.openDates.filter(k=>k!==key);
+
+  if(isOpen){
+    // make it CLOSED
+    if(!recurringClosed) avail.blockedDates.push(key); // exception off; if recurringClosed it's already closed by default
+  }else{
+    // make it OPEN
+    if(recurringClosed) avail.openDates.push(key);     // exception on; if not recurring it's already open by default
+  }
+  saveAvailability();
+  renderAvailCal();
+}
 </script>
+
 </body>
 </html>

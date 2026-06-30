@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>K.SHO Hair — Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<!-- EmailJS: lets the dashboard email customers directly. Setup is optional —
+     until configured, the email buttons open a pre-filled draft instead. -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   :root{
     --plum:#2D1B2E; --plum-mid:#3D2840; --champagne:#E8D5B7; --rose:#C4899A;
@@ -123,6 +126,38 @@
   .status{display:inline-block;padding:.18rem .6rem;border-radius:100px;font-size:.7rem;font-weight:600}
   .status.new{background:rgba(196,137,154,.15);color:var(--rose-dark)}
   .status.confirmed{background:rgba(94,154,130,.15);color:var(--success)}
+
+  /* ---------- BOOKING CARDS ---------- */
+  .bk-card{background:#fff;border:1px solid var(--line);border-radius:1.1rem;padding:1.1rem 1.2rem;margin-bottom:1rem}
+  .bk-card.lead{border-left:4px solid var(--rose)}
+  .bk-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+  .bk-who .nm{font-weight:700;color:var(--plum);font-size:1.02rem}
+  .bk-who .ct{color:var(--muted);font-size:.82rem;margin-top:.15rem}
+  .bk-who .ct a{color:var(--rose-dark);text-decoration:none}
+  .bk-status-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem}
+  .bk-status{border:1.5px solid var(--line);border-radius:100px;padding:.35rem .8rem;font-size:.8rem;
+    font-weight:600;background:var(--ivory);color:var(--plum);cursor:pointer;outline:none}
+  .bk-status:focus{border-color:var(--rose)}
+  .bk-detail{display:flex;flex-wrap:wrap;gap:.4rem .9rem;margin:.7rem 0;padding:.6rem 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .bk-chip{font-size:.8rem;color:var(--charcoal)}
+  .bk-chip b{color:var(--muted);font-weight:600}
+  .bk-note{font-size:.82rem;color:var(--muted);font-style:italic;margin:.5rem 0}
+  .bk-pay{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.6rem}
+  .bk-pay .inp{flex:1;min-width:200px;margin:0}
+  .bk-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;align-items:center}
+  .bk-actions .spacer{flex:1}
+  .btn-send{background:var(--plum);color:var(--champagne);border:none;border-radius:100px;padding:.5rem 1rem;font-size:.82rem;font-weight:600}
+  .btn-send:hover{background:#3d2840}
+  .btn-send.confirm{background:var(--success)}
+  .btn-send.confirm:hover{filter:brightness(.95)}
+  .btn-send:disabled{opacity:.6;cursor:wait}
+  .email-warn{font-size:.76rem;color:var(--muted);background:var(--ivory);border:1px dashed var(--line);
+    border-radius:.6rem;padding:.55rem .8rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:flex-start}
+  /* status colour accents */
+  .bk-status[data-s="paid in full"],.bk-status[data-s="deposit paid"]{border-color:rgba(94,154,130,.5);color:#3f6f5c;background:rgba(94,154,130,.1)}
+  .bk-status[data-s="confirmed"]{border-color:rgba(94,154,130,.6);color:#3f6f5c;background:rgba(94,154,130,.16)}
+  .bk-status[data-s="unpaid"]{border-color:rgba(196,137,154,.5);color:var(--rose-dark);background:rgba(196,137,154,.12)}
+  .bk-status[data-s="refunded"],.bk-status[data-s="cancelled"]{border-color:rgba(192,57,43,.4);color:var(--danger);background:rgba(192,57,43,.08)}
 
   /* ---------- AVAILABILITY ---------- */
   .wd-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
@@ -356,6 +391,27 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 const storage = getStorage(app);
+
+/* ===========================================================
+   EMAIL SETUP  ←←←  fill these in to send emails automatically.
+   Free account at https://www.emailjs.com  →  add an email service
+   (connect your Gmail), create TWO templates, then paste the IDs here.
+   Full step-by-step is in the chat message that came with this file.
+   Leave them as "PASTE_…" and the email buttons will instead open a
+   ready-to-send draft in your normal email app — so they still work.
+   =========================================================== */
+const EMAILJS_PUBLIC_KEY  = "wBjGIQ2TajxHU1X4z";       // Account → General → Public Key
+const EMAILJS_SERVICE_ID  = "service_hjfl007";       // Email Services → your service ID
+const EMAILJS_TPL_PAYMENT = "template_j176nyt"; // template for "here's your payment link"
+const EMAILJS_TPL_CONFIRM = "template_4xxwo1m"; // template for "booking confirmed / payment received"
+
+/* Shown in emails + used as reply-to */
+const BIZ = { name:"K.SHO Hair", email:"kshohair@gmail.com", phone:"07517147325" };
+
+const EMAILJS_ON = !!(window.emailjs
+  && EMAILJS_PUBLIC_KEY.indexOf("PASTE")!==0
+  && EMAILJS_SERVICE_ID.indexOf("PASTE")!==0);
+if (EMAILJS_ON) { try { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e){ console.warn(e); } }
 
 /* ===== Defaults (used by "Load default services" + first-run content) ===== */
 const DEFAULT_SERVICES = [
@@ -856,26 +912,196 @@ async function loadBookings(){
       '<p style="margin-top:.5rem;font-size:.86rem">Requests submitted through your website\'s booking form will appear here.</p></div>';
     return;
   }
+  box.innerHTML='';
+  if(!EMAILJS_ON){
+    const warn=document.createElement('div'); warn.className='email-warn';
+    warn.innerHTML='<span>✉️</span><span>Automatic emailing isn\'t set up yet, so the send buttons will open a ready-made draft in your email app for you to send. Add EmailJS keys at the top of admin.html to send in one click.</span>';
+    box.appendChild(warn);
+  }
+  rows.forEach((r,i)=> box.appendChild(bookingCard(r,i===0)));
+}
+
+const STATUSES = ['new','unpaid','deposit paid','paid in full','confirmed','completed','cancelled','refunded'];
+
+function bk(r,...keys){ for(const k of keys){ if(r[k]!=null && r[k]!=='') return r[k]; } return ''; }
+
+function bookingCard(r, lead){
+  const name  = bk(r,'name','client_name') || '—';
+  const email = bk(r,'email','client_email');
+  const phone = bk(r,'phone','client_phone');
+  const ref   = bk(r,'ref','order_ref');
+  const totalNum = (r.total!=null && r.total!=='') ? r.total : '';
+  const status = (r.status||'new').toLowerCase();
+  const link   = r.paymentLink || '';
   const fmt=ts=>{ try{ const d=ts?.toDate?ts.toDate():new Date(ts); return d.toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } };
-  box.innerHTML=`<div class="card" style="padding:.4rem .4rem"><table class="bk-table">
-    <thead><tr><th>Client</th><th>Service</th><th>When</th><th>Total</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows.map(r=>`
-      <tr data-id="${r.id}">
-        <td><div class="bk-name">${esc(r.name||r.client_name||'—')}</div>
-            <div class="bk-meta">${esc(r.phone||r.client_phone||'')}<br>${esc(r.email||r.client_email||'')}</div>
-            ${r.notes&&r.notes!=='—'?`<div class="bk-meta" style="margin-top:.3rem;font-style:italic">“${esc(r.notes)}”</div>`:''}</td>
-        <td>${esc(r.service||'—')}<div class="bk-meta">${esc(r.size||'')}${r.addons&&r.addons!=='None'?' · '+esc(r.addons):''}</div></td>
-        <td>${esc(r.date||'')}<div class="bk-meta">${esc(r.time||'')}</div>${r.createdAt?`<div class="bk-meta">req: ${fmt(r.createdAt)}</div>`:''}</td>
-        <td>${esc((r.total!=null?('£'+r.total):'')||'')}<div class="bk-meta">${esc(r.ref||r.order_ref||'')}</div></td>
-        <td><span class="status ${r.status==='confirmed'?'confirmed':'new'}">${esc(r.status||'new')}</span></td>
-        <td><button class="icon-btn del-bk" title="Delete">✕</button></td>
-      </tr>`).join('')}</tbody></table></div>`;
-  $$('.del-bk',box).forEach(b=> b.addEventListener('click', async e=>{
-    const id=e.target.closest('tr').dataset.id;
+
+  const c=document.createElement('div');
+  c.className='bk-card'+(lead?' lead':''); c.dataset.id=r.id;
+  c.innerHTML=`
+    <div class="bk-row1">
+      <div class="bk-who">
+        <div class="nm">${esc(name)}</div>
+        <div class="ct">${phone?`<a href="tel:${esc(phone)}">${esc(phone)}</a> · `:''}${email?`<a href="mailto:${esc(email)}">${esc(email)}</a>`:'<span style="color:var(--danger)">no email on file</span>'}</div>
+      </div>
+      <div class="bk-status-wrap">
+        <select class="bk-status" data-s="${esc(status)}">
+          ${STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+        </select>
+        ${r.createdAt?`<span style="font-size:.72rem;color:var(--muted)">received ${fmt(r.createdAt)}</span>`:''}
+      </div>
+    </div>
+    <div class="bk-detail">
+      <span class="bk-chip"><b>Service</b> ${esc(bk(r,'service')||'—')}</span>
+      ${bk(r,'size')?`<span class="bk-chip"><b>Size</b> ${esc(r.size)}</span>`:''}
+      ${(r.addons&&r.addons!=='None')?`<span class="bk-chip"><b>Add-ons</b> ${esc(r.addons)}</span>`:''}
+      <span class="bk-chip"><b>Date</b> ${esc(bk(r,'date')||'—')}</span>
+      <span class="bk-chip"><b>Time</b> ${esc(bk(r,'time')||'—')}</span>
+      ${totalNum!==''?`<span class="bk-chip"><b>Total</b> £${esc(totalNum)}</span>`:''}
+      ${ref?`<span class="bk-chip"><b>Ref</b> ${esc(ref)}</span>`:''}
+    </div>
+    ${(r.notes&&r.notes!=='—')?`<div class="bk-note">“${esc(r.notes)}”</div>`:''}
+    <div class="bk-pay">
+      <input class="inp bk-link" value="${esc(link)}" placeholder="Paste payment link (Stripe, PayPal, Monzo.me…)"/>
+      <button class="btn btn-ghost btn-sm bk-save-link">Save link</button>
+    </div>
+    <div class="bk-actions">
+      <button class="btn-send bk-send-pay">✉️ Send payment link</button>
+      <button class="btn-send confirm bk-send-confirm">✓ Send confirmation</button>
+      <span class="spacer"></span>
+      <button class="btn btn-danger btn-sm bk-del">Delete</button>
+    </div>`;
+
+  const linkInput=$('.bk-link',c);
+
+  $('.bk-status',c).addEventListener('change', async e=>{
+    const v=e.target.value; e.target.dataset.s=v;
+    try{ await setDoc(doc(db,'bookings',r.id),{status:v},{merge:true}); r.status=v; toast('Status set to “'+v+'”'); }
+    catch(err){ toast('Couldn\'t update status: '+err.message,true); }
+  });
+
+  $('.bk-save-link',c).addEventListener('click', ()=> saveLink(r, linkInput.value.trim()));
+
+  $('.bk-send-pay',c).addEventListener('click', async ev=>{
+    const url=linkInput.value.trim();
+    if(!url){ toast('Paste a payment link first',true); linkInput.focus(); return; }
+    if(!email){ toast('No customer email on this booking',true); return; }
+    await saveLink(r, url, true);
+    sendCustomerEmail('payment', {...r, paymentLink:url, _email:email, _name:name}, ev.target);
+  });
+
+  $('.bk-send-confirm',c).addEventListener('click', ev=>{
+    if(!email){ toast('No customer email on this booking',true); return; }
+    sendCustomerEmail('confirm', {...r, _email:email, _name:name}, ev.target);
+  });
+
+  $('.bk-del',c).addEventListener('click', async ()=>{
     if(!confirm('Delete this booking record?')) return;
-    try{ await deleteDoc(doc(db,'bookings',id)); e.target.closest('tr').remove(); toast('Booking deleted'); }
+    try{ await deleteDoc(doc(db,'bookings',r.id)); c.remove(); toast('Booking deleted'); }
     catch(err){ toast('Delete failed: '+err.message,true); }
-  }));
+  });
+
+  return c;
+}
+
+async function saveLink(r, url, silent){
+  try{ await setDoc(doc(db,'bookings',r.id),{paymentLink:url},{merge:true}); r.paymentLink=url; if(!silent) toast('Payment link saved'); }
+  catch(e){ if(!silent) toast('Couldn\'t save link: '+e.message,true); }
+}
+
+/* ---- Build the variables shared by both email templates ---- */
+function emailParams(r){
+  const firstName=(r._name||'').trim().split(' ')[0]||'there';
+  const total=(r.total!=null&&r.total!=='')?('£'+r.total):'';
+  return {
+    to_email: r._email,
+    to_name:  firstName,
+    customer_name: r._name||'',
+    service: bk(r,'service'),
+    size: bk(r,'size'),
+    addons: (r.addons&&r.addons!=='None')?r.addons:'',
+    date: bk(r,'date'),
+    time: bk(r,'time'),
+    total: total,
+    ref: bk(r,'ref','order_ref'),
+    payment_link: r.paymentLink||'',
+    business_name: BIZ.name,
+    business_email: BIZ.email,
+    business_phone: BIZ.phone,
+    reply_to: BIZ.email
+  };
+}
+
+/* ---- Send via EmailJS, or fall back to a pre-filled draft ---- */
+async function sendCustomerEmail(kind, r, btn){
+  const params=emailParams(r);
+  if(EMAILJS_ON){
+    const tpl = kind==='payment' ? EMAILJS_TPL_PAYMENT : EMAILJS_TPL_CONFIRM;
+    if(!tpl || tpl.indexOf('PASTE')===0){ openDraft(kind,r); return; }
+    const orig=btn.textContent; btn.disabled=true; btn.textContent='Sending…';
+    try{
+      await emailjs.send(EMAILJS_SERVICE_ID, tpl, params);
+      toast(kind==='payment'?'Payment link emailed to '+params.to_name:'Confirmation emailed to '+params.to_name);
+      if(kind==='confirm') bumpStatusAfterConfirm(r);
+    }catch(e){
+      toast('Couldn\'t send automatically — opening a draft instead',true);
+      openDraft(kind,r);
+    }
+    btn.disabled=false; btn.textContent=orig;
+  }else{
+    openDraft(kind,r);
+  }
+}
+
+/* ---- mailto fallback (always works, no setup) ---- */
+function openDraft(kind, r){
+  const p=emailParams(r);
+  const lines=[];
+  let subject;
+  if(kind==='payment'){
+    subject=`Your ${BIZ.name} booking — payment link to confirm`;
+    lines.push(`Hi ${p.to_name},`,'',
+      `Thank you for booking with ${BIZ.name}. To secure your appointment, please use the payment link below:`,'',
+      p.payment_link||'[paste your payment link here]','',
+      'Your appointment',
+      `• Service: ${p.service}${p.size?` (${p.size})`:''}`,
+      p.addons?`• Add-ons: ${p.addons}`:'',
+      `• Date: ${p.date}`,
+      `• Time: ${p.time}`,
+      p.total?`• Total: ${p.total}`:'',
+      p.ref?`• Reference: ${p.ref}`:'','',
+      `Once payment is received I'll send your confirmation and full address.`,'',
+      `See you soon,`,`${BIZ.name}`);
+  }else{
+    subject=`Booking confirmed — ${BIZ.name}`;
+    lines.push(`Hi ${p.to_name},`,'',
+      `Great news — your payment has been received and your appointment is confirmed!`,'',
+      'Your appointment',
+      `• Service: ${p.service}${p.size?` (${p.size})`:''}`,
+      p.addons?`• Add-ons: ${p.addons}`:'',
+      `• Date: ${p.date}`,
+      `• Time: ${p.time}`,
+      p.total?`• Total: ${p.total}`:'',
+      p.ref?`• Reference: ${p.ref}`:'','',
+      `I'll send the full address closer to the day. Can't wait to do your hair!`,'',
+      `${BIZ.name}`,`${BIZ.phone}`);
+  }
+  const body=lines.filter(l=>l!==undefined).join('\n');
+  const href=`mailto:${encodeURIComponent(p.to_email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href=href;
+  if(kind==='confirm') bumpStatusAfterConfirm(r);
+}
+
+async function bumpStatusAfterConfirm(r){
+  // Nudge the status toward "confirmed" if it's still new/unpaid — but never override an explicit paid/refunded.
+  const cur=(r.status||'new').toLowerCase();
+  if(cur==='new'||cur==='unpaid'){
+    try{
+      await setDoc(doc(db,'bookings',r.id),{status:'confirmed'},{merge:true});
+      const card=$(`.bk-card[data-id="${r.id}"]`);
+      const sel=card&&$('.bk-status',card);
+      if(sel){ sel.value='confirmed'; sel.dataset.s='confirmed'; }
+    }catch(e){}
+  }
 }
 $('#refresh-bk-btn').addEventListener('click', loadBookings);
 

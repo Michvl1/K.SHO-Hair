@@ -88,6 +88,12 @@
     font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
   .size-row{display:grid;grid-template-columns:1.4fr 1.4fr .9fr auto;gap:.6rem;margin-bottom:.5rem;align-items:center}
   .size-row .inp{margin:0}
+  .addon-row{display:grid;grid-template-columns:2fr .8fr auto;gap:.6rem;margin-bottom:.5rem;align-items:center}
+  .addon-row .inp{margin:0}
+  .colour-row{display:grid;grid-template-columns:2fr auto auto;gap:.6rem;margin-bottom:.5rem;align-items:center}
+  .colour-row .inp{margin:0}
+  .colour-row input[type=color]{width:44px;height:38px;padding:2px;border:1.5px solid var(--line);
+    border-radius:.5rem;background:var(--ivory);cursor:pointer}
   .icon-btn{background:none;border:1px solid var(--line);border-radius:.5rem;width:32px;height:32px;
     color:var(--muted);font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .icon-btn:hover{border-color:var(--danger);color:var(--danger)}
@@ -252,10 +258,12 @@
   <div class="shell">
     <nav class="sidebar">
       <button class="navbtn active" data-page="services"><span class="ico">✂️</span><span class="lbl">Services</span></button>
+      <button class="navbtn" data-page="addons"><span class="ico">➕</span><span class="lbl">Add-ons</span></button>
       <button class="navbtn" data-page="portfolio"><span class="ico">🖼️</span><span class="lbl">Portfolio</span></button>
       <button class="navbtn" data-page="content"><span class="ico">📝</span><span class="lbl">Page content</span></button>
       <button class="navbtn" data-page="availability"><span class="ico">🗓️</span><span class="lbl">Availability</span></button>
       <button class="navbtn" data-page="bookings"><span class="ico">📅</span><span class="lbl">Bookings</span></button>
+      <button class="navbtn" data-page="reviews"><span class="ico">⭐</span><span class="lbl">Reviews</span></button>
       <button class="navbtn" data-page="settings"><span class="ico">⚙️</span><span class="lbl">Settings</span></button>
     </nav>
 
@@ -275,6 +283,22 @@
           </div>
         </div>
         <div id="services-list"><div class="loading">Loading services…</div></div>
+      </section>
+
+      <!-- ADD-ONS -->
+      <section class="page" id="page-addons">
+        <div class="page-head">
+          <div>
+            <span class="eyebrow">Extras</span>
+            <h2>Add-ons &amp; colours</h2>
+            <p>Edit prices, add new options, and manage the hair colour swatches shown on your booking form. Changes go live the moment you save.</p>
+          </div>
+          <div class="row" style="flex:0 0 auto">
+            <button class="btn btn-ghost btn-sm" id="seed-addons-btn">Load default add-ons</button>
+            <button class="btn btn-primary btn-sm" id="save-addons-btn">Save add-ons</button>
+          </div>
+        </div>
+        <div id="addons-form"><div class="loading">Loading add-ons…</div></div>
       </section>
 
       <!-- PORTFOLIO -->
@@ -347,6 +371,19 @@
           <button class="btn btn-ghost btn-sm" id="refresh-bk-btn">Refresh</button>
         </div>
         <div id="bk-list"><div class="loading">Loading bookings…</div></div>
+      </section>
+
+      <!-- REVIEWS -->
+      <section class="page" id="page-reviews">
+        <div class="page-head">
+          <div>
+            <span class="eyebrow">Testimonials</span>
+            <h2>Reviews</h2>
+            <p>Reviews clients submit on your site land here. Hide one without deleting it, remove it permanently, or add one manually yourself.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" id="add-review-btn">+ Add review</button>
+        </div>
+        <div id="reviews-list"><div class="loading">Loading reviews…</div></div>
       </section>
 
       <!-- SETTINGS -->
@@ -456,6 +493,46 @@ const DEFAULT_SETTINGS = {
   times:"9:00am, 10:00am, 11:00am, 12:00pm, 1:00pm, 2:00pm, 3:00pm, 4:00pm",
   releaseNote:"Appointments are released on the 15th of each month at 12:00pm."
 };
+const DEFAULT_ADDONS = {
+  length: [
+    {label:"Standard length", price:0},
+    {label:"Lower back length", price:15},
+    {label:"Bum length", price:30}
+  ],
+  colours: [
+    {label:"1 (Jet Black)", hex:"#0a0a0a"},
+    {label:"1B (Off Black)", hex:"#1a1008"},
+    {label:"2 (Dark Brown)", hex:"#2c1a0e"},
+    {label:"4 (Medium Brown)", hex:"#6b3a1f"},
+    {label:"8 (Light Brown)", hex:"#9e6b3a"},
+    {label:"27 (Honey Blonde)", hex:"#c9843a"},
+    {label:"30 (Auburn)", hex:"#8b3a1a"},
+    {label:"613 (Platinum)", hex:"#f5e6b8"}
+  ],
+  colourMix: [
+    {label:"Custom mix: Blonde", price:15},
+    {label:"Custom mix: Brown", price:15}
+  ],
+  freestyle: [
+    {label:"Simple freestyle", price:10},
+    {label:"Complex freestyle", price:20},
+    {label:"Extreme freestyle", price:30},
+    {label:"Barrel ends", price:20},
+    {label:"Curls", price:20}
+  ],
+  curl: [
+    {label:"Deep Wave", price:75},
+    {label:"Burmese Curly", price:80},
+    {label:"Body Wave", price:85},
+    {label:"Loose Deep Wave", price:75}
+  ],
+  fulaniUpgrade: [
+    {label:"Boho & Goddess upgrade", price:20}
+  ],
+  frenchCurlHair: [
+    {label:"French Curl Braiding Hair", price:75}
+  ]
+};
 
 /* ===== Small helpers ===== */
 const $  = (s,r=document)=>r.querySelector(s);
@@ -520,7 +597,7 @@ $$('.navbtn').forEach(b=> b.addEventListener('click', ()=>{
 }));
 
 /* ===== LOAD EVERYTHING ===== */
-function loadAll(){ loadServices(); loadPortfolio(); loadContent(); loadSettings(); loadBookings(); loadAvailability(); }
+function loadAll(){ loadServices(); loadAddons(); loadPortfolio(); loadContent(); loadSettings(); loadBookings(); loadReviews(); loadAvailability(); }
 
 async function fetchOrdered(name){
   try{
@@ -676,6 +753,115 @@ $('#seed-btn').addEventListener('click', async ()=>{
     toast('Default services imported');
   }catch(e){ toast('Import failed: '+e.message,true); }
   $('#seed-btn').disabled=false; $('#seed-btn').textContent='Load default services';
+});
+
+/* =========================================================
+   ADD-ONS  (length, colour swatches, colour mix, freestyle,
+   curl specification, style upgrade, french curl hair)
+   Stored as a single doc: settings/addons
+   ========================================================= */
+let addonsData = {};
+async function loadAddons(){
+  const box=$('#addons-form');
+  box.innerHTML='<div class="loading">Loading add-ons…</div>';
+  try{
+    const snap=await getDocs(collection(db,'settings'));
+    let found=null; snap.forEach(d=>{ if(d.id==='addons') found=d.data(); });
+    addonsData = found || {};
+  }catch(e){ box.innerHTML='<div class="empty">Couldn\'t load add-ons. '+esc(e.message)+'</div>'; return; }
+  renderAddons();
+}
+function addonRow(item){
+  const r=document.createElement('div'); r.className='addon-row';
+  r.innerHTML=`
+    <input class="inp a-label" value="${esc(item.label||'')}" placeholder="Option name"/>
+    <input class="inp a-price" type="number" min="0" value="${item.price??0}" placeholder="0"/>
+    <button class="icon-btn rm-row" title="Remove">✕</button>`;
+  $('.rm-row',r).addEventListener('click',()=> r.remove());
+  return r;
+}
+function colourRow(item){
+  const r=document.createElement('div'); r.className='colour-row';
+  r.innerHTML=`
+    <input class="inp c-label" value="${esc(item.label||'')}" placeholder="e.g. 27 (Honey Blonde)"/>
+    <input type="color" class="c-hex" value="${esc(item.hex||'#8b5e34')}"/>
+    <button class="icon-btn rm-row" title="Remove">✕</button>`;
+  $('.rm-row',r).addEventListener('click',()=> r.remove());
+  return r;
+}
+function addonGroupCard(key, title, hint){
+  const c=document.createElement('div'); c.className='card'; c.dataset.group=key;
+  c.innerHTML=`
+    <h3 style="color:var(--plum);margin-bottom:.3rem">${esc(title)}</h3>
+    ${hint?`<p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">${esc(hint)}</p>`:'<div style="margin-bottom:.5rem"></div>'}
+    <div class="addon-rows"></div>
+    <button class="btn btn-ghost btn-sm add-row" style="margin-top:.2rem">+ Add option</button>`;
+  const wrap=$('.addon-rows',c);
+  (addonsData[key]||[]).forEach(item=> wrap.appendChild(addonRow(item)));
+  $('.add-row',c).addEventListener('click',()=> wrap.appendChild(addonRow({label:'',price:0})));
+  return c;
+}
+function colourGroupCard(){
+  const c=document.createElement('div'); c.className='card'; c.dataset.group='colours';
+  c.innerHTML=`
+    <h3 style="color:var(--plum);margin-bottom:.3rem">Hair colour swatches</h3>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem">These appear as clickable colour circles on the booking form.</p>
+    <div class="colour-rows"></div>
+    <button class="btn btn-ghost btn-sm add-colour-row" style="margin-top:.2rem">+ Add colour</button>`;
+  const wrap=$('.colour-rows',c);
+  (addonsData.colours||[]).forEach(item=> wrap.appendChild(colourRow(item)));
+  $('.add-colour-row',c).addEventListener('click',()=> wrap.appendChild(colourRow({label:'',hex:'#8b5e34'})));
+  return c;
+}
+function renderAddons(){
+  const box=$('#addons-form'); box.innerHTML='';
+  if(!Object.keys(addonsData).length){
+    const banner=document.createElement('div'); banner.className='banner';
+    banner.innerHTML='<span>💡</span><span>No add-ons saved yet — click <b>Load default add-ons</b> above to import what\'s currently live on your site, then edit from there.</span>';
+    box.appendChild(banner);
+  }
+  box.appendChild(addonGroupCard('length','Length', 'Shown on every service.'));
+  box.appendChild(colourGroupCard());
+  box.appendChild(addonGroupCard('colourMix','Hair colour mix', 'Custom-blend colour options — shown alongside the swatches above.'));
+  box.appendChild(addonGroupCard('freestyle','Freestyle', 'Only shown for Fulani Braids/Twists, Fulani French Curls, Feed In / Stitch Braids, and Feed In + Sew In.'));
+  box.appendChild(addonGroupCard('curl','Curl specification', 'Only shown for Goddess Braids/Twists, Boho Braids/Twists, and Miracle Knots.'));
+  box.appendChild(addonGroupCard('fulaniUpgrade','Style upgrade', 'Only shown for Fulani Braids/Twists and Fulani French Curls.'));
+  box.appendChild(addonGroupCard('frenchCurlHair','French Curl braiding hair', 'Only shown for French Curls and Boho French Curls.'));
+}
+function readAddonsForm(){
+  const box=$('#addons-form'); const data={};
+  $$('.card[data-group]',box).forEach(card=>{
+    const key=card.dataset.group;
+    if(key==='colours'){
+      data.colours = $$('.colour-row',card).map(r=>({
+        label: $('.c-label',r).value.trim(),
+        hex: $('.c-hex',r).value
+      })).filter(x=>x.label);
+    }else{
+      data[key] = $$('.addon-row',card).map(r=>({
+        label: $('.a-label',r).value.trim(),
+        price: parseInt($('.a-price',r).value,10)||0
+      })).filter(x=>x.label);
+    }
+  });
+  return data;
+}
+$('#save-addons-btn').addEventListener('click', async ()=>{
+  const data=readAddonsForm();
+  try{
+    await setDoc(doc(db,'settings','addons'), data, {merge:true});
+    addonsData={...addonsData,...data};
+    toast('Add-ons saved — live on your site');
+  }catch(e){ toast('Save failed: '+e.message,true); }
+});
+$('#seed-addons-btn').addEventListener('click', async ()=>{
+  if(Object.keys(addonsData).length && !confirm('This overwrites your current add-ons with the defaults. Continue?')) return;
+  try{
+    await setDoc(doc(db,'settings','addons'), DEFAULT_ADDONS, {merge:false});
+    addonsData={...DEFAULT_ADDONS};
+    renderAddons();
+    toast('Default add-ons loaded');
+  }catch(e){ toast('Import failed: '+e.message,true); }
 });
 
 /* =========================================================
@@ -1104,6 +1290,84 @@ async function bumpStatusAfterConfirm(r){
   }
 }
 $('#refresh-bk-btn').addEventListener('click', loadBookings);
+
+/* =========================================================
+   REVIEWS
+   ========================================================= */
+let reviews=[];
+async function loadReviews(){
+  const box=$('#reviews-list'); box.innerHTML='<div class="loading">Loading reviews…</div>';
+  try{
+    let snap;
+    try{ snap=await getDocs(query(collection(db,'reviews'), orderBy('createdAt','desc'))); }
+    catch(_){ snap=await getDocs(collection(db,'reviews')); }
+    reviews=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){ box.innerHTML='<div class="empty">Couldn\'t load reviews. '+esc(e.message)+'</div>'; return; }
+  renderReviews();
+}
+function renderReviews(){
+  const box=$('#reviews-list');
+  if(!reviews.length){
+    box.innerHTML='<div class="empty"><div class="big">⭐</div><div>No reviews yet.</div>'+
+      '<p style="margin-top:.5rem;font-size:.86rem">Reviews clients submit through your site\'s booking-reference-verified form will appear here — or click <b>+ Add review</b> to add one yourself.</p></div>';
+    return;
+  }
+  box.innerHTML='';
+  reviews.forEach(r=> box.appendChild(reviewCard(r)));
+}
+function reviewCard(r){
+  const stars=Math.max(1,Math.min(5,parseInt(r.stars)||5));
+  const c=document.createElement('div');
+  c.className='card'+(r.hidden?' dim':'');
+  c.dataset.id=r.id;
+  c.innerHTML=`
+    <div class="grow">
+      <span class="label">${'★'.repeat(stars)}${'☆'.repeat(5-stars)} &nbsp;—&nbsp; ${esc(r.name||'Anonymous')}</span>
+      <p style="font-size:.88rem;color:var(--charcoal);margin-top:.5rem;line-height:1.5">"${esc(r.text||'')}"</p>
+      <p style="font-size:.74rem;color:var(--muted);margin-top:.5rem">${r.bookingRef?('Booking ref: '+esc(r.bookingRef)):'Added manually by admin'}</p>
+    </div>
+    <div class="card-actions">
+      <label class="toggle"><input type="checkbox" class="r-hidden" ${r.hidden?'checked':''}/> Hide from site</label>
+      <span class="spacer"></span>
+      <button class="btn btn-danger btn-sm del-review">Delete</button>
+    </div>`;
+  $('.r-hidden',c).addEventListener('change', async e=>{
+    const hidden=e.target.checked;
+    try{
+      await setDoc(doc(db,'reviews',r.id),{hidden},{merge:true});
+      r.hidden=hidden;
+      c.classList.toggle('dim',hidden);
+      toast(hidden?'Review hidden from site':'Review visible on site');
+    }catch(err){ toast('Couldn\'t update: '+err.message,true); e.target.checked=!hidden; }
+  });
+  $('.del-review',c).addEventListener('click', async ()=>{
+    if(!confirm('Delete this review permanently? This can\'t be undone.')) return;
+    try{
+      await deleteDoc(doc(db,'reviews',r.id));
+      reviews=reviews.filter(x=>x.id!==r.id);
+      renderReviews();
+      toast('Review deleted');
+    }catch(err){ toast('Delete failed: '+err.message,true); }
+  });
+  return c;
+}
+$('#add-review-btn').addEventListener('click', async ()=>{
+  const name=prompt('Client name:');
+  if(name===null || !name.trim()){ if(name!==null) toast('Name is required',true); return; }
+  const starsRaw=prompt('Star rating (1–5):','5');
+  if(starsRaw===null) return;
+  const stars=Math.max(1,Math.min(5,parseInt(starsRaw,10)||5));
+  const text=prompt('Review text:');
+  if(text===null || !text.trim()){ if(text!==null) toast('Review text is required',true); return; }
+  try{
+    const ref=await addDoc(collection(db,'reviews'),{
+      name:name.trim(), stars, text:text.trim(), hidden:false, manual:true, createdAt:new Date()
+    });
+    reviews.unshift({id:ref.id, name:name.trim(), stars, text:text.trim(), hidden:false, manual:true});
+    renderReviews();
+    toast('Review added');
+  }catch(e){ toast('Couldn\'t add: '+e.message,true); }
+});
 
 /* =========================================================
    AVAILABILITY

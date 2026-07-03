@@ -286,6 +286,7 @@
   .review-form input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1.5px solid rgba(232,213,183,0.2); background: rgba(255,255,255,0.05); color: var(--champagne); font-family: 'DM Sans', sans-serif; font-size: 0.92rem; outline: none; margin-bottom: 1rem; }
   .review-form input::placeholder { color: rgba(232,213,183,0.35); }
   .review-form input:focus { border-color: var(--rose); }
+  .review-form .form-error { background: rgba(192,57,43,0.18); border-color: rgba(255,255,255,0.15); color: #ff9d8a; }
 
   #contact-wrap { background: var(--plum); }
   #contact { display: grid; grid-template-columns: 1fr 1.2fr; gap: 5rem; align-items: start; }
@@ -813,7 +814,7 @@
         </div>
       </div>
     </div>
-    <div class="reviews-grid">
+    <div class="reviews-grid" id="reviews-grid">
       <div class="review-card">
         <div class="review-stars">★★★★★</div>
         <p class="review-text">"I was unsure on what hairstyle to get and Miss Ksho hair herself suggested I get kinky twists and OMG I am in loveee with it 😍😍 ! The partings were clean, the curls were curling (mind you she provided the human hair!!!) this is honestly such a good service and I'd recommend this to anybody who is looking for a Hair architect with premium service!!!!"</p>
@@ -860,9 +861,12 @@
           <button class="star-btn" onclick="setStars(4)">★</button>
           <button class="star-btn" onclick="setStars(5)">★</button>
         </div>
-        <input type="text" placeholder="Your name"/>
-        <textarea rows="4" placeholder="Share your experience..."></textarea>
-        <button class="btn-primary" style="width:100%">Submit Review</button>
+        <input type="text" placeholder="Your name" id="review-name"/>
+        <input type="text" placeholder="Booking reference (e.g. KSHO-1234)" id="review-booking-ref"/>
+        <textarea rows="4" placeholder="Share your experience..." id="review-text"></textarea>
+        <div class="form-error" id="review-error">Please add a star rating, your name, and a short review.</div>
+        <button class="btn-primary" style="width:100%" id="review-submit-btn" onclick="submitReview()">Submit Review</button>
+        <p style="font-size:0.76rem;color:rgba(232,213,183,0.45);margin-top:0.8rem;text-align:center;">Reviews are verified against your booking reference — found in your confirmation email — and each booking can only be used once.</p>
       </div>
     </div>
   </section>
@@ -957,7 +961,7 @@
 
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp }
+  import { getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes, getDownloadURL }
     from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
@@ -997,9 +1001,39 @@
     catch(e){ return null; }
   }
 
+  async function loadReviews(){
+    try{
+      const s = await getDocs(query(collection(db,'reviews'), orderBy('createdAt','desc')));
+      return s.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){
+      try{ const s=await getDocs(collection(db,'reviews')); return s.docs.map(d=>({id:d.id,...d.data()})); }
+      catch(_){ return []; }
+    }
+  }
+
   window.kshoSaveBooking = (order)=>
     addDoc(collection(db,'bookings'), { ...order, status:'new', createdAt: serverTimestamp() })
       .catch(err=> console.warn('Booking not saved to Firestore:', err));
+
+  window.kshoSaveReview = (review)=>
+    addDoc(collection(db,'reviews'), { ...review, createdAt: serverTimestamp() });
+
+  window.kshoValidateBookingRef = async (rawRef) => {
+    const ref = (rawRef || '').trim().toUpperCase();
+    if (!ref) return { valid: false, reason: 'empty' };
+    try {
+      const bookingSnap = await getDocs(query(collection(db, 'bookings'), where('ref', '==', ref)));
+      if (bookingSnap.empty) return { valid: false, reason: 'not_found' };
+
+      const reviewSnap = await getDocs(query(collection(db, 'reviews'), where('bookingRef', '==', ref)));
+      if (!reviewSnap.empty) return { valid: false, reason: 'already_used' };
+
+      return { valid: true, ref };
+    } catch (e) {
+      console.warn('Booking ref validation failed:', e);
+      return { valid: false, reason: 'error' };
+    }
+  };
 
   window.kshoDayBlocked = (y, m, d) => {
     const a = window.KSHO && window.KSHO.availability;
@@ -1012,13 +1046,14 @@
   };
 
   (async () => {
-    const [svcs, pf] = await Promise.all([loadCol('services'), loadCol('portfolio')]);
+    const [svcs, pf, revs] = await Promise.all([loadCol('services'), loadCol('portfolio'), loadReviews()]);
     const content  = await loadDoc('content','main');
     const settings = await loadDoc('settings','main');
     const availability = await loadDoc('settings','availability');
     window.KSHO = {
       services:  svcs.filter(s=>!s.hidden),
       portfolio: pf,
+      reviews:   revs,
       content:   content  || null,
       settings:  settings || null,
       availability: availability || null
@@ -1103,6 +1138,119 @@ let selectedStars = 0;
 function setStars(n) {
   selectedStars = n;
   document.querySelectorAll('.star-btn').forEach((b, i) => b.classList.toggle('active', i < n));
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+
+function reviewInitial(name) {
+  const n = (name || '').trim();
+  return n ? n.charAt(0).toUpperCase() : '?';
+}
+
+const STATIC_REVIEW_STARS = [5, 5, 5, 5]; // matches the four built-in testimonials already on the page
+
+function updateOverallRating(dynamicReviews) {
+  const dynStars = (dynamicReviews || []).map(r => Math.max(1, Math.min(5, parseInt(r.stars) || 5)));
+  const all = STATIC_REVIEW_STARS.concat(dynStars);
+  const avg = all.reduce((a, b) => a + b, 0) / all.length;
+  const bigEl   = document.querySelector('.rating-big');
+  const starsEl = document.querySelector('.rating-details .stars');
+  const countEl = document.querySelector('.rating-details p');
+  if (bigEl)   bigEl.textContent = avg.toFixed(1);
+  if (starsEl) {
+    const rounded = Math.round(avg);
+    starsEl.textContent = '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+  }
+  if (countEl) countEl.textContent = 'Based on ' + all.length + ' review' + (all.length === 1 ? '' : 's');
+}
+
+function renderDynamicReviews() {
+  const grid = document.getElementById('reviews-grid');
+  if (!grid) return;
+  grid.querySelectorAll('.review-card.dynamic').forEach(el => el.remove());
+
+  const items = (window.KSHO && window.KSHO.reviews) || [];
+  items.forEach(r => {
+    const stars = Math.max(1, Math.min(5, parseInt(r.stars) || 5));
+    const card = document.createElement('div');
+    card.className = 'review-card dynamic';
+    card.innerHTML =
+      '<div class="review-stars">' + '★'.repeat(stars) + '☆'.repeat(5 - stars) + '</div>' +
+      '<p class="review-text">"' + escapeHtml(r.text) + '"</p>' +
+      '<div class="review-author">' +
+        '<div class="author-avatar">' + escapeHtml(reviewInitial(r.name)) + '</div>' +
+        '<div class="author-info"><h4>' + escapeHtml(r.name || 'Anonymous') + '</h4><p>Client</p></div>' +
+      '</div>';
+    grid.insertBefore(card, grid.firstChild);
+  });
+  updateOverallRating(items);
+}
+
+async function submitReview() {
+  const nameInput = document.getElementById('review-name');
+  const refInput  = document.getElementById('review-booking-ref');
+  const textInput = document.getElementById('review-text');
+  const btn       = document.getElementById('review-submit-btn');
+  const errEl     = document.getElementById('review-error');
+  errEl.classList.remove('show');
+
+  const name       = nameInput.value.trim();
+  const bookingRef = refInput.value.trim().toUpperCase();
+  const text       = textInput.value.trim();
+
+  if (!selectedStars) { errEl.textContent = 'Please select a star rating.'; errEl.classList.add('show'); return; }
+  if (!name)           { errEl.textContent = 'Please enter your name.'; errEl.classList.add('show'); return; }
+  if (!bookingRef)      { errEl.textContent = 'Please enter the booking reference from your confirmation email.'; errEl.classList.add('show'); return; }
+  if (!text)           { errEl.textContent = 'Please share a few words about your experience.'; errEl.classList.add('show'); return; }
+  if (!window.kshoValidateBookingRef || !window.kshoSaveReview) {
+    errEl.textContent = 'Reviews aren’t connected right now — please try again shortly.'; errEl.classList.add('show'); return;
+  }
+
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Verifying booking…';
+
+  const check = await window.kshoValidateBookingRef(bookingRef);
+  if (!check.valid) {
+    const messages = {
+      not_found:    'We couldn’t find a booking with that reference. Please check your confirmation email and try again.',
+      already_used: 'A review has already been submitted for that booking reference.',
+      error:        'Sorry — couldn’t verify your booking reference just now. Please try again shortly.',
+      empty:        'Please enter the booking reference from your confirmation email.'
+    };
+    errEl.textContent = messages[check.reason] || 'That booking reference couldn’t be verified.';
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = original;
+    return;
+  }
+
+  btn.textContent = 'Submitting…';
+
+  const review = { name, text, stars: selectedStars, bookingRef: check.ref };
+  try {
+    await window.kshoSaveReview(review);
+    window.KSHO = window.KSHO || {};
+    window.KSHO.reviews = [review, ...((window.KSHO && window.KSHO.reviews) || [])];
+    renderDynamicReviews();
+
+    nameInput.value = '';
+    refInput.value = '';
+    textInput.value = '';
+    setStars(0);
+    btn.textContent = 'Thank you! ✓';
+    setTimeout(() => { btn.disabled = false; btn.textContent = original; }, 2500);
+  } catch (e) {
+    console.warn('Review save failed:', e);
+    errEl.textContent = 'Sorry — couldn’t submit your review just now. Please try again.';
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 }
 
 function bookService(catName) {
@@ -1598,6 +1746,7 @@ function kshoBoot(){
   initCal();
   applyDynamicContent();
   renderDynamicPortfolio();
+  renderDynamicReviews();
   applyDynamicSettings();
 }
 function renderDynamicPortfolio(){

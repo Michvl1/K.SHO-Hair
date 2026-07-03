@@ -676,7 +676,7 @@
           <label>Any notes for me?</label>
           <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="display:none">
           <label>Inspiration photo (optional)</label>
           <input type="file" accept="image/*" id="client-photo" onchange="showPhotoName(this)"/>
           <div id="photo-filename" style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;"></div>
@@ -959,6 +959,8 @@
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
   import { getFirestore, collection, getDocs, query, orderBy, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL }
+    from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAdYFmUbQlRXx0Hp0BOBpRlp5GLvqTh0fA",
@@ -971,6 +973,15 @@
   };
   const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
   const db  = getFirestore(app);
+  const storage = getStorage(app);
+
+  window.kshoUploadPhoto = async (file) => {
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const path = 'inspiration-photos/' + Date.now() + '_' + safeName;
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  };
 
   async function loadCol(name){
     try{
@@ -1391,6 +1402,29 @@ async function confirmBooking() {
 
   currentOrderRef = generateOrderRef();
 
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = photoFile ? 'Uploading photo…' : 'Sending…';
+
+  let photoUrl = null;
+  let photoUploadFailed = false;
+  if (photoFile) {
+    try {
+      if (window.kshoUploadPhoto) {
+        photoUrl = await window.kshoUploadPhoto(photoFile);
+      } else {
+        photoUploadFailed = true;
+      }
+    } catch (e) {
+      console.warn('Photo upload failed:', e);
+      photoUploadFailed = true;
+    }
+  }
+
+  const photoLine = photoFile
+    ? (photoUrl ? 'Inspiration photo: ' + photoUrl : 'Inspiration photo: client attached "' + photoFile.name + '" but it couldn’t be uploaded automatically — ask them to send it directly.')
+    : 'Inspiration photo: None';
+
   const summary =
     'NEW BOOKING REQUEST — ' + currentOrderRef + '\n\n' +
     'Service: ' + SERVICES[selectedCat].cat + '\n' +
@@ -1405,11 +1439,9 @@ async function confirmBooking() {
     'Phone: ' + phone + '\n' +
     'Client type: ' + returning + '\n' +
     'Notes: ' + (notes || '—') + '\n' +
-    'Inspiration photo attached: ' + (photoFile ? 'Yes (' + photoFile.name + ')' : 'No') + '\n\n' +
+    photoLine + '\n\n' +
     'ACTION: reply to this client with a payment link to confirm their slot.';
 
-  const originalLabel = btn.textContent;
-  btn.disabled = true;
   btn.textContent = 'Sending…';
 
   try {
@@ -1417,30 +1449,29 @@ async function confirmBooking() {
       throw new Error('the order email isn’t set up yet');
     }
 
-    const fd = new FormData();
-    fd.append('access_key', WEB3FORMS_ACCESS_KEY);
-    fd.append('subject', 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last);
-    fd.append('from_name', 'K.SHO Hair Website');
-    fd.append('order_ref', currentOrderRef);
-    fd.append('service', SERVICES[selectedCat].cat);
-    fd.append('size', selectedSize.name || '');
-    fd.append('addons', getAddonSummaryText());
-    fd.append('date', selectedDate);
-    fd.append('time', selectedTime);
-    fd.append('total', '£' + total);
-    fd.append('payment_preference', payChoice);
-    fd.append('client_name', first + ' ' + last);
-    fd.append('client_email', email);
-    fd.append('client_phone', phone);
-    fd.append('client_type', returning);
-    fd.append('notes', notes || '—');
-    fd.append('message', summary);
-    if (photoFile) fd.append('attachment', photoFile);
-
     const res = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
-      headers: { 'Accept': 'application/json' },
-      body: fd
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last,
+        from_name: 'K.SHO Hair Website',
+        order_ref: currentOrderRef,
+        service: SERVICES[selectedCat].cat,
+        size: selectedSize.name || '',
+        addons: getAddonSummaryText(),
+        date: selectedDate,
+        time: selectedTime,
+        total: '£' + total,
+        payment_preference: payChoice,
+        client_name: first + ' ' + last,
+        client_email: email,
+        client_phone: phone,
+        client_type: returning,
+        notes: notes || '—',
+        inspiration_photo: photoUrl || (photoFile ? 'upload failed — filename: ' + photoFile.name : 'none'),
+        message: summary
+      })
     });
 
     const data = await res.json();
@@ -1451,7 +1482,7 @@ async function confirmBooking() {
       size: selectedSize.name || '', addons: getAddonSummaryText(),
       date: selectedDate, time: selectedTime, total: total,
       name: first + ' ' + last, email, phone, notes: notes || '—',
-      photo: photoFile ? photoFile.name : null
+      photoUrl: photoUrl || null
     });
     showSuccess();
   } catch (err) {

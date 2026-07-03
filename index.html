@@ -616,55 +616,33 @@
 
           <div class="addon-group" id="addon-length">
             <div class="addon-group-title">Length</div>
-            <div class="addon-chips">
-              <div class="addon-chip" data-addon="length" data-price="0" data-label="Standard length" onclick="toggleChip(this,'length')">Standard <span class="chip-price">included</span></div>
-              <div class="addon-chip" data-addon="length" data-price="15" data-label="Lower back length +£15" onclick="toggleChip(this,'length')">Lower back <span class="chip-price">+£15</span></div>
-              <div class="addon-chip" data-addon="length" data-price="30" data-label="Bum length +£30" onclick="toggleChip(this,'length')">Bum length <span class="chip-price">+£30</span></div>
-            </div>
+            <div class="addon-chips" id="length-chips"></div>
           </div>
 
           <div class="addon-group" id="addon-colour">
             <div class="addon-group-title">Hair Colour</div>
             <div class="colour-swatches" id="colour-swatches"></div>
-            <div class="addon-chips" style="margin-top:0.5rem">
-              <div class="addon-chip" data-addon="custommix" data-price="15" data-label="Custom mix: Blonde +£15" onclick="toggleChip(this,'custommix-blonde')">Custom mix: Blonde <span class="chip-price">+£15</span></div>
-              <div class="addon-chip" data-addon="custommix" data-price="15" data-label="Custom mix: Brown +£15" onclick="toggleChip(this,'custommix-brown')">Custom mix: Brown <span class="chip-price">+£15</span></div>
-            </div>
+            <div class="addon-chips" id="colourmix-chips" style="margin-top:0.5rem"></div>
           </div>
 
           <div class="addon-group hidden" id="addon-freestyle">
             <div class="addon-group-title">Freestyle</div>
-            <div class="addon-chips">
-              <div class="addon-chip" data-addon="freestyle" data-price="10" data-label="Simple freestyle +£10" onclick="toggleChip(this,'freestyle')">Simple <span class="chip-price">+£10</span></div>
-              <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Complex freestyle +£20" onclick="toggleChip(this,'freestyle')">Complex <span class="chip-price">+£20</span></div>
-              <div class="addon-chip" data-addon="freestyle" data-price="30" data-label="Extreme freestyle +£30" onclick="toggleChip(this,'freestyle')">Extreme <span class="chip-price">+£30</span></div>
-              <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Barrel ends +£20" onclick="toggleChip(this,'freestyle')">Barrel Ends <span class="chip-price">+£20</span></div>
-              <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Curls +£20" onclick="toggleChip(this,'freestyle')">Curls <span class="chip-price">+£20</span></div>
-            </div>
+            <div class="addon-chips" id="freestyle-chips"></div>
           </div>
 
           <div class="addon-group hidden" id="addon-curl">
             <div class="addon-group-title">Curl Specification</div>
-            <div class="addon-chips">
-              <div class="addon-chip" data-addon="curl" data-price="75" data-label="Deep Wave +£75" onclick="toggleChip(this,'curl')">Deep Wave <span class="chip-price">+£75</span></div>
-              <div class="addon-chip" data-addon="curl" data-price="80" data-label="Burmese Curly +£80" onclick="toggleChip(this,'curl')">Burmese Curly <span class="chip-price">+£80</span></div>
-              <div class="addon-chip" data-addon="curl" data-price="85" data-label="Body Wave +£85" onclick="toggleChip(this,'curl')">Body Wave <span class="chip-price">+£85</span></div>
-              <div class="addon-chip" data-addon="curl" data-price="75" data-label="Loose Deep Wave +£75" onclick="toggleChip(this,'curl')">Loose Deep Wave <span class="chip-price">+£75</span></div>
-            </div>
+            <div class="addon-chips" id="curl-chips"></div>
           </div>
 
           <div class="addon-group hidden" id="addon-fulani-upgrade">
             <div class="addon-group-title">Style Upgrade</div>
-            <div class="addon-chips">
-              <div class="addon-chip" data-addon="fulani-upgrade" data-price="20" data-label="Boho &amp; Goddess upgrade +£20" onclick="toggleChip(this,'fulani-upgrade')">Boho &amp; Goddess add-on <span class="chip-price">+£20</span></div>
-            </div>
+            <div class="addon-chips" id="fulani-upgrade-chips"></div>
           </div>
 
           <div class="addon-group hidden" id="addon-frenchcurl-hair">
             <div class="addon-group-title">Braiding Hair</div>
-            <div class="addon-chips">
-              <div class="addon-chip" data-addon="frenchcurl-hair" data-price="75" data-label="French Curl Braiding Hair +£75" onclick="toggleChip(this,'frenchcurl-hair')">Add braiding hair <span class="chip-price">+£75</span></div>
-            </div>
+            <div class="addon-chips" id="frenchcurl-hair-chips"></div>
           </div>
 
           <div class="addon-total-bar" id="addon-total-bar" style="display:none">
@@ -1056,13 +1034,15 @@
     const content  = await loadDoc('content','main');
     const settings = await loadDoc('settings','main');
     const availability = await loadDoc('settings','availability');
+    const addons = await loadDoc('settings','addons');
     window.KSHO = {
       services:  svcs.filter(s=>!s.hidden),
       portfolio: pf,
       reviews:   revs,
       content:   content  || null,
       settings:  settings || null,
-      availability: availability || null
+      availability: availability || null,
+      addons:    addons || null
     };
     window.__kshoReady = true;
     window.dispatchEvent(new Event('ksho:ready'));
@@ -1179,7 +1159,7 @@ function renderDynamicReviews() {
   if (!grid) return;
   grid.querySelectorAll('.review-card.dynamic').forEach(el => el.remove());
 
-  const items = (window.KSHO && window.KSHO.reviews) || [];
+  const items = ((window.KSHO && window.KSHO.reviews) || []).filter(r => !r.hidden);
   items.forEach(r => {
     const stars = Math.max(1, Math.min(5, parseInt(r.stars) || 5));
     const card = document.createElement('div');
@@ -1302,22 +1282,60 @@ let calYear, calMonth;
 let selectedDate = null;
 let selectedTime = null;
 
-const addonState = { length: null, 'custommix-blonde': null, 'custommix-brown': null, freestyle: null, curl: null, 'fulani-upgrade': null, 'frenchcurl-hair': null, colour: null };
+const addonState = { length: null, colourMix: null, freestyle: null, curl: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
 
-const COLOURS = [
-  { id: '1',   label: '1 (Jet Black)',    hex: '#0a0a0a' },
-  { id: '1b',  label: '1B (Off Black)',   hex: '#1a1008' },
-  { id: '2',   label: '2 (Dark Brown)',   hex: '#2c1a0e' },
-  { id: '4',   label: '4 (Medium Brown)', hex: '#6b3a1f' },
-  { id: '8',   label: '8 (Light Brown)',  hex: '#9e6b3a' },
-  { id: '27',  label: '27 (Honey Blonde)',hex: '#c9843a' },
-  { id: '30',  label: '30 (Auburn)',      hex: '#8b3a1a' },
-  { id: '613', label: '613 (Platinum)',   hex: '#f5e6b8' },
-];
+/* Fallback defaults — used only if the admin hasn't saved add-ons in Firestore yet */
+const DEFAULT_ADDONS = {
+  length: [
+    { label: 'Standard length', price: 0 },
+    { label: 'Lower back length', price: 15 },
+    { label: 'Bum length', price: 30 }
+  ],
+  colours: [
+    { label: '1 (Jet Black)', hex: '#0a0a0a' },
+    { label: '1B (Off Black)', hex: '#1a1008' },
+    { label: '2 (Dark Brown)', hex: '#2c1a0e' },
+    { label: '4 (Medium Brown)', hex: '#6b3a1f' },
+    { label: '8 (Light Brown)', hex: '#9e6b3a' },
+    { label: '27 (Honey Blonde)', hex: '#c9843a' },
+    { label: '30 (Auburn)', hex: '#8b3a1a' },
+    { label: '613 (Platinum)', hex: '#f5e6b8' }
+  ],
+  colourMix: [
+    { label: 'Custom mix: Blonde', price: 15 },
+    { label: 'Custom mix: Brown', price: 15 }
+  ],
+  freestyle: [
+    { label: 'Simple freestyle', price: 10 },
+    { label: 'Complex freestyle', price: 20 },
+    { label: 'Extreme freestyle', price: 30 },
+    { label: 'Barrel ends', price: 20 },
+    { label: 'Curls', price: 20 }
+  ],
+  curl: [
+    { label: 'Deep Wave', price: 75 },
+    { label: 'Burmese Curly', price: 80 },
+    { label: 'Body Wave', price: 85 },
+    { label: 'Loose Deep Wave', price: 75 }
+  ],
+  fulaniUpgrade: [
+    { label: 'Boho & Goddess upgrade', price: 20 }
+  ],
+  frenchCurlHair: [
+    { label: 'French Curl Braiding Hair', price: 75 }
+  ]
+};
+
+function currentAddons() {
+  const remote = window.KSHO && window.KSHO.addons;
+  return (remote && Object.keys(remote).length) ? remote : DEFAULT_ADDONS;
+}
 
 function buildColourSwatches() {
   const wrap = document.getElementById('colour-swatches');
-  COLOURS.forEach(c => {
+  wrap.innerHTML = '';
+  const colours = currentAddons().colours || [];
+  colours.forEach(c => {
     const cell = document.createElement('div');
     cell.className = 'colour-chip-wrap';
 
@@ -1325,11 +1343,10 @@ function buildColourSwatches() {
     el.className = 'colour-chip';
     el.style.background = c.hex;
     el.title = c.label;
-    el.setAttribute('data-colour', c.id);
 
     const num = document.createElement('div');
     num.className = 'colour-num';
-    num.textContent = c.id;
+    num.textContent = (c.label.match(/^\S+/) || [''])[0];
 
     cell.onclick = () => {
       document.querySelectorAll('.colour-chip').forEach(x => x.classList.remove('selected'));
@@ -1342,6 +1359,43 @@ function buildColourSwatches() {
     cell.appendChild(num);
     wrap.appendChild(cell);
   });
+}
+
+function buildAddonChipGroup(containerId, items, groupKey) {
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  (items || []).forEach(item => {
+    const chip = document.createElement('div');
+    chip.className = 'addon-chip';
+    const priceLabel = item.price > 0 ? ('+£' + item.price) : 'included';
+    chip.innerHTML = escapeHtml(item.label) + ' <span class="chip-price">' + priceLabel + '</span>';
+    chip.addEventListener('click', () => toggleChipItem(chip, groupKey, item));
+    wrap.appendChild(chip);
+  });
+}
+
+function toggleChipItem(el, groupKey, item) {
+  const alreadySelected = el.classList.contains('selected');
+  const wrap = el.parentElement;
+  wrap.querySelectorAll('.addon-chip').forEach(c => c.classList.remove('selected'));
+  if (alreadySelected) {
+    addonState[groupKey] = null;
+  } else {
+    el.classList.add('selected');
+    addonState[groupKey] = { label: item.label, price: item.price || 0 };
+  }
+  recalcAddonTotal();
+}
+
+function buildAddonUI() {
+  const addons = currentAddons();
+  buildColourSwatches();
+  buildAddonChipGroup('length-chips', addons.length, 'length');
+  buildAddonChipGroup('colourmix-chips', addons.colourMix, 'colourMix');
+  buildAddonChipGroup('freestyle-chips', addons.freestyle, 'freestyle');
+  buildAddonChipGroup('curl-chips', addons.curl, 'curl');
+  buildAddonChipGroup('fulani-upgrade-chips', addons.fulaniUpgrade, 'fulaniUpgrade');
+  buildAddonChipGroup('frenchcurl-hair-chips', addons.frenchCurlHair, 'frenchCurlHair');
 }
 
 const FREESTYLE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls', 'Feed In / Stitch Braids', 'Feed In + Sew In'];
@@ -1371,25 +1425,12 @@ function updateAddonVisibility() {
     document.querySelectorAll('#addon-curl .addon-chip').forEach(c => c.classList.remove('selected'));
   }
   if (!showFulaniUpgrade) {
-    addonState['fulani-upgrade'] = null;
+    addonState.fulaniUpgrade = null;
     document.querySelectorAll('#addon-fulani-upgrade .addon-chip').forEach(c => c.classList.remove('selected'));
   }
   if (!isFrenchCurl) {
-    addonState['frenchcurl-hair'] = null;
+    addonState.frenchCurlHair = null;
     document.querySelectorAll('#addon-frenchcurl-hair .addon-chip').forEach(c => c.classList.remove('selected'));
-  }
-  recalcAddonTotal();
-}
-
-function toggleChip(el, groupKey) {
-  const alreadySelected = el.classList.contains('selected');
-  const group = el.closest('.addon-group');
-  group.querySelectorAll('.addon-chip[data-addon="' + el.dataset.addon + '"]').forEach(c => c.classList.remove('selected'));
-  if (alreadySelected) {
-    addonState[groupKey] = null;
-  } else {
-    el.classList.add('selected');
-    addonState[groupKey] = { label: el.dataset.label, price: parseInt(el.dataset.price) };
   }
   recalcAddonTotal();
 }
@@ -1469,7 +1510,8 @@ function buildServiceUI() {
     panels.appendChild(panel);
   });
 
-  buildColourSwatches();
+  buildAddonUI();
+
   updateAddonVisibility();
 }
 

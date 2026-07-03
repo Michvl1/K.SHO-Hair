@@ -638,16 +638,17 @@
               <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Complex freestyle +£20" onclick="toggleChip(this,'freestyle')">Complex <span class="chip-price">+£20</span></div>
               <div class="addon-chip" data-addon="freestyle" data-price="30" data-label="Extreme freestyle +£30" onclick="toggleChip(this,'freestyle')">Extreme <span class="chip-price">+£30</span></div>
               <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Barrel ends +£20" onclick="toggleChip(this,'freestyle')">Barrel Ends <span class="chip-price">+£20</span></div>
+              <div class="addon-chip" data-addon="freestyle" data-price="20" data-label="Curls +£20" onclick="toggleChip(this,'freestyle')">Curls <span class="chip-price">+£20</span></div>
             </div>
           </div>
 
           <div class="addon-group hidden" id="addon-curl">
             <div class="addon-group-title">Curl Specification</div>
             <div class="addon-chips">
-              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Deep Wave" onclick="toggleChip(this,'curl')">Deep Wave</div>
-              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Burmese Curly" onclick="toggleChip(this,'curl')">Burmese Curly</div>
-              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Body Wave" onclick="toggleChip(this,'curl')">Body Wave</div>
-              <div class="addon-chip" data-addon="curl" data-price="0" data-label="Loose Deep Wave" onclick="toggleChip(this,'curl')">Loose Deep Wave</div>
+              <div class="addon-chip" data-addon="curl" data-price="75" data-label="Deep Wave +£75" onclick="toggleChip(this,'curl')">Deep Wave <span class="chip-price">+£75</span></div>
+              <div class="addon-chip" data-addon="curl" data-price="80" data-label="Burmese Curly +£80" onclick="toggleChip(this,'curl')">Burmese Curly <span class="chip-price">+£80</span></div>
+              <div class="addon-chip" data-addon="curl" data-price="85" data-label="Body Wave +£85" onclick="toggleChip(this,'curl')">Body Wave <span class="chip-price">+£85</span></div>
+              <div class="addon-chip" data-addon="curl" data-price="75" data-label="Loose Deep Wave +£75" onclick="toggleChip(this,'curl')">Loose Deep Wave <span class="chip-price">+£75</span></div>
             </div>
           </div>
 
@@ -655,6 +656,13 @@
             <div class="addon-group-title">Style Upgrade</div>
             <div class="addon-chips">
               <div class="addon-chip" data-addon="fulani-upgrade" data-price="20" data-label="Boho &amp; Goddess upgrade +£20" onclick="toggleChip(this,'fulani-upgrade')">Boho &amp; Goddess add-on <span class="chip-price">+£20</span></div>
+            </div>
+          </div>
+
+          <div class="addon-group hidden" id="addon-frenchcurl-hair">
+            <div class="addon-group-title">Braiding Hair</div>
+            <div class="addon-chips">
+              <div class="addon-chip" data-addon="frenchcurl-hair" data-price="75" data-label="French Curl Braiding Hair +£75" onclick="toggleChip(this,'frenchcurl-hair')">Add braiding hair <span class="chip-price">+£75</span></div>
             </div>
           </div>
 
@@ -667,6 +675,11 @@
         <div class="form-group" style="margin-top:1rem">
           <label>Any notes for me?</label>
           <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Inspiration photo (optional)</label>
+          <input type="file" accept="image/*" id="client-photo" onchange="showPhotoName(this)"/>
+          <div id="photo-filename" style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;"></div>
         </div>
         <div class="form-nav">
           <button class="btn-next" onclick="goToStep(2)">Choose date &amp; time →</button>
@@ -1087,6 +1100,16 @@ function bookService(catName) {
   document.querySelector('#booking-wrap').scrollIntoView({ behavior: 'smooth' });
 }
 
+function showPhotoName(input) {
+  const el = document.getElementById('photo-filename');
+  if (!el) return;
+  if (input.files && input.files[0]) {
+    el.textContent = '📎 ' + input.files[0].name;
+  } else {
+    el.textContent = '';
+  }
+}
+
 /* ============================================================
    SERVICES DATA
    ============================================================ */
@@ -1114,7 +1137,7 @@ let calYear, calMonth;
 let selectedDate = null;
 let selectedTime = null;
 
-const addonState = { length: null, 'custommix-blonde': null, 'custommix-brown': null, freestyle: null, curl: null, 'fulani-upgrade': null, colour: null };
+const addonState = { length: null, 'custommix-blonde': null, 'custommix-brown': null, freestyle: null, curl: null, 'fulani-upgrade': null, 'frenchcurl-hair': null, colour: null };
 
 const COLOURS = [
   { id: '1',   label: '1 (Jet Black)',    hex: '#0a0a0a' },
@@ -1156,26 +1179,39 @@ function buildColourSwatches() {
   });
 }
 
-const BOHO_GODDESS_CATS = ['Goddess Braids/Twists', 'Boho Braids/Twists', 'French Curls', 'Boho French Curls', 'Fulani French Curls'];
-const FULANI_CATS = ['Fulani Braids/Twists', 'Fulani French Curls'];
+const FREESTYLE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls', 'Feed In / Stitch Braids', 'Feed In + Sew In'];
+const CURL_SPEC_CATS = ['Goddess Braids/Twists', 'Boho Braids/Twists', 'Miracle Knots (Hair Provided)', 'Miracle Knots (Own Hair)'];
+const FULANI_UPGRADE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls'];
+const FRENCH_CURL_CATS = ['French Curls', 'Boho French Curls'];
 
 function updateAddonVisibility() {
   const cat = SERVICES[selectedCat].cat;
-  const isBohoGoddess = BOHO_GODDESS_CATS.includes(cat);
-  const isFulani      = FULANI_CATS.includes(cat);
+  const isFrenchCurl = FRENCH_CURL_CATS.includes(cat);
 
-  document.getElementById('addon-freestyle').classList.toggle('hidden', !isBohoGoddess);
-  document.getElementById('addon-curl').classList.toggle('hidden', !isBohoGoddess);
-  document.getElementById('addon-fulani-upgrade').classList.toggle('hidden', !isFulani);
+  const showFreestyle = !isFrenchCurl && FREESTYLE_CATS.includes(cat);
+  const showCurl = !isFrenchCurl && CURL_SPEC_CATS.includes(cat);
+  const showFulaniUpgrade = !isFrenchCurl && FULANI_UPGRADE_CATS.includes(cat);
 
-  if (!isBohoGoddess) {
+  document.getElementById('addon-freestyle').classList.toggle('hidden', !showFreestyle);
+  document.getElementById('addon-curl').classList.toggle('hidden', !showCurl);
+  document.getElementById('addon-fulani-upgrade').classList.toggle('hidden', !showFulaniUpgrade);
+  document.getElementById('addon-frenchcurl-hair').classList.toggle('hidden', !isFrenchCurl);
+
+  if (!showFreestyle) {
     addonState.freestyle = null;
-    addonState.curl = null;
-    document.querySelectorAll('#addon-freestyle .addon-chip, #addon-curl .addon-chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('#addon-freestyle .addon-chip').forEach(c => c.classList.remove('selected'));
   }
-  if (!isFulani) {
+  if (!showCurl) {
+    addonState.curl = null;
+    document.querySelectorAll('#addon-curl .addon-chip').forEach(c => c.classList.remove('selected'));
+  }
+  if (!showFulaniUpgrade) {
     addonState['fulani-upgrade'] = null;
     document.querySelectorAll('#addon-fulani-upgrade .addon-chip').forEach(c => c.classList.remove('selected'));
+  }
+  if (!isFrenchCurl) {
+    addonState['frenchcurl-hair'] = null;
+    document.querySelectorAll('#addon-frenchcurl-hair .addon-chip').forEach(c => c.classList.remove('selected'));
   }
   recalcAddonTotal();
 }
@@ -1338,6 +1374,8 @@ async function confirmBooking() {
   const returning = document.getElementById('client-returning').value;
   const notes     = document.getElementById('client-notes').value.trim();
   const agreed    = document.getElementById('agree-tc').checked;
+  const photoInput = document.getElementById('client-photo');
+  const photoFile   = photoInput && photoInput.files && photoInput.files[0] ? photoInput.files[0] : null;
 
   if (!selectedDate || !selectedTime) { showErr('Please choose a date and time first.'); goToStep(2); return; }
   if (!first || !last) { alert('Please enter your first and last name.'); goToStep(3); return; }
@@ -1366,7 +1404,8 @@ async function confirmBooking() {
     'Email: ' + email + '\n' +
     'Phone: ' + phone + '\n' +
     'Client type: ' + returning + '\n' +
-    'Notes: ' + (notes || '—') + '\n\n' +
+    'Notes: ' + (notes || '—') + '\n' +
+    'Inspiration photo attached: ' + (photoFile ? 'Yes (' + photoFile.name + ')' : 'No') + '\n\n' +
     'ACTION: reply to this client with a payment link to confirm their slot.';
 
   const originalLabel = btn.textContent;
@@ -1378,28 +1417,30 @@ async function confirmBooking() {
       throw new Error('the order email isn’t set up yet');
     }
 
+    const fd = new FormData();
+    fd.append('access_key', WEB3FORMS_ACCESS_KEY);
+    fd.append('subject', 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last);
+    fd.append('from_name', 'K.SHO Hair Website');
+    fd.append('order_ref', currentOrderRef);
+    fd.append('service', SERVICES[selectedCat].cat);
+    fd.append('size', selectedSize.name || '');
+    fd.append('addons', getAddonSummaryText());
+    fd.append('date', selectedDate);
+    fd.append('time', selectedTime);
+    fd.append('total', '£' + total);
+    fd.append('payment_preference', payChoice);
+    fd.append('client_name', first + ' ' + last);
+    fd.append('client_email', email);
+    fd.append('client_phone', phone);
+    fd.append('client_type', returning);
+    fd.append('notes', notes || '—');
+    fd.append('message', summary);
+    if (photoFile) fd.append('attachment', photoFile);
+
     const res = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        access_key: WEB3FORMS_ACCESS_KEY,
-        subject: 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last,
-        from_name: 'K.SHO Hair Website',
-        order_ref: currentOrderRef,
-        service: SERVICES[selectedCat].cat,
-        size: selectedSize.name || '',
-        addons: getAddonSummaryText(),
-        date: selectedDate,
-        time: selectedTime,
-        total: '£' + total,
-        payment_preference: payChoice,
-        client_name: first + ' ' + last,
-        client_email: email,
-        client_phone: phone,
-        client_type: returning,
-        notes: notes || '—',
-        message: summary
-      })
+      headers: { 'Accept': 'application/json' },
+      body: fd
     });
 
     const data = await res.json();
@@ -1409,7 +1450,8 @@ async function confirmBooking() {
       ref: currentOrderRef, service: SERVICES[selectedCat].cat,
       size: selectedSize.name || '', addons: getAddonSummaryText(),
       date: selectedDate, time: selectedTime, total: total,
-      name: first + ' ' + last, email, phone, notes: notes || '—'
+      name: first + ' ' + last, email, phone, notes: notes || '—',
+      photo: photoFile ? photoFile.name : null
     });
     showSuccess();
   } catch (err) {

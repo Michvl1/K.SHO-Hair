@@ -1011,9 +1011,15 @@
     }
   }
 
-  window.kshoSaveBooking = (order)=>
-    addDoc(collection(db,'bookings'), { ...order, status:'new', createdAt: serverTimestamp() })
+  window.kshoSaveBooking = (order)=>{
+    const savePrivate = addDoc(collection(db,'bookings'), { ...order, status:'new', createdAt: serverTimestamp() })
       .catch(err=> console.warn('Booking not saved to Firestore:', err));
+    const saveRefOnly = order.ref
+      ? addDoc(collection(db,'bookingRefs'), { ref: order.ref, createdAt: serverTimestamp() })
+          .catch(err=> console.warn('Booking reference record not saved:', err))
+      : Promise.resolve();
+    return Promise.all([savePrivate, saveRefOnly]);
+  };
 
   window.kshoSaveReview = (review)=>
     addDoc(collection(db,'reviews'), { ...review, createdAt: serverTimestamp() });
@@ -1022,7 +1028,7 @@
     const ref = (rawRef || '').trim().toUpperCase();
     if (!ref) return { valid: false, reason: 'empty' };
     try {
-      const bookingSnap = await getDocs(query(collection(db, 'bookings'), where('ref', '==', ref)));
+      const bookingSnap = await getDocs(query(collection(db, 'bookingRefs'), where('ref', '==', ref)));
       if (bookingSnap.empty) return { valid: false, reason: 'not_found' };
 
       const reviewSnap = await getDocs(query(collection(db, 'reviews'), where('bookingRef', '==', ref)));

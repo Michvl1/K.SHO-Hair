@@ -198,6 +198,16 @@
   .addon-total-label { font-size: 0.8rem; color: var(--muted); }
   .addon-total-val { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--rose); }
 
+  .curl-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .curl-item { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; border: 1.5px solid rgba(196,137,154,0.25); border-radius: 0.75rem; padding: 0.6rem 0.9rem; background: var(--ivory); transition: border-color 0.2s, background 0.2s; }
+  .curl-item.active { border-color: var(--rose); background: rgba(196,137,154,0.08); }
+  .curl-item-label { font-size: 0.85rem; font-weight: 500; color: var(--charcoal); }
+  .curl-item-label .chip-price { font-size: 0.76rem; color: var(--muted); margin-left: 0.3rem; font-weight: 400; }
+  .qty-stepper { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+  .qty-btn { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(196,137,154,0.35); background: #fff; color: var(--rose-dark); font-size: 1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; }
+  .qty-btn:hover { border-color: var(--rose); background: rgba(196,137,154,0.1); }
+  .qty-val { min-width: 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: var(--plum); }
+
   .form-group { margin-bottom: 1.1rem; }
   .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--plum); margin-bottom: 0.4rem; letter-spacing: 0.02em; }
   .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.72rem 1rem; border-radius: 0.75rem; border: 1.5px solid rgba(196,137,154,0.25); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--charcoal); background: var(--ivory); outline: none; transition: border-color 0.2s; }
@@ -609,11 +619,6 @@
         <div class="service-panels" id="service-panels"></div>
         <div class="addon-section" id="addon-section">
 
-          <div class="addon-group">
-            <div class="addon-group-title">Included</div>
-            <div class="addon-free-note">Free consultation included with every booking</div>
-          </div>
-
           <div class="addon-group" id="addon-length">
             <div class="addon-group-title">Length</div>
             <div class="addon-chips" id="length-chips"></div>
@@ -633,6 +638,11 @@
           <div class="addon-group hidden" id="addon-curl">
             <div class="addon-group-title">Curl Specification</div>
             <div class="addon-chips" id="curl-chips"></div>
+          </div>
+
+          <div class="addon-group hidden" id="addon-miracle-knots-hair">
+            <div class="addon-group-title">Miracle Knots Hair | 4 Bundles</div>
+            <div class="addon-chips" id="miracle-knots-hair-chips"></div>
           </div>
 
           <div class="addon-group hidden" id="addon-fulani-upgrade">
@@ -1282,7 +1292,7 @@ let calYear, calMonth;
 let selectedDate = null;
 let selectedTime = null;
 
-const addonState = { length: null, colourMix: null, freestyle: null, curl: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
+const addonState = { length: null, colourMix: null, freestyle: null, curl: {}, miracleKnotsHair: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
 
 /* Fallback defaults — used only if the admin hasn't saved add-ons in Firestore yet */
 const DEFAULT_ADDONS = {
@@ -1318,6 +1328,12 @@ const DEFAULT_ADDONS = {
     { label: 'Body Wave', price: 85 },
     { label: 'Loose Deep Wave', price: 75 }
   ],
+  miracleKnotsHair: [
+    { label: 'Body Wave', price: 170 },
+    { label: 'Deep Wave', price: 160 },
+    { label: 'Burmese Curly', price: 165 },
+    { label: 'Loose Deep Wave', price: 165 }
+  ],
   fulaniUpgrade: [
     { label: 'Boho & Goddess upgrade', price: 20 }
   ],
@@ -1331,10 +1347,23 @@ function currentAddons() {
   return (remote && Object.keys(remote).length) ? remote : DEFAULT_ADDONS;
 }
 
-function buildColourSwatches() {
+/* Category-specific overrides that live in code rather than the admin panel */
+const CURL_EXCLUDE_BY_CAT = {
+  'Boho Braids/Twists': ['kinky']   // hides any curl option whose label contains "kinky" (case-insensitive)
+};
+const COLOUR_EXCLUDE_BY_CAT = {
+  'French Curls':        ['1', '2', '8', '30'],
+  'Boho French Curls':   ['1', '2', '8', '30'],
+  'Fulani French Curls': ['1', '2', '8', '30'],
+  'Kinky Twists':        ['1', '2', '8', '30']
+};
+const HIDE_LENGTH_COLOUR_CATS = ['Feed In + Sew In'];
+const HIDE_COLOUR_ONLY_CATS = ['Wig Cornrows', 'Natural Hair Braids/Twists'];
+
+function buildColourSwatches(list) {
   const wrap = document.getElementById('colour-swatches');
   wrap.innerHTML = '';
-  const colours = currentAddons().colours || [];
+  const colours = list || currentAddons().colours || [];
   colours.forEach(c => {
     const cell = document.createElement('div');
     cell.className = 'colour-chip-wrap';
@@ -1387,42 +1416,120 @@ function toggleChipItem(el, groupKey, item) {
   recalcAddonTotal();
 }
 
+/* Curl Specification — supports selecting more than one bundle type, each with its own quantity */
+function buildCurlGroup(containerId, items) {
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = '';
+  wrap.classList.remove('addon-chips');
+  wrap.classList.add('curl-list');
+  (items || []).forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'curl-item';
+    row.innerHTML =
+      '<span class="curl-item-label">' + escapeHtml(item.label) + ' <span class="chip-price">£' + item.price + ' each</span></span>' +
+      '<div class="qty-stepper">' +
+        '<button type="button" class="qty-btn minus">−</button>' +
+        '<span class="qty-val">0</span>' +
+        '<button type="button" class="qty-btn plus">+</button>' +
+      '</div>';
+    const valEl   = row.querySelector('.qty-val');
+    const minusEl = row.querySelector('.minus');
+    const plusEl  = row.querySelector('.plus');
+    const setQty = (n) => {
+      n = Math.max(0, Math.min(10, n));
+      valEl.textContent = n;
+      row.classList.toggle('active', n > 0);
+      if (n > 0) addonState.curl[item.label] = { price: item.price, qty: n };
+      else delete addonState.curl[item.label];
+      recalcAddonTotal();
+    };
+    minusEl.addEventListener('click', () => setQty(((addonState.curl[item.label] || {}).qty || 0) - 1));
+    plusEl.addEventListener('click', () => setQty(((addonState.curl[item.label] || {}).qty || 0) + 1));
+    wrap.appendChild(row);
+  });
+}
+
 function buildAddonUI() {
   const addons = currentAddons();
-  buildColourSwatches();
   buildAddonChipGroup('length-chips', addons.length, 'length');
   buildAddonChipGroup('colourmix-chips', addons.colourMix, 'colourMix');
   buildAddonChipGroup('freestyle-chips', addons.freestyle, 'freestyle');
-  buildAddonChipGroup('curl-chips', addons.curl, 'curl');
+  buildAddonChipGroup('miracle-knots-hair-chips', addons.miracleKnotsHair, 'miracleKnotsHair');
   buildAddonChipGroup('fulani-upgrade-chips', addons.fulaniUpgrade, 'fulaniUpgrade');
   buildAddonChipGroup('frenchcurl-hair-chips', addons.frenchCurlHair, 'frenchCurlHair');
+  // Colour swatches and Curl Specification depend on the selected category,
+  // so they're (re)built by rebuildCategoryDependentAddons() instead.
 }
 
-const FREESTYLE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls', 'Feed In / Stitch Braids', 'Feed In + Sew In'];
-const CURL_SPEC_CATS = ['Goddess Braids/Twists', 'Boho Braids/Twists', 'Miracle Knots (Hair Provided)', 'Miracle Knots (Own Hair)'];
+/* Rebuilds the parts of the add-on UI whose *content* (not just visibility) changes by category */
+function rebuildCategoryDependentAddons() {
+  const cat = SERVICES[selectedCat].cat;
+
+  const excludedColourTokens = COLOUR_EXCLUDE_BY_CAT[cat] || [];
+  const allColours = currentAddons().colours || [];
+  const filteredColours = excludedColourTokens.length
+    ? allColours.filter(c => !excludedColourTokens.includes((c.label.match(/^\S+/) || [''])[0]))
+    : allColours;
+  addonState.colour = null;
+  buildColourSwatches(filteredColours);
+
+  const excludedCurlTerms = (CURL_EXCLUDE_BY_CAT[cat] || []).map(s => s.toLowerCase());
+  const allCurlItems = currentAddons().curl || [];
+  const filteredCurlItems = excludedCurlTerms.length
+    ? allCurlItems.filter(item => !excludedCurlTerms.some(term => item.label.toLowerCase().includes(term)))
+    : allCurlItems;
+  addonState.curl = {};
+  buildCurlGroup('curl-chips', filteredCurlItems);
+}
+
+const FREESTYLE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls', 'Feed In / Stitch Braids'];
+const CURL_SPEC_CATS = ['Goddess Braids/Twists', 'Boho Braids/Twists', 'Feed In + Sew In', 'Miracle Knots (Hair Provided)', 'Miracle Knots (Own Hair)'];
+const MIRACLE_KNOTS_HAIR_CATS = ['Miracle Knots (Hair Provided)', 'Miracle Knots (Own Hair)'];
 const FULANI_UPGRADE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls'];
 const FRENCH_CURL_CATS = ['French Curls', 'Boho French Curls'];
 
 function updateAddonVisibility() {
   const cat = SERVICES[selectedCat].cat;
+
+  rebuildCategoryDependentAddons();
+
   const isFrenchCurl = FRENCH_CURL_CATS.includes(cat);
+  const isMiracleKnotsHair = MIRACLE_KNOTS_HAIR_CATS.includes(cat);
+  const hideLengthColour = HIDE_LENGTH_COLOUR_CATS.includes(cat);
+  const hideColourOnly = HIDE_COLOUR_ONLY_CATS.includes(cat);
+  const hideColour = hideLengthColour || hideColourOnly;
 
   const showFreestyle = !isFrenchCurl && FREESTYLE_CATS.includes(cat);
   const showCurl = !isFrenchCurl && CURL_SPEC_CATS.includes(cat);
   const showFulaniUpgrade = !isFrenchCurl && FULANI_UPGRADE_CATS.includes(cat);
 
+  document.getElementById('addon-length').classList.toggle('hidden', hideLengthColour);
+  document.getElementById('addon-colour').classList.toggle('hidden', hideColour);
   document.getElementById('addon-freestyle').classList.toggle('hidden', !showFreestyle);
   document.getElementById('addon-curl').classList.toggle('hidden', !showCurl);
+  document.getElementById('addon-miracle-knots-hair').classList.toggle('hidden', !isMiracleKnotsHair);
   document.getElementById('addon-fulani-upgrade').classList.toggle('hidden', !showFulaniUpgrade);
   document.getElementById('addon-frenchcurl-hair').classList.toggle('hidden', !isFrenchCurl);
 
+  if (hideLengthColour) {
+    addonState.length = null;
+    document.querySelectorAll('#addon-length .addon-chip').forEach(c => c.classList.remove('selected'));
+  }
+  if (hideColour) {
+    addonState.colourMix = null;
+    addonState.colour = null;
+    document.querySelectorAll('#addon-colour .addon-chip').forEach(c => c.classList.remove('selected'));
+  }
   if (!showFreestyle) {
     addonState.freestyle = null;
     document.querySelectorAll('#addon-freestyle .addon-chip').forEach(c => c.classList.remove('selected'));
   }
   if (!showCurl) {
-    addonState.curl = null;
-    document.querySelectorAll('#addon-curl .addon-chip').forEach(c => c.classList.remove('selected'));
+    addonState.curl = {};
+  }
+  if (!isMiracleKnotsHair) {
+    addonState.miracleKnotsHair = null;
+    document.querySelectorAll('#addon-miracle-knots-hair .addon-chip').forEach(c => c.classList.remove('selected'));
   }
   if (!showFulaniUpgrade) {
     addonState.fulaniUpgrade = null;
@@ -1431,6 +1538,7 @@ function updateAddonVisibility() {
   if (!isFrenchCurl) {
     addonState.frenchCurlHair = null;
     document.querySelectorAll('#addon-frenchcurl-hair .addon-chip').forEach(c => c.classList.remove('selected'));
+
   }
   recalcAddonTotal();
 }
@@ -1439,6 +1547,10 @@ function recalcAddonTotal() {
   let total = 0;
   Object.entries(addonState).forEach(([key, val]) => {
     if (!val || key === 'colour') return;
+    if (key === 'curl') {
+      Object.values(val).forEach(item => { total += (item.price || 0) * (item.qty || 0); });
+      return;
+    }
     if (val.price > 0) total += val.price;
   });
   const bar = document.getElementById('addon-total-bar');
@@ -1454,6 +1566,10 @@ function getAddonTotal() {
   let total = 0;
   Object.entries(addonState).forEach(([key, val]) => {
     if (!val || key === 'colour') return;
+    if (key === 'curl') {
+      Object.values(val).forEach(item => { total += (item.price || 0) * (item.qty || 0); });
+      return;
+    }
     total += (val.price || 0);
   });
   return total;
@@ -1464,6 +1580,12 @@ function getAddonSummaryText() {
   Object.entries(addonState).forEach(([key, val]) => {
     if (!val) return;
     if (key === 'colour') { parts.push(val); return; }
+    if (key === 'curl') {
+      Object.entries(val).forEach(([label, item]) => {
+        parts.push(label + (item.qty > 1 ? ' x' + item.qty : ''));
+      });
+      return;
+    }
     if (key === 'length' && val.price === 0) return;
     parts.push(val.label);
   });

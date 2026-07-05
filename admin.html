@@ -278,6 +278,7 @@
             <p>Edit any name, size, or price. Changes go live on your booking form the moment you save.</p>
           </div>
           <div class="row" style="flex:0 0 auto">
+            <button class="btn btn-ghost btn-sm" id="dedupe-btn">Remove duplicates</button>
             <button class="btn btn-ghost btn-sm" id="seed-btn">Load default services</button>
             <button class="btn btn-primary btn-sm" id="add-service-btn">+ Add service</button>
           </div>
@@ -759,6 +760,33 @@ $('#seed-btn').addEventListener('click', async ()=>{
     toast('Default services imported');
   }catch(e){ toast('Import failed: '+e.message,true); }
   $('#seed-btn').disabled=false; $('#seed-btn').textContent='Load default services';
+});
+$('#dedupe-btn').addEventListener('click', async ()=>{
+  const groups = {};
+  services.forEach(s=>{
+    const key = (s.cat||'').trim().toLowerCase();
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(s);
+  });
+  const toDelete = [];
+  Object.values(groups).forEach(group=>{
+    if(group.length>1){
+      const sorted=[...group].sort((a,b)=> (a.order??0)-(b.order??0));
+      toDelete.push(...sorted.slice(1));
+    }
+  });
+  if(!toDelete.length){ toast('No duplicate services found'); return; }
+  const names = [...new Set(toDelete.map(s=>s.cat))].join(', ');
+  if(!confirm(`Found ${toDelete.length} duplicate service${toDelete.length===1?'':'s'} (${names}). Remove the extra copies and keep one of each?`)) return;
+  $('#dedupe-btn').disabled=true; $('#dedupe-btn').textContent='Removing…';
+  try{
+    for(const s of toDelete){ await deleteDoc(doc(db,'services',s.id)); }
+    await loadServices();
+    await Promise.all(services.map((s,k)=> setDoc(doc(db,'services',s.id),{order:k},{merge:true})));
+    services.forEach((s,k)=> s.order=k);
+    toast(`Removed ${toDelete.length} duplicate service${toDelete.length===1?'':'s'}`);
+  }catch(e){ toast('Remove failed: '+e.message,true); }
+  $('#dedupe-btn').disabled=false; $('#dedupe-btn').textContent='Remove duplicates';
 });
 
 /* =========================================================

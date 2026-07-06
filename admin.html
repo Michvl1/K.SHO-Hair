@@ -452,6 +452,44 @@ const EMAILJS_ON = !!(window.emailjs
 if (EMAILJS_ON) { try { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); } catch(e){ console.warn(e); } }
 
 /* ===== Defaults (used by "Load default services" + first-run content) ===== */
+/* Every possible add-on group a service can be assigned to */
+const ALL_ADDON_GROUPS = [
+  {key:'length',           label:'Length'},
+  {key:'colour',           label:'Hair Colour'},
+  {key:'freestyle',        label:'Freestyle'},
+  {key:'curl',             label:'Curl Specification'},
+  {key:'miracleKnotsHair', label:'Miracle Knots Hair | 4 Bundles'},
+  {key:'fulaniUpgrade',    label:'Style Upgrade'},
+  {key:'frenchCurlHair',   label:'French Curl Braiding Hair'}
+];
+/* Legacy fallback — only used to pre-tick sensible boxes for a service that hasn't had its add-ons saved yet */
+const ADDON_GROUPS_BY_CAT = {
+  'Goddess Braids/Twists':          ['length','colour','curl'],
+  'Boho Braids/Twists':             ['length','colour','curl'],
+  'Knotless Braids/Twists':         ['length','colour'],
+  'French Curls':                   ['length','colour','frenchCurlHair'],
+  'Boho French Curls':              ['length','colour','frenchCurlHair'],
+  'Fulani Braids/Twists':           ['length','colour','freestyle','curl','fulaniUpgrade'],
+  'Fulani French Curls':            ['length','colour','freestyle','fulaniUpgrade'],
+  'Kinky Twists':                   ['length','colour','curl'],
+  'Feed In / Stitch Braids':        ['length','colour','freestyle','curl'],
+  'Miracle Knots (Hair Provided)':  ['length','colour','curl','miracleKnotsHair'],
+  'Miracle Knots (Own Hair)':       ['length','colour','curl','miracleKnotsHair'],
+  'Feed In + Sew In':               ['curl'],
+  'Natural Hair Braids/Twists':     ['length'],
+  'Wig Cornrows':                   ['length']
+};
+const DEFAULT_ADDON_GROUPS = ['length','colour'];
+
+function normalizeServices(list){
+  return (list||[]).map(s=>({
+    ...s,
+    addonGroups: (Array.isArray(s.addonGroups) && s.addonGroups.length)
+      ? s.addonGroups
+      : (ADDON_GROUPS_BY_CAT[s.cat] || DEFAULT_ADDON_GROUPS)
+  }));
+}
+
 const DEFAULT_SERVICES = [
   {cat:"Goddess Braids/Twists",hairNote:"Hair included: +£80 per bundle of human hair (x1 bundle included in price)",sizes:[{name:"Small",detail:"~7h 30min",price:150},{name:"Smedium",detail:"~6 hours",price:130},{name:"Medium",detail:"~4h 30min",price:110},{name:"Large",detail:"~3 hours",price:90}]},
   {cat:"Boho Braids/Twists",hairNote:"Hair included: £160 (x3 bundles of human hair included in price)",sizes:[{name:"Small",detail:"~8 hours",price:180},{name:"Smedium",detail:"~7 hours",price:150},{name:"Medium",detail:"~5 hours",price:130},{name:"Large",detail:"~3 hours",price:110}]},
@@ -624,7 +662,7 @@ async function loadServices(){
   const list=$('#services-list');
   list.innerHTML='<div class="loading">Loading services…</div>';
   try{
-    services = await fetchOrdered('services');
+    services = normalizeServices(await fetchOrdered('services'));
   }catch(e){ list.innerHTML='<div class="empty">Couldn\'t load services. '+esc(e.message)+'</div>'; return; }
   renderServices();
 }
@@ -662,6 +700,14 @@ function serviceCard(svc,i){
     </div>
     <div class="sizes-wrap"></div>
     <button class="btn btn-ghost btn-sm add-size" style="margin-top:.2rem">+ Add size</button>
+    <div style="margin-top:1rem">
+      <span class="label">Add-ons available for this service</span>
+      <div class="row" style="flex-wrap:wrap;gap:.5rem .9rem;margin-top:.3rem">
+        ${ALL_ADDON_GROUPS.map(g=>`
+          <label class="toggle"><input type="checkbox" class="f-addon" value="${g.key}" ${(svc.addonGroups||[]).includes(g.key)?'checked':''}/> ${esc(g.label)}</label>
+        `).join('')}
+      </div>
+    </div>
     <div class="card-actions">
       <label class="toggle"><input type="checkbox" class="f-hidden" ${svc.hidden?'checked':''}/> Hide from site</label>
       <span class="spacer"></span>
@@ -694,11 +740,13 @@ function readService(card){
     detail: $('.s-detail',r).value.trim(),
     price:  parseInt($('.s-price',r).value,10)||0
   })).filter(s=>s.name);
+  const addonGroups = $$('.f-addon',card).filter(cb=>cb.checked).map(cb=>cb.value);
   return {
     cat:    $('.f-cat',card).value.trim(),
     hairNote: $('.f-note',card).value.trim(),
     hidden: $('.f-hidden',card).checked,
-    sizes
+    sizes,
+    addonGroups
   };
 }
 async function saveService(card){
@@ -738,9 +786,9 @@ async function moveService(i,dir){
 $('#add-service-btn').addEventListener('click', async ()=>{
   try{
     const order=services.length;
-    const refDoc = await addDoc(collection(db,'services'),
-      {cat:'New service',hairNote:'',hidden:false,order,sizes:[{name:'Standard',detail:'',price:0}]});
-    services.push({id:refDoc.id,cat:'New service',hairNote:'',hidden:false,order,sizes:[{name:'Standard',detail:'',price:0}]});
+    const newSvc = {cat:'New service',hairNote:'',hidden:false,order,sizes:[{name:'Standard',detail:'',price:0}],addonGroups:[...DEFAULT_ADDON_GROUPS]};
+    const refDoc = await addDoc(collection(db,'services'), newSvc);
+    services.push({id:refDoc.id,...newSvc});
     renderServices();
     const card=$(`.card[data-id="${refDoc.id}"]`);
     card?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -754,7 +802,8 @@ $('#seed-btn').addEventListener('click', async ()=>{
   try{
     let order=services.length;
     for(const s of DEFAULT_SERVICES){
-      await addDoc(collection(db,'services'),{...s,hidden:false,order:order++});
+      const addonGroups = ADDON_GROUPS_BY_CAT[s.cat] || DEFAULT_ADDON_GROUPS;
+      await addDoc(collection(db,'services'),{...s,hidden:false,order:order++,addonGroups});
     }
     await loadServices();
     toast('Default services imported');
@@ -854,14 +903,14 @@ function renderAddons(){
     banner.innerHTML='<span>💡</span><span>No add-ons saved yet — click <b>Load default add-ons</b> above to import what\'s currently live on your site, then edit from there.</span>';
     box.appendChild(banner);
   }
-  box.appendChild(addonGroupCard('length','Length', 'Shown on every service, except Feed In + Sew In (which only shows Curl Specification).'));
+  box.appendChild(addonGroupCard('length','Length', 'Which services show this is controlled per-service in the Services tab (tick "Length" there).'));
   box.appendChild(colourGroupCard());
-  box.appendChild(addonGroupCard('colourMix','Hair colour mix', 'Custom-blend colour options — shown alongside the swatches above. Hidden entirely for Feed In + Sew In, Wig Cornrows, and Natural Hair Braids/Twists. Colours "1", "2", "8" and "30" are automatically hidden for French Curls, Boho French Curls, Fulani French Curls, and Kinky Twists — this is set in code, not editable here.'));
-  box.appendChild(addonGroupCard('freestyle','Freestyle', 'Only shown for Fulani Braids/Twists, Fulani French Curls, and Feed In / Stitch Braids.'));
-  box.appendChild(addonGroupCard('curl','Curl specification', 'Shown for Goddess Braids/Twists, Boho Braids/Twists, Feed In + Sew In, both Miracle Knots services, Kinky Twists, Fulani Braids/Twists, and Feed In / Stitch Braids. Clients can select more than one option and set a quantity for each. Any option with "Kinky" in its name is automatically hidden for Boho Braids/Twists — set in code, not editable here.'));
-  box.appendChild(addonGroupCard('miracleKnotsHair','Miracle Knots Hair | 4 Bundles', 'Only shown for both Miracle Knots services, alongside Curl Specification.'));
-  box.appendChild(addonGroupCard('fulaniUpgrade','Style upgrade', 'Only shown for Fulani Braids/Twists and Fulani French Curls.'));
-  box.appendChild(addonGroupCard('frenchCurlHair','French Curl braiding hair', 'Only shown for French Curls and Boho French Curls.'));
+  box.appendChild(addonGroupCard('colourMix','Hair colour mix', 'Custom-blend colour options — shown alongside the swatches above, on any service with "Hair Colour" ticked in the Services tab. Colours "1", "2", "8" and "30" are automatically hidden for French Curls, Boho French Curls, Fulani French Curls, and Kinky Twists — this is set in code, not editable here.'));
+  box.appendChild(addonGroupCard('freestyle','Freestyle', 'Shown on any service with "Freestyle" ticked in the Services tab.'));
+  box.appendChild(addonGroupCard('curl','Curl specification', 'Shown on any service with "Curl Specification" ticked in the Services tab. Clients can select more than one option and set a quantity for each. Any option with "Kinky" in its name is automatically hidden for Boho Braids/Twists — set in code, not editable here.'));
+  box.appendChild(addonGroupCard('miracleKnotsHair','Miracle Knots Hair | 4 Bundles', 'Shown on any service with "Miracle Knots Hair | 4 Bundles" ticked in the Services tab.'));
+  box.appendChild(addonGroupCard('fulaniUpgrade','Style upgrade', 'Shown on any service with "Style Upgrade" ticked in the Services tab.'));
+  box.appendChild(addonGroupCard('frenchCurlHair','French Curl braiding hair', 'Shown on any service with "French Curl Braiding Hair" ticked in the Services tab.'));
 }
 function readAddonsForm(){
   const box=$('#addons-form'); const data={};

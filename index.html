@@ -1350,8 +1350,6 @@ const COLOUR_EXCLUDE_BY_CAT = {
   'Fulani French Curls': ['1', '2', '8', '30'],
   'Kinky Twists':        ['1', '2', '8', '30']
 };
-const HIDE_LENGTH_COLOUR_CATS = ['Feed In + Sew In'];
-const HIDE_COLOUR_ONLY_CATS = ['Wig Cornrows', 'Natural Hair Braids/Twists'];
 
 function buildColourSwatches(list) {
   const wrap = document.getElementById('colour-swatches');
@@ -1475,40 +1473,73 @@ function rebuildCategoryDependentAddons() {
   buildCurlGroup('curl-chips', filteredCurlItems);
 }
 
-const FREESTYLE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls', 'Feed In / Stitch Braids'];
-const CURL_SPEC_CATS = ['Goddess Braids/Twists', 'Boho Braids/Twists', 'Feed In + Sew In', 'Miracle Knots (Hair Provided)', 'Miracle Knots (Own Hair)', 'Kinky Twists', 'Fulani Braids/Twists', 'Feed In / Stitch Braids'];
-const MIRACLE_KNOTS_HAIR_CATS = ['Miracle Knots (Hair Provided)', 'Miracle Knots (Own Hair)'];
-const FULANI_UPGRADE_CATS = ['Fulani Braids/Twists', 'Fulani French Curls'];
-const FRENCH_CURL_CATS = ['French Curls', 'Boho French Curls'];
+/* Every possible add-on group a service can be assigned in the admin panel */
+const ALL_ADDON_GROUPS = [
+  { key: 'length',           label: 'Length' },
+  { key: 'colour',           label: 'Hair Colour' },
+  { key: 'freestyle',        label: 'Freestyle' },
+  { key: 'curl',             label: 'Curl Specification' },
+  { key: 'miracleKnotsHair', label: 'Miracle Knots Hair | 4 Bundles' },
+  { key: 'fulaniUpgrade',    label: 'Style Upgrade' },
+  { key: 'frenchCurlHair',   label: 'French Curl Braiding Hair' }
+];
+
+/* Legacy fallback — only used for a service that hasn't had its add-on checkboxes saved yet in admin */
+const ADDON_GROUPS_BY_CAT = {
+  'Goddess Braids/Twists':          ['length', 'colour', 'curl'],
+  'Boho Braids/Twists':             ['length', 'colour', 'curl'],
+  'Knotless Braids/Twists':         ['length', 'colour'],
+  'French Curls':                   ['length', 'colour', 'frenchCurlHair'],
+  'Boho French Curls':              ['length', 'colour', 'frenchCurlHair'],
+  'Fulani Braids/Twists':           ['length', 'colour', 'freestyle', 'curl', 'fulaniUpgrade'],
+  'Fulani French Curls':            ['length', 'colour', 'freestyle', 'fulaniUpgrade'],
+  'Kinky Twists':                   ['length', 'colour', 'curl'],
+  'Feed In / Stitch Braids':        ['length', 'colour', 'freestyle', 'curl'],
+  'Miracle Knots (Hair Provided)':  ['length', 'colour', 'curl', 'miracleKnotsHair'],
+  'Miracle Knots (Own Hair)':       ['length', 'colour', 'curl', 'miracleKnotsHair'],
+  'Feed In + Sew In':               ['curl'],
+  'Natural Hair Braids/Twists':     ['length'],
+  'Wig Cornrows':                   ['length']
+};
+const DEFAULT_ADDON_GROUPS = ['length', 'colour'];
+
+function normalizeServices(list) {
+  return (list || []).map(s => ({
+    ...s,
+    addonGroups: (Array.isArray(s.addonGroups) && s.addonGroups.length)
+      ? s.addonGroups
+      : (ADDON_GROUPS_BY_CAT[s.cat] || DEFAULT_ADDON_GROUPS)
+  }));
+}
 
 function updateAddonVisibility() {
-  const cat = SERVICES[selectedCat].cat;
+  const svc = SERVICES[selectedCat];
+  const cat = svc.cat;
+  const groups = new Set(svc.addonGroups && svc.addonGroups.length ? svc.addonGroups : DEFAULT_ADDON_GROUPS);
 
   rebuildCategoryDependentAddons();
 
-  const isFrenchCurl = FRENCH_CURL_CATS.includes(cat);
-  const isMiracleKnotsHair = MIRACLE_KNOTS_HAIR_CATS.includes(cat);
-  const hideLengthColour = HIDE_LENGTH_COLOUR_CATS.includes(cat);
-  const hideColourOnly = HIDE_COLOUR_ONLY_CATS.includes(cat);
-  const hideColour = hideLengthColour || hideColourOnly;
+  const showLength           = groups.has('length');
+  const showColour           = groups.has('colour');
+  const showFreestyle        = groups.has('freestyle');
+  const showCurl             = groups.has('curl');
+  const showMiracleKnotsHair = groups.has('miracleKnotsHair');
+  const showFulaniUpgrade    = groups.has('fulaniUpgrade');
+  const showFrenchCurlHair   = groups.has('frenchCurlHair');
 
-  const showFreestyle = !isFrenchCurl && FREESTYLE_CATS.includes(cat);
-  const showCurl = !isFrenchCurl && CURL_SPEC_CATS.includes(cat);
-  const showFulaniUpgrade = !isFrenchCurl && FULANI_UPGRADE_CATS.includes(cat);
-
-  document.getElementById('addon-length').classList.toggle('hidden', hideLengthColour);
-  document.getElementById('addon-colour').classList.toggle('hidden', hideColour);
+  document.getElementById('addon-length').classList.toggle('hidden', !showLength);
+  document.getElementById('addon-colour').classList.toggle('hidden', !showColour);
   document.getElementById('addon-freestyle').classList.toggle('hidden', !showFreestyle);
   document.getElementById('addon-curl').classList.toggle('hidden', !showCurl);
-  document.getElementById('addon-miracle-knots-hair').classList.toggle('hidden', !isMiracleKnotsHair);
+  document.getElementById('addon-miracle-knots-hair').classList.toggle('hidden', !showMiracleKnotsHair);
   document.getElementById('addon-fulani-upgrade').classList.toggle('hidden', !showFulaniUpgrade);
-  document.getElementById('addon-frenchcurl-hair').classList.toggle('hidden', !isFrenchCurl);
+  document.getElementById('addon-frenchcurl-hair').classList.toggle('hidden', !showFrenchCurlHair);
 
-  if (hideLengthColour) {
+  if (!showLength) {
     addonState.length = null;
     document.querySelectorAll('#addon-length .addon-chip').forEach(c => c.classList.remove('selected'));
   }
-  if (hideColour) {
+  if (!showColour) {
     addonState.colourMix = null;
     addonState.colour = null;
     document.querySelectorAll('#addon-colour .addon-chip').forEach(c => c.classList.remove('selected'));
@@ -1520,7 +1551,7 @@ function updateAddonVisibility() {
   if (!showCurl) {
     addonState.curl = {};
   }
-  if (!isMiracleKnotsHair) {
+  if (!showMiracleKnotsHair) {
     addonState.miracleKnotsHair = null;
     document.querySelectorAll('#addon-miracle-knots-hair .addon-chip').forEach(c => c.classList.remove('selected'));
   }
@@ -1528,10 +1559,9 @@ function updateAddonVisibility() {
     addonState.fulaniUpgrade = null;
     document.querySelectorAll('#addon-fulani-upgrade .addon-chip').forEach(c => c.classList.remove('selected'));
   }
-  if (!isFrenchCurl) {
+  if (!showFrenchCurlHair) {
     addonState.frenchCurlHair = null;
     document.querySelectorAll('#addon-frenchcurl-hair .addon-chip').forEach(c => c.classList.remove('selected'));
-
   }
   recalcAddonTotal();
 }
@@ -1904,7 +1934,10 @@ function renderTimes() {
 let __kshoBooted = false;
 function kshoBoot(){
   if (__kshoBooted) return; __kshoBooted = true;
-  try { if (window.KSHO && window.KSHO.services && window.KSHO.services.length) SERVICES = window.KSHO.services; } catch(e){}
+  try {
+    const source = (window.KSHO && window.KSHO.services && window.KSHO.services.length) ? window.KSHO.services : SERVICES;
+    SERVICES = normalizeServices(source);
+  } catch(e){}
   buildServiceUI();
   initCal();
   applyDynamicContent();

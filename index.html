@@ -123,16 +123,28 @@
   .portfolio-filters { display: flex; gap: 0.6rem; margin-top: 1.5rem; flex-wrap: wrap; }
   .filter-btn { background: rgba(255,255,255,0.06); color: rgba(232,213,183,0.7); border: 1px solid rgba(232,213,183,0.15); border-radius: 100px; padding: 0.45rem 1.1rem; font-size: 0.82rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
   .filter-btn.active, .filter-btn:hover { background: var(--rose); color: #fff; border-color: var(--rose); }
-  .portfolio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .portfolio-item { border-radius: 1rem; overflow: hidden; position: relative; background: linear-gradient(145deg, #4a2850, #6b3a5d); cursor: pointer; transition: transform 0.25s; }
-  .portfolio-item:hover { transform: scale(1.02); }
-  .portfolio-item:nth-child(1) { grid-column: span 2; grid-row: span 2; aspect-ratio: 1; }
-  .portfolio-item:not(:nth-child(1)) { aspect-ratio: 1; }
-  .portfolio-placeholder { position: absolute; inset: 0; overflow: hidden; }
-  .portfolio-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .portfolio-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(45,27,46,0.85) 0%, transparent 50%); opacity: 0; transition: opacity 0.25s; display: flex; align-items: flex-end; padding: 1rem; }
-  .portfolio-item:hover .portfolio-overlay { opacity: 1; }
-  .portfolio-label { color: var(--champagne); font-size: 0.85rem; font-weight: 500; }
+
+  /* ── PORTFOLIO CAROUSEL (dynamic centre-focus, draggable) ── */
+  .portfolio-carousel { position: relative; max-width: 920px; margin: 0 auto; }
+  .carousel-viewport { overflow: hidden; touch-action: pan-y; cursor: grab; padding: 0.5rem 0; }
+  .carousel-viewport.grabbing { cursor: grabbing; }
+  .carousel-track { display: flex; gap: 1.2rem; transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1); will-change: transform; }
+  .carousel-track.dragging { transition: none; }
+  .carousel-slide { flex: 0 0 56%; position: relative; aspect-ratio: 4/5; border-radius: 1.5rem; overflow: hidden; background: linear-gradient(145deg, #4a2850, #6b3a5d); transform: scale(0.86); opacity: 0.45; transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.4s; cursor: pointer; }
+  .carousel-slide.active { transform: scale(1); opacity: 1; cursor: grab; }
+  .carousel-slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+  .carousel-caption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2.2rem 1.4rem 1.1rem; background: linear-gradient(to top, rgba(45,27,46,0.85) 0%, transparent 100%); color: var(--champagne); font-family: 'Playfair Display', serif; font-size: 1.05rem; font-style: italic; letter-spacing: 0.02em; opacity: 0; transform: translateY(8px); transition: opacity 0.4s 0.12s, transform 0.4s 0.12s; }
+  .carousel-slide.active .carousel-caption { opacity: 1; transform: translateY(0); }
+  .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(232,213,183,0.25); background: rgba(45,27,46,0.55); backdrop-filter: blur(6px); color: var(--champagne); font-size: 1.5rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s; z-index: 2; padding-bottom: 3px; }
+  .carousel-arrow:hover, .carousel-arrow:focus-visible { background: var(--rose); border-color: var(--rose); }
+  .carousel-arrow.prev { left: 0.9rem; }
+  .carousel-arrow.next { right: 0.9rem; }
+  .carousel-footer { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1.1rem; }
+  .carousel-dots { display: flex; gap: 0.5rem; }
+  .carousel-dot { width: 8px; height: 8px; border-radius: 100px; border: none; background: rgba(232,213,183,0.3); cursor: pointer; padding: 0; transition: background 0.25s, width 0.3s; }
+  .carousel-dot:hover { background: rgba(232,213,183,0.6); }
+  .carousel-dot.active { background: var(--rose); width: 24px; }
+  .carousel-counter { font-size: 0.78rem; color: rgba(232,213,183,0.55); letter-spacing: 0.08em; }
 
   #booking-wrap { background: var(--ivory); }
   #booking { display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: start; }
@@ -340,8 +352,6 @@
     .about-img-grid { display: none; }
     .services-grid { grid-template-columns: 1fr 1fr; }
     .service-card.featured { grid-row: span 1; }
-    .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
-    .portfolio-item:nth-child(1) { grid-column: span 2; }
     #booking { grid-template-columns: 1fr; }
     .booking-form-card { position: static; }
     .reviews-grid { grid-template-columns: 1fr 1fr; }
@@ -353,12 +363,16 @@
   @media (max-width: 600px) {
     section { padding: 4rem 1.2rem; }
     .services-grid { grid-template-columns: 1fr; }
-    .portfolio-grid { grid-template-columns: 1fr 1fr; }
     .reviews-grid { grid-template-columns: 1fr; }
     .time-slots { grid-template-columns: repeat(2, 1fr); }
     footer { flex-direction: column; text-align: center; }
     .card-row { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
+    .carousel-slide { flex-basis: 82%; }
+    .carousel-track { gap: 0.8rem; }
+    .carousel-arrow { width: 38px; height: 38px; font-size: 1.3rem; }
+    .carousel-arrow.prev { left: 0.6rem; }
+    .carousel-arrow.next { right: 0.6rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -411,7 +425,7 @@
     <div class="hero-portrait">
       <div class="portrait-frame">
        <div class="portfolio-placeholder">
-          <img src="Img/keziahprofile.jpg" alt="Keziah">
+          <img src="Img/keziahprofile.jpg" alt="Keziah" style="width:100%;height:100%;object-fit:cover;display:block;">
         </div>
       </div>
       <div class="portrait-badge">
@@ -526,36 +540,36 @@
       <h2 class="section-title">Recent work</h2>
       <p class="section-sub">Every head of hair tells a story. Here are some of my favourites.</p>
     </div>
-    <div class="portfolio-grid" id="portfolio-grid">
-      <div class="portfolio-item">
-        <div class="portfolio-placeholder">
-          <img src="Img/Fulani Kinky twists.png" alt="Fulani Kinky Twists"/>
+    <div class="portfolio-carousel" id="portfolio-carousel">
+      <div class="carousel-viewport" id="carousel-viewport">
+        <div class="carousel-track" id="carousel-track">
+          <div class="carousel-slide">
+            <img src="Img/Fulani Kinky twists.png" alt="Fulani Kinky Twists"/>
+            <div class="carousel-caption">Knotless Braids</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="Img/Fulani Kinky twists 2.jpeg" alt="Fulani Kinky Twists"/>
+            <div class="carousel-caption">Boho Twists</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="Img/Fulani Braids.jpeg" alt="Fulani Braids"/>
+            <div class="carousel-caption">Goddess Braids</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="Img/Boho Braids.jpeg" alt="Boho Braids" class="top-focus"/>
+            <div class="carousel-caption">Fulani Braids</div>
+          </div>
+          <div class="carousel-slide">
+            <img src="Img/Miracle Knots.jpeg" alt="Miracle Knots"/>
+            <div class="carousel-caption">Miracle Knots</div>
+          </div>
         </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Knotless Braids</span></div>
       </div>
-      <div class="portfolio-item">
-        <div class="portfolio-placeholder">
-          <img src="Img/Fulani Kinky twists 2.jpeg" alt="Fulani Kinky Twists"/>
-        </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Boho Twists</span></div>
-      </div>
-      <div class="portfolio-item">
-        <div class="portfolio-placeholder">
-          <img src="Img/Fulani Braids.jpeg" alt="Fulani Braids"/>
-        </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Goddess Braids</span></div>
-      </div>
-      <div class="portfolio-item">
-        <div class="portfolio-placeholder">
-          <img src="Img/Boho Braids.jpeg" alt="Boho Braids" class="top-focus"/>
-        </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Fulani Braids</span></div>
-      </div>
-      <div class="portfolio-item">
-        <div class="portfolio-placeholder">
-          <img src="Img/Miracle Knots.jpeg" alt="Miracle Knots"/>
-        </div>
-        <div class="portfolio-overlay"><span class="portfolio-label">Miracle Knots</span></div>
+      <button class="carousel-arrow prev" aria-label="Previous image" onclick="carouselPrev()">‹</button>
+      <button class="carousel-arrow next" aria-label="Next image" onclick="carouselNext()">›</button>
+      <div class="carousel-footer">
+        <div class="carousel-dots" id="carousel-dots"></div>
+        <div class="carousel-counter" id="carousel-counter"></div>
       </div>
     </div>
   </section>
@@ -1111,7 +1125,8 @@ function generateOrderRef() { return 'KSHO-' + Math.floor(1000 + Math.random() *
 
 window.addEventListener('scroll', () => {
   document.getElementById('main-nav').classList.toggle('scrolled', window.scrollY > 60);
-  document.getElementById('sticky-book').classList.toggle('visible', window.scrollY > 300);
+  const stickyBook = document.getElementById('sticky-book');
+  if (stickyBook) stickyBook.classList.toggle('visible', window.scrollY > 300);
 });
 
 function toggleMenu() { document.getElementById('mobile-menu').classList.toggle('open'); }
@@ -1256,6 +1271,142 @@ function showPhotoName(input) {
   } else {
     el.textContent = '';
   }
+}
+
+/* ============================================================
+   PORTFOLIO CAROUSEL (dynamic centre-focus, draggable)
+   ============================================================ */
+let carIndex = 0;
+let carOffset = 0;
+let carTimer = null;
+let carBound = false;
+let carSuppressClick = false;
+const CAR_REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function carouselSlides() {
+  return Array.prototype.slice.call(document.querySelectorAll('#carousel-track .carousel-slide'));
+}
+
+function carouselApplyOffset(px) {
+  carOffset = px;
+  const track = document.getElementById('carousel-track');
+  if (track) track.style.transform = 'translateX(' + px + 'px)';
+}
+
+function carouselGo(i, byUser) {
+  const slides = carouselSlides();
+  const n = slides.length;
+  if (!n) return;
+  carIndex = ((i % n) + n) % n;
+
+  const viewport = document.getElementById('carousel-viewport');
+  const slide = slides[carIndex];
+  if (viewport && slide) {
+    // Centre the active slide inside the viewport
+    carouselApplyOffset((viewport.clientWidth - slide.offsetWidth) / 2 - slide.offsetLeft);
+  }
+
+  slides.forEach((s, idx) => s.classList.toggle('active', idx === carIndex));
+  document.querySelectorAll('#carousel-dots .carousel-dot').forEach((d, idx) => {
+    d.classList.toggle('active', idx === carIndex);
+    d.setAttribute('aria-current', idx === carIndex ? 'true' : 'false');
+  });
+  const counter = document.getElementById('carousel-counter');
+  if (counter) counter.textContent = (carIndex + 1) + ' / ' + n;
+  if (byUser) carouselRestartAutoplay();
+}
+
+function carouselPrev() { carouselGo(carIndex - 1, true); }
+function carouselNext() { carouselGo(carIndex + 1, true); }
+
+function carouselStopAutoplay() { if (carTimer) { clearInterval(carTimer); carTimer = null; } }
+function carouselRestartAutoplay() {
+  carouselStopAutoplay();
+  if (CAR_REDUCED_MOTION || carouselSlides().length < 2) return;
+  carTimer = setInterval(() => carouselGo(carIndex + 1), 5000);
+}
+
+function buildCarouselDots() {
+  const dotsWrap = document.getElementById('carousel-dots');
+  if (!dotsWrap) return;
+  dotsWrap.innerHTML = '';
+  const n = carouselSlides().length;
+  for (let i = 0; i < n; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot';
+    dot.setAttribute('aria-label', 'Go to image ' + (i + 1));
+    dot.onclick = () => carouselGo(i, true);
+    dotsWrap.appendChild(dot);
+  }
+}
+
+function initCarousel() {
+  buildCarouselDots();
+  carouselGo(0);
+  carouselRestartAutoplay();
+
+  if (carBound) return;
+  carBound = true;
+
+  const carousel = document.getElementById('portfolio-carousel');
+  const viewport = document.getElementById('carousel-viewport');
+  const track    = document.getElementById('carousel-track');
+  if (!carousel || !viewport || !track) return;
+
+  // Pause while the pointer is over the carousel
+  carousel.addEventListener('mouseenter', carouselStopAutoplay);
+  carousel.addEventListener('mouseleave', carouselRestartAutoplay);
+
+  // Click a side slide (or a dot-less tap) to bring it into focus — delegated
+  // so it keeps working after Firestore rebuilds the slides
+  track.addEventListener('click', (e) => {
+    if (carSuppressClick) { carSuppressClick = false; return; }
+    const slide = e.target.closest('.carousel-slide');
+    if (!slide) return;
+    const idx = carouselSlides().indexOf(slide);
+    if (idx > -1 && idx !== carIndex) carouselGo(idx, true);
+  });
+
+  // Drag / swipe with live tracking (mouse + touch via pointer events)
+  let dragX = null, dragBase = 0, dragMoved = false;
+
+  viewport.addEventListener('pointerdown', (e) => {
+    dragX = e.clientX;
+    dragBase = carOffset;
+    dragMoved = false;
+    carouselStopAutoplay();
+    track.classList.add('dragging');
+    viewport.classList.add('grabbing');
+    if (viewport.setPointerCapture) { try { viewport.setPointerCapture(e.pointerId); } catch (_) {} }
+  });
+
+  viewport.addEventListener('pointermove', (e) => {
+    if (dragX == null) return;
+    const dx = e.clientX - dragX;
+    if (Math.abs(dx) > 6) dragMoved = true;
+    carouselApplyOffset(dragBase + dx);
+  });
+
+  const endDrag = (e) => {
+    if (dragX == null) return;
+    const dx = e.clientX - dragX;
+    dragX = null;
+    track.classList.remove('dragging');
+    viewport.classList.remove('grabbing');
+    if (dragMoved) carSuppressClick = true;
+    if (dx < -50)      carouselGo(carIndex + 1, true);
+    else if (dx > 50)  carouselGo(carIndex - 1, true);
+    else               carouselGo(carIndex, true); // snap back
+  };
+  viewport.addEventListener('pointerup', endDrag);
+  viewport.addEventListener('pointercancel', endDrag);
+  viewport.addEventListener('lostpointercapture', () => {
+    track.classList.remove('dragging');
+    viewport.classList.remove('grabbing');
+  });
+
+  // Keep the active slide centred when the window resizes
+  window.addEventListener('resize', () => carouselGo(carIndex));
 }
 
 /* ============================================================
@@ -1942,19 +2093,21 @@ function kshoBoot(){
   initCal();
   applyDynamicContent();
   renderDynamicPortfolio();
+  initCarousel();
   renderDynamicReviews();
   applyDynamicSettings();
 }
 function renderDynamicPortfolio(){
   const items = (window.KSHO && window.KSHO.portfolio) || [];
   if (!items.length) return;
-  const grid = document.getElementById('portfolio-grid');
-  if (!grid) return;
-  grid.innerHTML = items.map(p => {
+  const track = document.getElementById('carousel-track');
+  if (!track) return;
+  track.innerHTML = items.map(p => {
     const src = p.img || p.url || '';
-    return '<div class="portfolio-item"><div class="portfolio-placeholder">'
-         + '<img src="'+src+'" alt="'+(p.label||'')+'"></div>'
-         + '<div class="portfolio-overlay"><span class="portfolio-label">'+(p.label||'')+'</span></div></div>';
+    return '<div class="carousel-slide">'
+         + '<img src="'+src+'" alt="'+escapeHtml(p.label||'')+'">'
+         + '<div class="carousel-caption">'+escapeHtml(p.label||'')+'</div>'
+         + '</div>';
   }).join('');
 }
 function applyDynamicContent(){

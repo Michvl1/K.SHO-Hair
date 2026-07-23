@@ -1301,12 +1301,20 @@ async function saveLink(r, url, silent){
   catch(e){ if(!silent) toast('Couldn\'t save link: '+e.message,true); }
 }
 
-/* ---- Build the variables shared by both email templates ---- */
+/* ---- Build the variables shared by both email templates ----
+   UPDATED: now also sends {{deposit}} and {{balance_due}} so emails
+   can show the amount left to pay on the day after the booking fee.
+   - deposit comes from Settings → "Booking fee / deposit (£)"
+   - balance_due = total − deposit (never below £0)
+   - if the booking is marked payMode:'full', the deposit equals the
+     total and the balance is £0 (nothing to pay on the day)         ---- */
 function emailParams(r){
   const firstName=(r._name||'').trim().split(' ')[0]||'there';
   const fee = parseFloat(settings.bookingFee ?? 15) || 15;
   const totalNum = (r.total!=null && r.total!=='') ? parseFloat(r.total) : null;
-  const balanceNum = totalNum!=null ? Math.max(0, totalNum - fee) : null;
+  const payFull = (r.payMode==='full');
+  const depositNum = (payFull && totalNum!=null) ? totalNum : fee;
+  const balanceNum = totalNum!=null ? Math.max(0, totalNum - depositNum) : null;
   return {
     to_email: r._email,
     to_name:  firstName,
@@ -1317,7 +1325,7 @@ function emailParams(r){
     date: bk(r,'date'),
     time: bk(r,'time'),
     total: totalNum!=null?('£'+totalNum.toFixed(2)):'',
-    deposit: '£'+fee.toFixed(2),
+    deposit: '£'+depositNum.toFixed(2),
     balance_due: balanceNum!=null?('£'+balanceNum.toFixed(2)):'',
     ref: bk(r,'ref','order_ref'),
     payment_link: r.paymentLink||'',
@@ -1349,7 +1357,9 @@ async function sendCustomerEmail(kind, r, btn){
   }
 }
 
-/* ---- mailto fallback (always works, no setup) ---- */
+/* ---- mailto fallback (always works, no setup) ----
+   UPDATED: drafts now show Style total → Deposit → Balance on the day
+   instead of a single Total line.                                   ---- */
 function openDraft(kind, r){
   const p=emailParams(r);
   const lines=[];
@@ -1365,8 +1375,8 @@ function openDraft(kind, r){
       `• Date: ${p.date}`,
       `• Time: ${p.time}`,
       p.total?`• Style total: ${p.total}`:'',
-      `• Deposit (pay now): ${p.deposit}`,
-      p.balance_due?`• Balance on the day: ${p.balance_due}`:'',
+      `• Deposit (pay now to secure): ${p.deposit}`,
+      p.balance_due?`• Balance on the day (cash or bank transfer): ${p.balance_due}`:'',
       p.ref?`• Reference: ${p.ref}`:'','',
       `Once payment is received I'll send your confirmation and full address.`,'',
       `See you soon,`,`${BIZ.name}`);
@@ -1379,7 +1389,8 @@ function openDraft(kind, r){
       p.addons?`• Add-ons: ${p.addons}`:'',
       `• Date: ${p.date}`,
       `• Time: ${p.time}`,
-      p.total?`• Total: ${p.total}`:'',
+      p.total?`• Style total: ${p.total}`:'',
+      p.balance_due?`• Balance on the day (cash or bank transfer): ${p.balance_due}`:'',
       p.ref?`• Reference: ${p.ref}`:'','',
       `I'll send the full address closer to the day. Can't wait to do your hair!`,'',
       `${BIZ.name}`,`${BIZ.phone}`);
@@ -1466,12 +1477,17 @@ function openBkModal(r){
           <datalist id="bm-time-list">${timeOpts}</datalist></div>
       </div>
       <div class="grid-2">
+        <div class="field"><label>Payment plan</label>
+          <select class="inp" id="bm-paymode">
+            <option value="deposit" ${(!isEdit || r.payMode!=='full')?'selected':''}>Deposit now, balance on the day</option>
+            <option value="full" ${(isEdit && r.payMode==='full')?'selected':''}>Paying in full up front</option>
+          </select></div>
         <div class="field"><label>Status</label>
           <select class="inp" id="bm-status">
             ${STATUSES.map(s=>`<option value="${s}" ${s===curStatus?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
           </select></div>
-        <div class="field"><label>Notes</label><input class="inp" id="bm-notes" value="${esc(isEdit&&r.notes&&r.notes!=='—'?r.notes:'')}" placeholder="Anything to remember"/></div>
       </div>
+      <div class="field"><label>Notes</label><input class="inp" id="bm-notes" value="${esc(isEdit&&r.notes&&r.notes!=='—'?r.notes:'')}" placeholder="Anything to remember"/></div>
       <div class="modal-actions">
         <button class="btn btn-ghost btn-sm" id="bm-cancel">Cancel</button>
         <button class="btn btn-primary btn-sm" id="bm-save">${isEdit?'Save changes':'Add booking'}</button>
@@ -1507,7 +1523,8 @@ async function saveBkModal(){
     time:   g('bm-time').trim(),
     total:  totalRaw===''?'':(parseFloat(totalRaw)||0),
     notes:  g('bm-notes').trim(),
-    status: g('bm-status')||'new'
+    status: g('bm-status')||'new',
+    payMode: g('bm-paymode')||'deposit'
   };
   const btn=$('#bm-save'); const wasEdit=!!bkEditing;
   btn.disabled=true; btn.textContent='Saving…';

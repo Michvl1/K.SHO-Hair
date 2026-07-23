@@ -1304,7 +1304,9 @@ async function saveLink(r, url, silent){
 /* ---- Build the variables shared by both email templates ---- */
 function emailParams(r){
   const firstName=(r._name||'').trim().split(' ')[0]||'there';
-  const total=(r.total!=null&&r.total!=='')?('£'+r.total):'';
+  const fee = parseFloat(settings.bookingFee ?? 15) || 15;
+  const totalNum = (r.total!=null && r.total!=='') ? parseFloat(r.total) : null;
+  const balanceNum = totalNum!=null ? Math.max(0, totalNum - fee) : null;
   return {
     to_email: r._email,
     to_name:  firstName,
@@ -1314,7 +1316,9 @@ function emailParams(r){
     addons: (r.addons&&r.addons!=='None')?r.addons:'',
     date: bk(r,'date'),
     time: bk(r,'time'),
-    total: total,
+    total: totalNum!=null?('£'+totalNum.toFixed(2)):'',
+    deposit: '£'+fee.toFixed(2),
+    balance_due: balanceNum!=null?('£'+balanceNum.toFixed(2)):'',
     ref: bk(r,'ref','order_ref'),
     payment_link: r.paymentLink||'',
     business_name: BIZ.name,
@@ -1360,7 +1364,9 @@ function openDraft(kind, r){
       p.addons?`• Add-ons: ${p.addons}`:'',
       `• Date: ${p.date}`,
       `• Time: ${p.time}`,
-      p.total?`• Total: ${p.total}`:'',
+      p.total?`• Style total: ${p.total}`:'',
+      `• Deposit (pay now): ${p.deposit}`,
+      p.balance_due?`• Balance on the day: ${p.balance_due}`:'',
       p.ref?`• Reference: ${p.ref}`:'','',
       `Once payment is received I'll send your confirmation and full address.`,'',
       `See you soon,`,`${BIZ.name}`);

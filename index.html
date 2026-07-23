@@ -672,11 +672,11 @@
           <label>Any notes for me?</label>
           <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
         </div>
-        <div class="form-group" style="display:none">
-          <label>Inspiration photo (optional)</label>
-          <input type="file" accept="image/*" id="client-photo" onchange="showPhotoName(this)"/>
-          <div id="photo-filename" style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;"></div>
-        </div>
+       <div class="form-group">
+  <label>Inspiration photos (optional — up to 3)</label>
+  <input type="file" accept="image/*" multiple id="client-photo" onchange="showPhotoName(this)"/>
+  <div id="photo-filename" style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;"></div>
+</div>
         <div class="form-nav">
           <button class="btn-next" onclick="goToStep(2)">Choose date &amp; time →</button>
         </div>
@@ -1269,8 +1269,13 @@ function bookService(catName) {
 function showPhotoName(input) {
   const el = document.getElementById('photo-filename');
   if (!el) return;
-  if (input.files && input.files[0]) {
-    el.textContent = '📎 ' + input.files[0].name;
+  if (input.files && input.files.length > 3) {
+    input.value = '';
+    el.textContent = '⚠️ Please select a maximum of 3 images.';
+    return;
+  }
+  if (input.files && input.files.length) {
+    el.textContent = Array.from(input.files).map(f => '📎 ' + f.name).join('   ');
   } else {
     el.textContent = '';
   }
@@ -1881,8 +1886,8 @@ async function confirmBooking() {
   const notes     = document.getElementById('client-notes').value.trim();
   const agreed    = document.getElementById('agree-tc').checked;
   const photoInput = document.getElementById('client-photo');
-  const photoFile   = photoInput && photoInput.files && photoInput.files[0] ? photoInput.files[0] : null;
-
+  const photoFiles = photoInput && photoInput.files ? Array.from(photoInput.files).slice(0, 3) : [];
+  
   if (!selectedDate || !selectedTime) { showErr('Please choose a date and time first.'); goToStep(2); return; }
   if (!first || !last) { alert('Please enter your first and last name.'); goToStep(3); return; }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('Please enter a valid email address.'); goToStep(3); return; }
@@ -1897,29 +1902,33 @@ async function confirmBooking() {
 
   currentOrderRef = generateOrderRef();
 
-  const originalLabel = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = photoFile ? 'Uploading photo…' : 'Sending…';
+ const originalLabel = btn.textContent;
+btn.disabled = true;
+btn.textContent = photoFiles.length ? 'Uploading photos…' : 'Sending…';
 
-  let photoUrl = null;
-  let photoUploadFailed = false;
-  if (photoFile) {
-    try {
-      if (window.kshoUploadPhoto) {
-        photoUrl = await window.kshoUploadPhoto(photoFile);
-      } else {
-        photoUploadFailed = true;
-      }
-    } catch (e) {
-      console.warn('Photo upload failed:', e);
+let photoUrls = [];
+let photoUploadFailed = false;
+for (const f of photoFiles) {
+  try {
+    if (window.kshoUploadPhoto) {
+      photoUrls.push(await window.kshoUploadPhoto(f));
+    } else {
       photoUploadFailed = true;
     }
+  } catch (e) {
+    console.warn('Photo upload failed:', e);
+    photoUploadFailed = true;
   }
+}
 
-  const photoLine = photoFile
-    ? (photoUrl ? 'Inspiration photo: ' + photoUrl : 'Inspiration photo: client attached "' + photoFile.name + '" but it couldn’t be uploaded automatically — ask them to send it directly.')
-    : 'Inspiration photo: None';
+const photoLine = photoFiles.length
+  ? (photoUrls.length
+      ? 'Inspiration photos: ' + photoUrls.join('\n')
+        + (photoUploadFailed ? '\n(Note: one or more photos failed to upload — ask the client to send them directly.)' : '')
+      : 'Inspiration photos: client attached ' + photoFiles.length + ' file(s) but they couldn’t be uploaded automatically — ask them to send them directly.')
+  : 'Inspiration photos: None';
 
+  
   const summary =
     'NEW BOOKING REQUEST — ' + currentOrderRef + '\n\n' +
     'Service: ' + SERVICES[selectedCat].cat + '\n' +
@@ -1964,7 +1973,9 @@ async function confirmBooking() {
         client_phone: phone,
         client_type: returning,
         notes: notes || '—',
-        inspiration_photo: photoUrl || (photoFile ? 'upload failed — filename: ' + photoFile.name : 'none'),
+        inspiration_photo: photoUrls.length
+        ? photoUrls.join(' | ')
+        : (photoFiles.length ? 'upload failed — files: ' + photoFiles.map(f => f.name).join(', ') : 'none'),
         message: summary
       })
     });
@@ -1977,7 +1988,7 @@ async function confirmBooking() {
       size: selectedSize.name || '', addons: getAddonSummaryText(),
       date: selectedDate, time: selectedTime, total: total,
       name: first + ' ' + last, email, phone, notes: notes || '—',
-      photoUrl: photoUrl || null
+      photoUrls: photoUrls.length ? photoUrls : null
     });
     showSuccess();
   } catch (err) {

@@ -212,6 +212,20 @@
   .saved-flag{font-size:.78rem;color:var(--success);font-weight:600;opacity:0;transition:opacity .2s}
   .saved-flag.show{opacity:1}
 
+  /* ---------- MODAL (add / edit booking) ---------- */
+  .modal-bg{position:fixed;inset:0;background:rgba(26,16,28,.55);z-index:60;display:flex;
+    align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;animation:fade .2s ease}
+  .modal{background:#fff;border-radius:1.2rem;padding:1.6rem;width:100%;max-width:600px;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);margin:auto 0}
+  .modal h3{color:var(--plum);margin-bottom:.25rem;font-size:1.25rem}
+  .modal .sub{color:var(--muted);font-size:.82rem;margin-bottom:1.2rem;line-height:1.45}
+  .modal .sub b{color:var(--rose-dark)}
+  .modal-actions{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--line)}
+  .date-pick-row{display:flex;gap:.5rem;align-items:center}
+  .date-pick-row .inp{margin:0}
+  .date-pick-row input[type=date]{flex:0 0 44px;padding:.55rem .4rem;color:transparent;cursor:pointer;position:relative}
+  .date-pick-row input[type=date]::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;cursor:pointer;opacity:.7}
+
   @media (max-width:820px){
     .shell{grid-template-columns:1fr}
     .sidebar{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line);padding:.6rem}
@@ -367,9 +381,12 @@
           <div>
             <span class="eyebrow">Requests</span>
             <h2>Bookings</h2>
-            <p>Booking requests submitted through your site. Newest first.</p>
+            <p>Booking requests submitted through your site, plus any you add yourself for DM bookings. Newest first.</p>
           </div>
-          <button class="btn btn-ghost btn-sm" id="refresh-bk-btn">Refresh</button>
+          <div class="row" style="flex:0 0 auto">
+            <button class="btn btn-ghost btn-sm" id="refresh-bk-btn">Refresh</button>
+            <button class="btn btn-primary btn-sm" id="add-bk-btn">+ Add booking</button>
+          </div>
         </div>
         <div id="bk-list"><div class="loading">Loading bookings…</div></div>
       </section>
@@ -1168,6 +1185,7 @@ $('#save-settings-btn').addEventListener('click', async ()=>{
 /* =========================================================
    BOOKINGS
    ========================================================= */
+let bookings=[];
 async function loadBookings(){
   const box=$('#bk-list'); box.innerHTML='<div class="loading">Loading bookings…</div>';
   let rows=[];
@@ -1177,9 +1195,10 @@ async function loadBookings(){
     catch(_){ snap=await getDocs(collection(db,'bookings')); }
     rows=snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){ box.innerHTML='<div class="empty">Couldn\'t load bookings. '+esc(e.message)+'</div>'; return; }
+  bookings=rows;
   if(!rows.length){
     box.innerHTML='<div class="empty"><div class="big">📅</div><div>No bookings yet.</div>'+
-      '<p style="margin-top:.5rem;font-size:.86rem">Requests submitted through your website\'s booking form will appear here.</p></div>';
+      '<p style="margin-top:.5rem;font-size:.86rem">Requests from your website\'s booking form will appear here — or click <b>+ Add booking</b> to log a client who booked via DMs.</p></div>';
     return;
   }
   box.innerHTML='';
@@ -1218,6 +1237,7 @@ function bookingCard(r, lead){
           ${STATUSES.map(s=>`<option value="${s}" ${s===status?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
         </select>
         ${r.createdAt?`<span style="font-size:.72rem;color:var(--muted)">received ${fmt(r.createdAt)}</span>`:''}
+        ${r.manual?'<span class="pill">added via DMs</span>':''}
       </div>
     </div>
     <div class="bk-detail">
@@ -1238,10 +1258,13 @@ function bookingCard(r, lead){
       <button class="btn-send bk-send-pay">✉️ Send payment link</button>
       <button class="btn-send confirm bk-send-confirm">✓ Send confirmation</button>
       <span class="spacer"></span>
+      <button class="btn btn-ghost btn-sm bk-edit">✎ Edit</button>
       <button class="btn btn-danger btn-sm bk-del">Delete</button>
     </div>`;
 
   const linkInput=$('.bk-link',c);
+
+  $('.bk-edit',c).addEventListener('click', ()=> openBkModal(r));
 
   $('.bk-status',c).addEventListener('change', async e=>{
     const v=e.target.value; e.target.dataset.s=v;
@@ -1374,6 +1397,133 @@ async function bumpStatusAfterConfirm(r){
   }
 }
 $('#refresh-bk-btn').addEventListener('click', loadBookings);
+
+/* =========================================================
+   ADD / EDIT BOOKING (for clients who book via DMs)
+   - New bookings get an auto-generated reference (saved to
+     both `ref` and `order_ref`), so the client can use it to
+     leave a review on your site exactly like an online booking.
+   - Edit keeps the existing reference and created date.
+   ========================================================= */
+let bkEditing=null;
+
+function genBookingRef(){
+  // Matches the website's format, e.g. KSHO-1879
+  return 'KSHO-'+String(Math.floor(1000+Math.random()*9000));
+}
+function uniqueBookingRef(){
+  const existing=new Set(bookings.map(b=>bk(b,'ref','order_ref')).filter(Boolean));
+  let ref=genBookingRef();
+  while(existing.has(ref)) ref=genBookingRef();
+  return ref;
+}
+
+function openBkModal(r){
+  bkEditing=r||null;
+  const isEdit=!!r;
+  const svcOpts=services.map(s=>`<option value="${esc(s.cat)}"></option>`).join('');
+  const timeOpts=(settings.times||DEFAULT_SETTINGS.times).split(',').map(t=>t.trim()).filter(Boolean)
+    .map(t=>`<option value="${esc(t)}"></option>`).join('');
+  const curStatus=isEdit?(r.status||'new').toLowerCase():'new';
+
+  const bg=document.createElement('div');
+  bg.className='modal-bg'; bg.id='bk-modal';
+  bg.innerHTML=`
+    <div class="modal">
+      <h3>${isEdit?'Edit booking':'Add booking'}</h3>
+      <p class="sub">${isEdit
+        ? `Update any details — the booking reference <b>${esc(bk(r,'ref','order_ref')||'(none)')}</b> stays the same, so the client's review link keeps working.`
+        : 'For clients who book via DMs. A booking reference is generated automatically when you save — send it to the client so they can leave a review on your site with it.'}</p>
+      <div class="grid-2">
+        <div class="field"><label>Client name *</label><input class="inp" id="bm-name" value="${esc(isEdit?bk(r,'name','client_name'):'')}" placeholder="e.g. Amara Johnson"/></div>
+        <div class="field"><label>Email</label><input class="inp" id="bm-email" type="email" value="${esc(isEdit?bk(r,'email','client_email'):'')}" placeholder="client@example.com"/></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Phone</label><input class="inp" id="bm-phone" value="${esc(isEdit?bk(r,'phone','client_phone'):'')}" placeholder="07…"/></div>
+        <div class="field"><label>Total £</label><input class="inp" id="bm-total" type="number" min="0" step="0.01" value="${esc(isEdit&&r.total!=null&&r.total!==''?r.total:'')}" placeholder="e.g. 145"/></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Service</label>
+          <input class="inp" id="bm-service" list="bm-svc-list" value="${esc(isEdit?bk(r,'service'):'')}" placeholder="Start typing…"/>
+          <datalist id="bm-svc-list">${svcOpts}</datalist></div>
+        <div class="field"><label>Size</label><input class="inp" id="bm-size" value="${esc(isEdit?bk(r,'size'):'')}" placeholder="e.g. Smedium"/></div>
+      </div>
+      <div class="field"><label>Add-ons</label><input class="inp" id="bm-addons" value="${esc(isEdit&&r.addons&&r.addons!=='None'?r.addons:'')}" placeholder="e.g. Bum length, Deep Wave"/></div>
+      <div class="grid-2">
+        <div class="field"><label>Date</label>
+          <div class="date-pick-row">
+            <input class="inp" id="bm-date" style="flex:1" value="${esc(isEdit?bk(r,'date'):'')}" placeholder="e.g. Saturday 15 August 2026"/>
+            <input type="date" id="bm-datepick" class="inp" title="Pick a date"/>
+          </div></div>
+        <div class="field"><label>Time</label>
+          <input class="inp" id="bm-time" list="bm-time-list" value="${esc(isEdit?bk(r,'time'):'')}" placeholder="e.g. 10:00am"/>
+          <datalist id="bm-time-list">${timeOpts}</datalist></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Status</label>
+          <select class="inp" id="bm-status">
+            ${STATUSES.map(s=>`<option value="${s}" ${s===curStatus?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+          </select></div>
+        <div class="field"><label>Notes</label><input class="inp" id="bm-notes" value="${esc(isEdit&&r.notes&&r.notes!=='—'?r.notes:'')}" placeholder="Anything to remember"/></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="bm-cancel">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="bm-save">${isEdit?'Save changes':'Add booking'}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(bg);
+
+  bg.addEventListener('click', e=>{ if(e.target===bg) closeBkModal(); });
+  $('#bm-cancel',bg).addEventListener('click', closeBkModal);
+  $('#bm-datepick',bg).addEventListener('change', e=>{
+    if(!e.target.value) return;
+    const d=new Date(e.target.value+'T12:00:00');
+    $('#bm-date',bg).value=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  });
+  $('#bm-save',bg).addEventListener('click', saveBkModal);
+  $('#bm-name',bg).focus();
+}
+function closeBkModal(){ $('#bk-modal')?.remove(); bkEditing=null; }
+
+async function saveBkModal(){
+  const g=id=>($('#'+id)?.value??'');
+  const name=g('bm-name').trim();
+  if(!name){ toast('Client name is required',true); $('#bm-name')?.focus(); return; }
+  const totalRaw=g('bm-total').trim();
+  const data={
+    name,
+    email:  g('bm-email').trim(),
+    phone:  g('bm-phone').trim(),
+    service:g('bm-service').trim(),
+    size:   g('bm-size').trim(),
+    addons: g('bm-addons').trim()||'None',
+    date:   g('bm-date').trim(),
+    time:   g('bm-time').trim(),
+    total:  totalRaw===''?'':(parseFloat(totalRaw)||0),
+    notes:  g('bm-notes').trim(),
+    status: g('bm-status')||'new'
+  };
+  const btn=$('#bm-save'); const wasEdit=!!bkEditing;
+  btn.disabled=true; btn.textContent='Saving…';
+  try{
+    if(bkEditing){
+      await setDoc(doc(db,'bookings',bkEditing.id), data, {merge:true});
+      toast('Booking updated');
+    }else{
+      const ref=uniqueBookingRef();
+      await addDoc(collection(db,'bookings'),{
+        ...data, ref, order_ref:ref, manual:true, createdAt:new Date()
+      });
+      toast('Booking added — ref '+ref);
+    }
+    closeBkModal();
+    loadBookings();
+  }catch(e){
+    toast('Save failed: '+e.message,true);
+    btn.disabled=false; btn.textContent=wasEdit?'Save changes':'Add booking';
+  }
+}
+$('#add-bk-btn').addEventListener('click', ()=> openBkModal(null));
 
 /* =========================================================
    REVIEWS

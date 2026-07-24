@@ -670,13 +670,15 @@
         </div>
         <div class="form-group" style="margin-top:1rem">
           <label>Any notes for me?</label>
-          <textarea rows="3" placeholder="Tell me about your hair, inspiration, or any concerns..." id="client-notes"></textarea>
+          <textarea rows="3" placeholder="Tell me about your hair or any concerns — if you have inspiration photos, mention it here and I'll ask for them by email or DM" id="client-notes"></textarea>
         </div>
-       <div class="form-group">
-  <label>Inspiration photos (optional — up to 3)</label>
-  <input type="file" accept="image/*" multiple id="client-photo" onchange="showPhotoName(this)"/>
-  <div id="photo-filename" style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;"></div>
-</div>
+        <!-- Photo upload hidden until Firebase Storage (Blaze plan) is sorted. To restore: uncomment this block.
+        <div class="form-group">
+          <label>Inspiration photos (optional, up to 3)</label>
+          <input type="file" accept="image/*" multiple id="client-photo" onchange="showPhotoName(this)"/>
+          <div id="photo-filename" style="font-size:0.78rem;color:var(--muted);margin-top:0.4rem;"></div>
+        </div>
+        -->
         <div class="form-nav">
           <button class="btn-next" onclick="goToStep(2)">Choose date &amp; time →</button>
         </div>
@@ -961,8 +963,6 @@
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
   import { getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL }
-    from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAdYFmUbQlRXx0Hp0BOBpRlp5GLvqTh0fA",
@@ -975,15 +975,12 @@
   };
   const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
   const db  = getFirestore(app);
-  const storage = getStorage(app);
 
-  window.kshoUploadPhoto = async (file) => {
-    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const path = 'inspiration-photos/' + Date.now() + '_' + safeName;
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
-  };
+  /* Photo uploads disabled — Firebase Storage requires the Blaze plan.
+     When upgrading later: re-import getStorage/ref/uploadBytes/getDownloadURL
+     from firebase-storage.js and restore window.kshoUploadPhoto here,
+     plus uncomment the photo upload block in Step 1 of the booking form. */
+  window.kshoUploadPhoto = null;
 
   async function loadCol(name){
     try{
@@ -1266,6 +1263,7 @@ function bookService(catName) {
   document.querySelector('#booking-wrap').scrollIntoView({ behavior: 'smooth' });
 }
 
+/* Kept for when the photo upload field returns (currently commented out in the HTML) */
 function showPhotoName(input) {
   const el = document.getElementById('photo-filename');
   if (!el) return;
@@ -1885,9 +1883,7 @@ async function confirmBooking() {
   const returning = document.getElementById('client-returning').value;
   const notes     = document.getElementById('client-notes').value.trim();
   const agreed    = document.getElementById('agree-tc').checked;
-  const photoInput = document.getElementById('client-photo');
-  const photoFiles = photoInput && photoInput.files ? Array.from(photoInput.files).slice(0, 3) : [];
-  
+
   if (!selectedDate || !selectedTime) { showErr('Please choose a date and time first.'); goToStep(2); return; }
   if (!first || !last) { alert('Please enter your first and last name.'); goToStep(3); return; }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('Please enter a valid email address.'); goToStep(3); return; }
@@ -1902,33 +1898,10 @@ async function confirmBooking() {
 
   currentOrderRef = generateOrderRef();
 
- const originalLabel = btn.textContent;
-btn.disabled = true;
-btn.textContent = photoFiles.length ? 'Uploading photos…' : 'Sending…';
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
 
-let photoUrls = [];
-let photoUploadFailed = false;
-for (const f of photoFiles) {
-  try {
-    if (window.kshoUploadPhoto) {
-      photoUrls.push(await window.kshoUploadPhoto(f));
-    } else {
-      photoUploadFailed = true;
-    }
-  } catch (e) {
-    console.warn('Photo upload failed:', e);
-    photoUploadFailed = true;
-  }
-}
-
-const photoLine = photoFiles.length
-  ? (photoUrls.length
-      ? 'Inspiration photos: ' + photoUrls.join('\n')
-        + (photoUploadFailed ? '\n(Note: one or more photos failed to upload — ask the client to send them directly.)' : '')
-      : 'Inspiration photos: client attached ' + photoFiles.length + ' file(s) but they couldn’t be uploaded automatically — ask them to send them directly.')
-  : 'Inspiration photos: None';
-
-  
   const summary =
     'NEW BOOKING REQUEST — ' + currentOrderRef + '\n\n' +
     'Service: ' + SERVICES[selectedCat].cat + '\n' +
@@ -1942,11 +1915,8 @@ const photoLine = photoFiles.length
     'Email: ' + email + '\n' +
     'Phone: ' + phone + '\n' +
     'Client type: ' + returning + '\n' +
-    'Notes: ' + (notes || '—') + '\n' +
-    photoLine + '\n\n' +
+    'Notes: ' + (notes || '—') + '\n\n' +
     'ACTION: reply to this client with a payment link to confirm their slot.';
-
-  btn.textContent = 'Sending…';
 
   try {
     if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY.indexOf('PASTE') === 0) {
@@ -1973,9 +1943,6 @@ const photoLine = photoFiles.length
         client_phone: phone,
         client_type: returning,
         notes: notes || '—',
-        inspiration_photo: photoUrls.length
-        ? photoUrls.join(' | ')
-        : (photoFiles.length ? 'upload failed — files: ' + photoFiles.map(f => f.name).join(', ') : 'none'),
         message: summary
       })
     });
@@ -1987,8 +1954,7 @@ const photoLine = photoFiles.length
       ref: currentOrderRef, service: SERVICES[selectedCat].cat,
       size: selectedSize.name || '', addons: getAddonSummaryText(),
       date: selectedDate, time: selectedTime, total: total,
-      name: first + ' ' + last, email, phone, notes: notes || '—',
-      photoUrls: photoUrls.length ? photoUrls : null
+      name: first + ' ' + last, email, phone, notes: notes || '—'
     });
     showSuccess();
   } catch (err) {

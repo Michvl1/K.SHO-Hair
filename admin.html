@@ -156,6 +156,8 @@
   .btn-send:hover{background:#3d2840}
   .btn-send.confirm{background:var(--success)}
   .btn-send.confirm:hover{filter:brightness(.95)}
+  .btn-send.review{background:var(--rose)}
+  .btn-send.review:hover{background:var(--rose-dark)}
   .btn-send:disabled{opacity:.6;cursor:wait}
   .email-warn{font-size:.76rem;color:var(--muted);background:var(--ivory);border:1px dashed var(--line);
     border-radius:.6rem;padding:.55rem .8rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:flex-start}
@@ -450,18 +452,28 @@ const storage = getStorage(app);
 /* ===========================================================
    EMAIL SETUP  ←←←  fill these in to send emails automatically.
    Free account at https://www.emailjs.com  →  add an email service
-   (connect your Gmail), create TWO templates, then paste the IDs here.
-   Full step-by-step is in the chat message that came with this file.
-   Leave them as "PASTE_…" and the email buttons will instead open a
-   ready-to-send draft in your normal email app — so they still work.
+   (connect your Gmail), create your templates, then paste the IDs here.
+   Leave any as "PASTE_…" and that email button will instead open a
+   ready-to-send draft in your normal email app — so it still works.
    =========================================================== */
 const EMAILJS_PUBLIC_KEY  = "wBjGIQ2TajxHU1X4z";       // Account → General → Public Key
 const EMAILJS_SERVICE_ID  = "service_hjfl007";       // Email Services → your service ID
 const EMAILJS_TPL_PAYMENT = "template_j176nyt"; // template for "here's your payment link"
 const EMAILJS_TPL_CONFIRM = "template_4xxwo1m"; // template for "booking confirmed / payment received"
+const EMAILJS_TPL_REMINDER = "template_0w6zo79"; // "your appointment is tomorrow" reminder
+const EMAILJS_TPL_REVIEW   = "template_05g1q4j"; // "how was it? leave a review"
 
 /* Shown in emails + used as reply-to */
 const BIZ = { name:"K.SHO Hair", email:"kshohair@gmail.com", phone:"07517147325" };
+
+/* Links used by the reminder & review emails — update these to your real URLs.
+   reviewUrl can also be your Google review link if you'd rather collect reviews there. */
+const LINKS = {
+  site:      "https://kshohair.co.uk",               // your website URL (booking / manage link)
+  reviewUrl: "https://www.google.com/search?sca_esv=3469be4bb7334307&rlz=1C1CHBF_en-GBGB1153GB1153&sxsrf=APpeQnsgau802_qLS7fi1cVPVLY0nma6Xg:1785340325131&si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_2xaDxX2kAIOVPdvGFbhEYxTP54YoBv9n-ThyS4ckx25K_XkSUmieUXKzKlXiU_pwkqm1H2PMudBPs6cKXly82mhb22C&q=KSHO+Hair+Reviews&sa=X&ved=2ahUKEwiKs4f_nviVAxUUWEEAHbdxFccQ0bkNegQIJhAI&biw=1440&bih=731&dpr=2",   // Google reviews page
+  instagram: "https://www.instagram.com/ksho.hair/",
+  address:   "Medway, Kent"                          // shown in the reminder email's Location row
+};
 
 const EMAILJS_ON = !!(window.emailjs
   && EMAILJS_PUBLIC_KEY.indexOf("PASTE")!==0
@@ -1257,6 +1269,8 @@ function bookingCard(r, lead){
     <div class="bk-actions">
       <button class="btn-send bk-send-pay">✉️ Send payment link</button>
       <button class="btn-send confirm bk-send-confirm">✓ Send confirmation</button>
+      <button class="btn-send bk-send-reminder" title="Send the day-before appointment reminder">⏰ Reminder</button>
+      <button class="btn-send review bk-send-review" title="Ask this client to leave a review">⭐ Review ask</button>
       <span class="spacer"></span>
       <button class="btn btn-ghost btn-sm bk-edit">✎ Edit</button>
       <button class="btn btn-danger btn-sm bk-del">Delete</button>
@@ -1287,6 +1301,16 @@ function bookingCard(r, lead){
     sendCustomerEmail('confirm', {...r, _email:email, _name:name}, ev.target);
   });
 
+  $('.bk-send-reminder',c).addEventListener('click', ev=>{
+    if(!email){ toast('No customer email on this booking',true); return; }
+    sendCustomerEmail('reminder', {...r, _email:email, _name:name}, ev.target);
+  });
+
+  $('.bk-send-review',c).addEventListener('click', ev=>{
+    if(!email){ toast('No customer email on this booking',true); return; }
+    sendCustomerEmail('review', {...r, _email:email, _name:name}, ev.target);
+  });
+
   $('.bk-del',c).addEventListener('click', async ()=>{
     if(!confirm('Delete this booking record?')) return;
     try{ await deleteDoc(doc(db,'bookings',r.id)); c.remove(); toast('Booking deleted'); }
@@ -1301,13 +1325,14 @@ async function saveLink(r, url, silent){
   catch(e){ if(!silent) toast('Couldn\'t save link: '+e.message,true); }
 }
 
-/* ---- Build the variables shared by both email templates ----
-   UPDATED: now also sends {{deposit}} and {{balance_due}} so emails
-   can show the amount left to pay on the day after the booking fee.
+/* ---- Build the variables shared by all email templates ----
    - deposit comes from Settings → "Booking fee / deposit (£)"
    - balance_due = total − deposit (never below £0)
    - if the booking is marked payMode:'full', the deposit equals the
-     total and the balance is £0 (nothing to pay on the day)         ---- */
+     total and the balance is £0 (nothing to pay on the day)
+   - also includes the aliases + links used by the reminder and
+     review templates ({{service_name}}, {{appointment_date}},
+     {{review_url}}, etc.)                                          ---- */
 function emailParams(r){
   const firstName=(r._name||'').trim().split(' ')[0]||'there';
   const fee = parseFloat(settings.bookingFee ?? 15) || 15;
@@ -1329,6 +1354,15 @@ function emailParams(r){
     balance_due: balanceNum!=null?('£'+balanceNum.toFixed(2)):'',
     ref: bk(r,'ref','order_ref'),
     payment_link: r.paymentLink||'',
+    // aliases + links used by the reminder & review templates
+    service_name: bk(r,'service'),
+    appointment_date: bk(r,'date'),
+    appointment_time: bk(r,'time'),
+    salon_address: LINKS.address,
+    manage_booking_url: LINKS.site,
+    booking_url: LINKS.site,
+    review_url: LINKS.reviewUrl,
+    instagram_url: LINKS.instagram,
     business_name: BIZ.name,
     business_email: BIZ.email,
     business_phone: BIZ.phone,
@@ -1340,12 +1374,19 @@ function emailParams(r){
 async function sendCustomerEmail(kind, r, btn){
   const params=emailParams(r);
   if(EMAILJS_ON){
-    const tpl = kind==='payment' ? EMAILJS_TPL_PAYMENT : EMAILJS_TPL_CONFIRM;
+    const tpl = kind==='payment'  ? EMAILJS_TPL_PAYMENT
+             : kind==='reminder' ? EMAILJS_TPL_REMINDER
+             : kind==='review'   ? EMAILJS_TPL_REVIEW
+             : EMAILJS_TPL_CONFIRM;
     if(!tpl || tpl.indexOf('PASTE')===0){ openDraft(kind,r); return; }
     const orig=btn.textContent; btn.disabled=true; btn.textContent='Sending…';
     try{
       await emailjs.send(EMAILJS_SERVICE_ID, tpl, params);
-      toast(kind==='payment'?'Payment link emailed to '+params.to_name:'Confirmation emailed to '+params.to_name);
+      const doneMsg = kind==='payment' ? 'Payment link emailed to '+params.to_name
+                    : kind==='reminder' ? 'Reminder emailed to '+params.to_name
+                    : kind==='review'   ? 'Review request emailed to '+params.to_name
+                    : 'Confirmation emailed to '+params.to_name;
+      toast(doneMsg);
       if(kind==='confirm') bumpStatusAfterConfirm(r);
     }catch(e){
       toast('Couldn\'t send automatically — opening a draft instead',true);
@@ -1357,9 +1398,7 @@ async function sendCustomerEmail(kind, r, btn){
   }
 }
 
-/* ---- mailto fallback (always works, no setup) ----
-   UPDATED: drafts now show Style total → Deposit → Balance on the day
-   instead of a single Total line.                                   ---- */
+/* ---- mailto fallback (always works, no setup) ---- */
 function openDraft(kind, r){
   const p=emailParams(r);
   const lines=[];
@@ -1380,6 +1419,26 @@ function openDraft(kind, r){
       p.ref?`• Reference: ${p.ref}`:'','',
       `Once payment is received I'll send your confirmation and full address.`,'',
       `See you soon,`,`${BIZ.name}`);
+  }else if(kind==='reminder'){
+    subject=`Reminder: your ${BIZ.name} appointment is tomorrow 🌸`;
+    lines.push(`Hi ${p.to_name},`,'',
+      `Just a friendly reminder that your appointment is coming up:`,'',
+      `• Service: ${p.service}${p.size?` (${p.size})`:''}`,
+      p.addons?`• Add-ons: ${p.addons}`:'',
+      `• Date: ${p.date}`,
+      `• Time: ${p.time}`,
+      p.balance_due?`• Balance on the day (cash or bank transfer): ${p.balance_due}`:'','',
+      `Please arrive with your hair clean, detangled and product-free unless we've agreed otherwise.`,
+      `Need to make a change? Reply to this email as soon as possible.`,'',
+      `See you soon!`,`${BIZ.name}`,`${BIZ.phone}`);
+  }else if(kind==='review'){
+    subject=`How's the hair? 🌸 — ${BIZ.name}`;
+    lines.push(`Hi ${p.to_name},`,'',
+      `Thank you so much for visiting ${BIZ.name}${p.service?` for your ${p.service}`:''} — I hope you're loving your new look!`,'',
+      `If you have a spare minute, I'd be so grateful if you left a quick review:`,
+      `${LINKS.reviewUrl}`,'',
+      `And if you share photos, tag @ksho.hair on Instagram — I love seeing your hair out in the world!`,'',
+      `Thank you again,`,`${BIZ.name}`);
   }else{
     subject=`Booking confirmed — ${BIZ.name}`;
     lines.push(`Hi ${p.to_name},`,'',

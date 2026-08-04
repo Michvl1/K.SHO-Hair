@@ -587,7 +587,7 @@
           <div class="policy-icon">🔒</div>
           <div class="policy-text">
             <h4>Secure deposit</h4>
-            <p>A <strong>£15 booking fee</strong> is required to secure your appointment. Booking fees are <strong>non-refundable and non-transferable</strong> unless your appointment is cancelled by KSHO Hair.</p>
+            <p>A <strong>£25 booking fee</strong> is required to secure your appointment. Booking fees are <strong>non-refundable and non-transferable</strong> unless your appointment is cancelled by KSHO Hair.</p>
           </div>
         </div>
         <div class="policy-item">
@@ -604,7 +604,7 @@
           <div class="policy-icon">💳</div>
           <div class="policy-text">
             <h4>Payment</h4>
-            <p>Cash or Bank Transfer on the day. A £15 deposit secures your booking.</p>
+            <p>Cash or Bank Transfer on the day. A £25 deposit secures your booking.</p>
           </div>
         </div>
       </div>
@@ -751,13 +751,13 @@
           <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
           <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
           <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
-          <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">£15</span></div>
+          <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">£25</span></div>
         </div>
         <div class="payment-options">
           <div class="payment-option selected" onclick="selectPayment(this,'deposit')" id="pay-deposit">
             <h4>🔒 Deposit</h4>
             <p>Secure your slot now</p>
-            <div class="pay-amount">£15</div>
+            <div class="pay-amount">£25</div>
           </div>
           <div class="payment-option" onclick="selectPayment(this,'full')" id="pay-full">
             <h4>✓ Pay in Full</h4>
@@ -767,7 +767,7 @@
         </div>
         <div class="stripe-redirect-note">
           <span>🔒</span>
-          <span>No payment is taken now. Once I receive your order I'll email you a secure payment link (and your full appointment address) to confirm your slot. The £15 booking fee is non-refundable unless K.SHO Hair cancels.</span>
+          <span>No payment is taken now. Once I receive your order I'll email you a secure payment link (and your full appointment address) to confirm your slot. The £25 booking fee is non-refundable unless K.SHO Hair cancels.</span>
         </div>
         <div class="tc-row">
           <input type="checkbox" id="agree-tc"/>
@@ -1867,7 +1867,7 @@ function updatePaySummary() {
   document.getElementById('sum-time').textContent    = selectedTime || '—';
   document.getElementById('sum-total').textContent   = totalPrice ? '£' + totalPrice : '—';
   document.getElementById('full-amount').textContent = totalPrice ? '£' + totalPrice : '—';
-  document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£15 deposit' : (totalPrice ? '£' + totalPrice : '—');
+  document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£25 deposit' : (totalPrice ? '£' + totalPrice : '—');
 }
 
 async function confirmBooking() {
@@ -1893,7 +1893,7 @@ async function confirmBooking() {
   const basePrice = selectedSize.price || 0;
   const total     = basePrice + getAddonTotal();
   const payChoice = payMode === 'deposit'
-    ? '£15 deposit now, remainder (£' + (total - 15) + ') on the day'
+    ? '£25 deposit now, remainder (£' + (total - 25) + ') on the day'
     : 'Paying in full — £' + total;
 
   currentOrderRef = generateOrderRef();

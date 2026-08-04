@@ -214,6 +214,23 @@
   .saved-flag{font-size:.78rem;color:var(--success);font-weight:600;opacity:0;transition:opacity .2s}
   .saved-flag.show{opacity:1}
 
+  /* hair-ordered flag on booking cards */
+  .hair-flag{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--muted);cursor:pointer;
+    border:1.5px solid var(--line);background:var(--ivory);border-radius:100px;padding:.35rem .85rem;margin:.6rem 0 .1rem;transition:.15s;user-select:none}
+  .hair-flag:hover{border-color:var(--rose)}
+  .hair-flag input{width:16px;height:16px;accent-color:var(--success);cursor:pointer}
+  .hair-flag.on{background:rgba(94,154,130,.12);border-color:rgba(94,154,130,.45);color:#3f6f5c;font-weight:600}
+
+  /* bookings filter bar */
+  .bk-filters{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end;margin-bottom:1.2rem;
+    background:#fff;border:1px solid var(--line);border-radius:1rem;padding:.9rem 1.1rem}
+  .bk-filter-group{display:flex;flex-direction:column;gap:.35rem}
+  .bk-filter-label{font-size:.72rem;font-weight:700;color:var(--plum);letter-spacing:.04em;text-transform:uppercase}
+  .bk-filter-sel{padding:.5rem .8rem;border:1.5px solid var(--line);border-radius:.6rem;background:var(--ivory);
+    font-size:.85rem;outline:none;min-width:160px;color:var(--charcoal);cursor:pointer}
+  .bk-filter-sel:focus{border-color:var(--rose)}
+  .bk-filter-count{margin-left:auto;align-self:center;font-size:.8rem;color:var(--muted);font-weight:500}
+
   /* ---------- MODAL (add / edit booking) ---------- */
   .modal-bg{position:fixed;inset:0;background:rgba(26,16,28,.55);z-index:60;display:flex;
     align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;animation:fade .2s ease}
@@ -389,6 +406,30 @@
             <button class="btn btn-ghost btn-sm" id="refresh-bk-btn">Refresh</button>
             <button class="btn btn-primary btn-sm" id="add-bk-btn">+ Add booking</button>
           </div>
+        </div>
+        <div class="bk-filters" id="bk-filters" style="display:none">
+          <div class="bk-filter-group">
+            <label class="bk-filter-label">Sort by date</label>
+            <select class="bk-filter-sel" id="bk-sort">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+          </div>
+          <div class="bk-filter-group">
+            <label class="bk-filter-label">Status</label>
+            <select class="bk-filter-sel" id="bk-filter-status">
+              <option value="all">All statuses</option>
+            </select>
+          </div>
+          <div class="bk-filter-group">
+            <label class="bk-filter-label">Hair ordered</label>
+            <select class="bk-filter-sel" id="bk-filter-hair">
+              <option value="all">All bookings</option>
+              <option value="ordered">Hair ordered</option>
+              <option value="not">Hair not ordered</option>
+            </select>
+          </div>
+          <span class="bk-filter-count" id="bk-filter-count"></span>
         </div>
         <div id="bk-list"><div class="loading">Loading bookings…</div></div>
       </section>
@@ -1208,18 +1249,76 @@ async function loadBookings(){
     rows=snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){ box.innerHTML='<div class="empty">Couldn\'t load bookings. '+esc(e.message)+'</div>'; return; }
   bookings=rows;
-  if(!rows.length){
+  initBkFilters();
+  renderBookings();
+}
+
+/* Current filter / sort state for the bookings list */
+let bkSort='newest', bkStatusFilter='all', bkHairFilter='all';
+let bkFiltersReady=false;
+
+function bkCreatedMs(r){
+  const v=r.createdAt;
+  try{ return v?.toDate ? v.toDate().getTime() : (new Date(v).getTime()||0); }catch(_){ return 0; }
+}
+
+/* Populate + wire the bookings filter bar once (STATUSES is ready at call time) */
+function initBkFilters(){
+  if(bkFiltersReady) return; bkFiltersReady=true;
+  const st=$('#bk-filter-status');
+  if(st){
+    st.innerHTML='<option value="all">All statuses</option>'+
+      STATUSES.map(s=>`<option value="${s}">${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('');
+  }
+  $('#bk-sort')?.addEventListener('change', e=>{ bkSort=e.target.value; renderBookings(); });
+  $('#bk-filter-status')?.addEventListener('change', e=>{ bkStatusFilter=e.target.value; renderBookings(); });
+  $('#bk-filter-hair')?.addEventListener('change', e=>{ bkHairFilter=e.target.value; renderBookings(); });
+}
+
+function renderBookings(){
+  const box=$('#bk-list');
+  const filters=$('#bk-filters');
+  const countEl=$('#bk-filter-count');
+
+  if(!bookings.length){
+    if(filters) filters.style.display='none';
     box.innerHTML='<div class="empty"><div class="big">📅</div><div>No bookings yet.</div>'+
       '<p style="margin-top:.5rem;font-size:.86rem">Requests from your website\'s booking form will appear here — or click <b>+ Add booking</b> to log a client who booked via DMs.</p></div>';
     return;
   }
+  if(filters) filters.style.display='flex';
+
+  // Filter
+  let rows=bookings.filter(r=>{
+    const status=(r.status||'new').toLowerCase();
+    if(bkStatusFilter!=='all' && status!==bkStatusFilter) return false;
+    if(bkHairFilter==='ordered' && !r.hairOrdered) return false;
+    if(bkHairFilter==='not'     &&  r.hairOrdered) return false;
+    return true;
+  });
+  // Sort by received date
+  rows.sort((a,b)=> bkSort==='oldest' ? bkCreatedMs(a)-bkCreatedMs(b) : bkCreatedMs(b)-bkCreatedMs(a));
+
+  if(countEl){
+    countEl.textContent = rows.length===bookings.length
+      ? `${bookings.length} booking${bookings.length===1?'':'s'}`
+      : `Showing ${rows.length} of ${bookings.length}`;
+  }
+
+  if(!rows.length){
+    box.innerHTML='<div class="empty"><div class="big">🔍</div><div>No bookings match these filters.</div>'+
+      '<p style="margin-top:.5rem;font-size:.86rem">Try widening your filters above.</p></div>';
+    return;
+  }
+
   box.innerHTML='';
   if(!EMAILJS_ON){
     const warn=document.createElement('div'); warn.className='email-warn';
     warn.innerHTML='<span>✉️</span><span>Automatic emailing isn\'t set up yet, so the send buttons will open a ready-made draft in your email app for you to send. Add EmailJS keys at the top of admin.html to send in one click.</span>';
     box.appendChild(warn);
   }
-  rows.forEach((r,i)=> box.appendChild(bookingCard(r,i===0)));
+  const highlightFirst = bkSort==='newest' && bkStatusFilter==='all' && bkHairFilter==='all';
+  rows.forEach((r,i)=> box.appendChild(bookingCard(r, i===0 && highlightFirst)));
 }
 
 const STATUSES = ['new','unpaid','deposit paid','paid in full','confirmed','completed','cancelled','refunded'];
@@ -1262,6 +1361,9 @@ function bookingCard(r, lead){
       ${ref?`<span class="bk-chip"><b>Ref</b> ${esc(ref)}</span>`:''}
     </div>
     ${(r.notes&&r.notes!=='—')?`<div class="bk-note">“${esc(r.notes)}”</div>`:''}
+    <label class="hair-flag${r.hairOrdered?' on':''}">
+      <input type="checkbox" class="bk-hair" ${r.hairOrdered?'checked':''}/> 🧴 Hair ordered
+    </label>
     <div class="bk-pay">
       <input class="inp bk-link" value="${esc(link)}" placeholder="Paste payment link (Stripe, PayPal, Monzo.me…)"/>
       <button class="btn btn-ghost btn-sm bk-save-link">Save link</button>
@@ -1284,6 +1386,13 @@ function bookingCard(r, lead){
     const v=e.target.value; e.target.dataset.s=v;
     try{ await setDoc(doc(db,'bookings',r.id),{status:v},{merge:true}); r.status=v; toast('Status set to “'+v+'”'); }
     catch(err){ toast('Couldn\'t update status: '+err.message,true); }
+  });
+
+  $('.bk-hair',c).addEventListener('change', async e=>{
+    const v=e.target.checked;
+    e.target.closest('.hair-flag')?.classList.toggle('on', v);
+    try{ await setDoc(doc(db,'bookings',r.id),{hairOrdered:v},{merge:true}); r.hairOrdered=v; toast(v?'Hair marked as ordered':'Hair marked as not ordered'); }
+    catch(err){ toast('Couldn\'t update: '+err.message,true); e.target.checked=!v; e.target.closest('.hair-flag')?.classList.toggle('on', !v); }
   });
 
   $('.bk-save-link',c).addEventListener('click', ()=> saveLink(r, linkInput.value.trim()));
@@ -1547,6 +1656,7 @@ function openBkModal(r){
           </select></div>
       </div>
       <div class="field"><label>Notes</label><input class="inp" id="bm-notes" value="${esc(isEdit&&r.notes&&r.notes!=='—'?r.notes:'')}" placeholder="Anything to remember"/></div>
+      <div class="field"><label style="display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-weight:600;color:var(--plum)"><input type="checkbox" id="bm-hair" ${isEdit&&r.hairOrdered?'checked':''} style="width:16px;height:16px;accent-color:var(--success)"/> Hair ordered for this booking</label></div>
       <div class="modal-actions">
         <button class="btn btn-ghost btn-sm" id="bm-cancel">Cancel</button>
         <button class="btn btn-primary btn-sm" id="bm-save">${isEdit?'Save changes':'Add booking'}</button>
@@ -1583,7 +1693,8 @@ async function saveBkModal(){
     total:  totalRaw===''?'':(parseFloat(totalRaw)||0),
     notes:  g('bm-notes').trim(),
     status: g('bm-status')||'new',
-    payMode: g('bm-paymode')||'deposit'
+    payMode: g('bm-paymode')||'deposit',
+    hairOrdered: !!$('#bm-hair')?.checked
   };
   const btn=$('#bm-save'); const wasEdit=!!bkEditing;
   btn.disabled=true; btn.textContent='Saving…';

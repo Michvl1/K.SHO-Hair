@@ -958,7 +958,6 @@
 </footer>
 
 
-
 <script type="module">
   import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
   import { getFirestore, collection, getDocs, query, where, orderBy, addDoc, serverTimestamp }
@@ -1044,6 +1043,35 @@
     if ((a.openDates    || []).includes(key)) return false;
     if ((a.blockedDates || []).includes(key)) return true;
     return (a.closedWeekdays || [0]).includes(dow);
+  };
+
+  /* ── STALE-TAB GUARD ──
+     Re-fetch the live services list and availability from Firestore on demand,
+     so a booking that's about to be submitted can be checked against the very
+     latest data (rather than whatever was loaded when the tab was first opened).
+     - Services are only overwritten when Firestore actually returns some, so a
+       transient network blip can't wipe the in-memory list.
+     - Availability keeps the last-known value if the refresh comes back empty. */
+  window.kshoRefreshBookingData = async () => {
+    try {
+      const [svcs, availability] = await Promise.all([
+        loadCol('services'),
+        loadDoc('settings', 'availability')
+      ]);
+      window.KSHO = window.KSHO || {};
+      const hadServices = !!(svcs && svcs.length);
+      if (hadServices) window.KSHO.services = svcs.filter(s => !s.hidden);
+      window.KSHO.availability = availability || window.KSHO.availability || null;
+      return {
+        ok: true,
+        hadServices,
+        services: window.KSHO.services || [],
+        availability: window.KSHO.availability
+      };
+    } catch (e) {
+      console.warn('Booking data refresh failed:', e);
+      return { ok: false };
+    }
   };
 
   (async () => {
@@ -1441,6 +1469,7 @@ let payMode      = 'deposit';
 let calYear, calMonth;
 let selectedDate = null;
 let selectedTime = null;
+let selectedDateY = null, selectedDateM = null, selectedDateD = null; // numeric parts of the picked date, for re-validation
 
 const addonState = { length: null, colourMix: null, freestyle: null, curl: {}, miracleKnotsHair: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
 
@@ -1870,6 +1899,84 @@ function updatePaySummary() {
   document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£25 deposit' : (totalPrice ? '£' + totalPrice : '—');
 }
 
+/* ============================================================
+   STALE-TAB GUARD — re-check live Firestore data before sending
+   ------------------------------------------------------------
+   Customers who leave the tab open for a while can be looking at
+   an out-of-date menu/calendar. Just before an order is sent we
+   pull the latest services + availability from Firestore and make
+   sure the chosen style and date are still valid. If the live-data
+   helper isn't available (module failed / offline) we don't block
+   the booking — we just proceed as before.
+   ============================================================ */
+async function revalidateBeforeBooking() {
+  if (typeof window.kshoRefreshBookingData !== 'function') return { ok: true, skipped: true };
+
+  let fresh;
+  try { fresh = await window.kshoRefreshBookingData(); }
+  catch (e) { return { ok: true, skipped: true }; }
+  if (!fresh || !fresh.ok) return { ok: true, skipped: true };
+
+  // --- Is the chosen style still on the live menu? ---
+  // Only enforced when Firestore actually returned services, so an empty result
+  // (outage, or a site still running on the built-in fallback list) won't wrongly reject.
+  if (fresh.hadServices) {
+    const wantedCat = SERVICES[selectedCat] && SERVICES[selectedCat].cat;
+    const match = (fresh.services || []).find(s => s.cat === wantedCat);
+    if (!match) return { ok: false, reason: 'service' };
+
+    const sizes = Array.isArray(match.sizes) ? match.sizes : [];
+    if (sizes.length && selectedSize && selectedSize.name && !sizes.some(sz => sz.name === selectedSize.name)) {
+      return { ok: false, reason: 'size' };
+    }
+  }
+
+  // --- Is the chosen date still bookable against the live availability? ---
+  if (selectedDateY != null) {
+    const chosen = new Date(selectedDateY, selectedDateM, selectedDateD);
+    const today  = new Date(); today.setHours(0, 0, 0, 0);
+    if (chosen < today) return { ok: false, reason: 'past' };
+    if (window.kshoDayBlocked && window.kshoDayBlocked(selectedDateY, selectedDateM, selectedDateD)) {
+      return { ok: false, reason: 'date' };
+    }
+  }
+
+  return { ok: true };
+}
+
+/* Rebuild the Step-1 service picker from the freshly-fetched Firestore services */
+function rebuildServicesFromFirestore() {
+  try {
+    const source = (window.KSHO && window.KSHO.services && window.KSHO.services.length)
+      ? window.KSHO.services : SERVICES;
+    SERVICES = normalizeServices(source);
+  } catch (e) {}
+
+  const tabs   = document.getElementById('cat-tabs');
+  const panels = document.getElementById('service-panels');
+  if (tabs)   tabs.innerHTML = '';
+  if (panels) panels.innerHTML = '';
+
+  selectedCat = 0;
+  const firstSize = SERVICES[0] && SERVICES[0].sizes && SERVICES[0].sizes[0];
+  selectedSize = firstSize ? { price: firstSize.price, name: firstSize.name } : {};
+
+  addonState.length = null; addonState.colourMix = null; addonState.freestyle = null;
+  addonState.curl = {}; addonState.miracleKnotsHair = null; addonState.fulaniUpgrade = null;
+  addonState.frenchCurlHair = null; addonState.colour = null;
+
+  buildServiceUI();
+}
+
+/* Reset & re-render the Step-2 calendar from the freshly-fetched availability */
+function refreshCalendarFromFirestore() {
+  selectedDate = null; selectedTime = null;
+  selectedDateY = selectedDateM = selectedDateD = null;
+  renderCal();
+  const container = document.getElementById('time-slots-container');
+  if (container) container.innerHTML = '<div class="no-date-msg">Select a date above to see available times</div>';
+}
+
 async function confirmBooking() {
   const errEl = document.getElementById('confirm-error');
   const btn   = document.getElementById('confirm-pay-btn');
@@ -1890,6 +1997,33 @@ async function confirmBooking() {
   if (phone.replace(/\D/g, '').length < 7) { alert('Please enter a valid phone number so I can reach you.'); goToStep(3); return; }
   if (!agreed) { showErr('Please tick the box to accept the booking terms before sending.'); return; }
 
+  const originalLabel = btn.textContent;
+
+  // ── Stale-tab guard: verify the style & date against LIVE Firestore data
+  // before we let the order through, so a page that's been open a while can't
+  // book a removed service or a date that's since become unavailable. ──
+  btn.disabled = true;
+  btn.textContent = 'Checking availability…';
+  const freshness = await revalidateBeforeBooking();
+  if (!freshness.ok) {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    if (freshness.reason === 'service' || freshness.reason === 'size') {
+      rebuildServicesFromFirestore();
+      showErr(freshness.reason === 'size'
+        ? 'The size you picked for this style is no longer offered — the menu was updated since you opened this page. I’ve refreshed the options above, please choose again.'
+        : 'The style you picked is no longer available — the menu was updated since you opened this page. I’ve refreshed the list above, please choose an available style.');
+      goToStep(1);
+    } else {
+      refreshCalendarFromFirestore();
+      showErr(freshness.reason === 'past'
+        ? 'That date has now passed. Please pick a new date and time.'
+        : 'That date is no longer available — the calendar was updated since you opened this page. I’ve refreshed it, please choose another date and time.');
+      goToStep(2);
+    }
+    return;
+  }
+
   const basePrice = selectedSize.price || 0;
   const total     = basePrice + getAddonTotal();
   const payChoice = payMode === 'deposit'
@@ -1898,8 +2032,6 @@ async function confirmBooking() {
 
   currentOrderRef = generateOrderRef();
 
-  const originalLabel = btn.textContent;
-  btn.disabled = true;
   btn.textContent = 'Sending…';
 
   const summary =
@@ -2034,6 +2166,7 @@ function pickDate(d, el) {
   document.querySelectorAll('.cal-day').forEach(x => x.classList.remove('selected'));
   el.classList.add('selected');
   selectedDate = d + ' ' + MONTHS[calMonth] + ' ' + calYear;
+  selectedDateY = calYear; selectedDateM = calMonth; selectedDateD = d; // remember numeric parts for re-validation
   selectedTime = null;
   renderTimes();
 }

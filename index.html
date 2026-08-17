@@ -173,6 +173,32 @@
   .cat-tab { background: var(--ivory); color: var(--muted); border: 1.5px solid rgba(196,137,154,0.2); border-radius: 100px; padding: 0.4rem 0.9rem; font-size: 0.78rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; white-space: nowrap; }
   .cat-tab.active, .cat-tab:hover { background: var(--plum); color: var(--champagne); border-color: var(--plum); }
 
+  /* ── Scroll cue for the service list (esp. mobile, where scrollbars are hidden) ── */
+  .cat-tabs-wrap { position: relative; }
+  .cat-tabs-wrap .category-tabs { margin-bottom: 0; }
+  .cat-tabs-wrap::after {
+    content: '';
+    position: absolute; left: 0; right: 6px; bottom: 0;
+    height: 34px;
+    background: linear-gradient(to top, #fff 25%, rgba(255,255,255,0));
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .cat-tabs-wrap.at-end::after { opacity: 0; }
+  .cat-scroll-hint {
+    display: none;
+    text-align: center;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--rose);
+    letter-spacing: 0.03em;
+    margin: 0.3rem 0 1rem;
+    transition: opacity 0.25s ease;
+    animation: catHintBob 1.6s ease-in-out infinite;
+  }
+  .cat-scroll-hint.at-end { opacity: 0; }
+  @keyframes catHintBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+
   .service-panels { position: relative; }
   .service-panel { display: none; }
   .service-panel.active { display: block; }
@@ -373,6 +399,8 @@
     .carousel-arrow { width: 38px; height: 38px; font-size: 1.3rem; }
     .carousel-arrow.prev { left: 0.6rem; }
     .carousel-arrow.next { right: 0.6rem; }
+    /* a little more room on phones so more styles are visible at once */
+    .category-tabs { max-height: 150px; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -622,7 +650,10 @@
       <div class="form-step active" id="step-1">
         <div class="step-title">Choose your service</div>
         <div class="step-sub">Select a style, then choose your preferred size</div>
-        <div class="category-tabs" id="cat-tabs"></div>
+        <div class="cat-tabs-wrap">
+          <div class="category-tabs" id="cat-tabs"></div>
+        </div>
+        <div class="cat-scroll-hint" id="cat-scroll-hint">Scroll for more styles ▾</div>
         <div class="service-panels" id="service-panels"></div>
         <div class="addon-section" id="addon-section">
 
@@ -1844,6 +1875,33 @@ function buildServiceUI() {
   buildAddonUI();
 
   updateAddonVisibility();
+  initCatScrollHint();
+}
+
+let __catHintBound = false;
+function initCatScrollHint() {
+  const tabs = document.getElementById('cat-tabs');
+  const wrap = tabs && tabs.closest('.cat-tabs-wrap');
+  const hint = document.getElementById('cat-scroll-hint');
+  if (!tabs || !wrap) return;
+
+  const update = () => {
+    const overflow = tabs.scrollHeight - tabs.clientHeight;
+    const hasOverflow = overflow > 2;
+    const atEnd = !hasOverflow || tabs.scrollTop >= overflow - 2;
+    wrap.classList.toggle('at-end', atEnd);
+    if (hint) {
+      hint.style.display = hasOverflow ? '' : 'none';
+      hint.classList.toggle('at-end', atEnd);
+    }
+  };
+
+  if (!__catHintBound) {
+    __catHintBound = true;
+    tabs.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+  }
+  requestAnimationFrame(update);
 }
 
 function selectCat(i) {

@@ -1940,6 +1940,28 @@ function selectSize(catIdx, szIdx, el, sz) {
   selectedSize = { price: sz.price, name: sz.name };
 }
 
+/* Keeps the booking card in view when the form step changes.
+   Step 1 is much taller than the later steps, so hiding it shrinks
+   the page and leaves the viewport stranded further down. */
+function keepBookingInView() {
+  const card = document.querySelector('.booking-form-card');
+  if (!card) return;
+  const nav = document.getElementById('main-nav');
+  const offset = (nav ? nav.offsetHeight : 70) + 16;
+
+  requestAnimationFrame(() => {
+    // Natural (non-sticky) position of the card in the page
+    let top = 0, el = card;
+    while (el) { top += el.offsetTop; el = el.offsetParent; }
+    top = Math.max(0, top - offset);
+
+    // Only pull the page back up if we've dropped below the card
+    if (window.pageYOffset > top) {
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+  });
+}
+
 function goToStep(n) {
   document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.step-dot').forEach((d, i) => {
@@ -1949,6 +1971,7 @@ function goToStep(n) {
   });
   if (n === 4) updatePaySummary();
   document.getElementById('step-' + n).classList.add('active');
+  keepBookingInView();
 }
 
 function selectPayment(el, mode) {

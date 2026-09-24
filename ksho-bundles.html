@@ -167,7 +167,7 @@ footer .logo{ font-size:1.4rem; }
 
 <header class="site">
   <div class="wrap">
-    <a class="logo" href="#top">K.SHO Hair</a>
+    <a class="logo" id="homeLink" href="index.html" title="Back to K.SHO Hair">K.SHO Hair</a>
     <nav class="main" aria-label="Main">
       <a href="#shop">Shop</a>
       <a href="#how">How it works</a>
@@ -301,6 +301,7 @@ const STORE = {
     },
   },
   bookingUrl: "https://www.kshohair.co.uk",
+  homeUrl: "index.html",                                // ← where the K.SHO Hair title links to
   currency: "£",
 };
 
@@ -431,6 +432,7 @@ window.addEventListener("hashchange",checkThanks);
 
 $("#yr").textContent=new Date().getFullYear();
 $("#bookNow").href=STORE.bookingUrl;
+$("#homeLink").href=STORE.homeUrl;
 $("#footContact").href=STORE.contactUrl;
 render(); renderColours(); checkThanks();
 </script>

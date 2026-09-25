@@ -297,7 +297,7 @@ const STORE = {
       "350":    "Img/IMG_1105.jpeg",
       "613":    "images/french-curl-613.jpg",
       "Pink":   "Img/IMG_1096.jpeg",
-      "Burgundy":"images/french-curl-burgundy.jpg",
+      "Burgundy":"Img/IMG_1121.jpeg",
     },
   },
   bookingUrl: "https://www.kshohair.co.uk",
@@ -393,7 +393,7 @@ function renderColours(){
     return `<button class="col" data-col="${esc(n)}" aria-pressed="${colour===n}"><i style="${bg}"></i>${esc(n)}</button>`;
   }).join("");
   const c = COLOURS.find(x=>x[0]===colour);
-  $("#art").innerHTML = `<span class="tag">Available now</span>`
+  $("#art").innerHTML = `<span class="tag">Available Soon</span>`
     + (c ? hairSVG({root:c[1],tip:c[2]}) : hairSVG())
     + photo(c ? pic(c[0]) : STORE.images.hero, c ? `French Curl in colour ${c[0]}` : "French Curl braiding hair");
   $("#colName").textContent = colour ? "· previewing "+colour : "";

@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>K.SHO Hair</title>
 <link rel="icon" type="png" href="favicon.png">
 <link rel="shortcut icon" href="favicon.png">
@@ -109,7 +112,8 @@
   .service-name { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 600; color: var(--plum); margin-bottom: 0.5rem; }
   .service-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 1.2rem; }
   .service-footer { display: flex; justify-content: space-between; align-items: center; }
-  .service-price { font-size: 1.3rem; font-weight: 700; color: var(--plum); font-family: 'Playfair Display', serif; }
+  .service-price { font-size: 1.3rem; font-weight: 700; color: var(--plum); font-family: 'Playfair Display', serif; min-height: 1.6rem; }
+  .service-price.price-loading { font-size: 0.85rem; font-weight: 500; font-family: 'DM Sans', sans-serif; opacity: 0.55; }
   .service-duration { font-size: 0.78rem; color: var(--muted); }
   .service-book-btn { background: var(--rose); color: #fff; border: none; padding: 0.55rem 1.2rem; border-radius: 100px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: background 0.2s; }
   .service-book-btn:hover { background: var(--rose-dark); }
@@ -202,6 +206,8 @@
   .service-panels { position: relative; }
   .service-panel { display: none; }
   .service-panel.active { display: block; }
+  .svc-load-msg { background: var(--ivory); border: 1px dashed rgba(196,137,154,0.35); border-radius: 0.9rem; padding: 1rem 1.1rem; font-size: 0.85rem; color: var(--muted); text-align: center; line-height: 1.55; margin-bottom: 1rem; }
+  .svc-load-msg a { color: var(--rose); font-weight: 600; }
   .hair-note { background: rgba(196,137,154,0.08); border: 1px solid rgba(196,137,154,0.2); border-radius: 0.75rem; padding: 0.7rem 1rem; font-size: 0.8rem; color: var(--rose); margin-bottom: 0.8rem; line-height: 1.5; }
   .size-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1rem; }
   .size-opt { border: 1.5px solid rgba(196,137,154,0.2); border-radius: 0.9rem; padding: 0.8rem 1rem; cursor: pointer; transition: all 0.2s; background: var(--ivory); }
@@ -488,6 +494,8 @@
 </div>
 
 <!-- SERVICES -->
+<!-- "from £…" prices are filled in from the admin portal (Services & prices).
+     The data-cat on each price must match the service name in admin exactly. -->
 <div id="services-wrap">
   <section id="services">
     <div class="services-header">
@@ -505,7 +513,7 @@
         <div class="service-desc">Our most popular style — effortlessly free-flowing with added texture and bohemian charm.</div>
         <div class="service-footer">
           <div>
-            <div class="service-price">from £110</div>
+            <div class="service-price price-loading" data-cat="Boho Braids/Twists">Loading price…</div>
             <div class="service-duration">~3–8 hours depending on size</div>
           </div>
           <button class="service-book-btn" onclick="bookService('Boho Braids/Twists')">Book</button>
@@ -517,7 +525,7 @@
         <div class="service-desc">Gentle on your edges, stunning in style. A classic elevated look with a pain-free install.</div>
         <div class="service-footer">
           <div>
-            <div class="service-price">from £90</div>
+            <div class="service-price price-loading" data-cat="Knotless Braids/Twists">Loading price…</div>
             <div class="service-duration">~2–7 hours depending on size</div>
           </div>
           <button class="service-book-btn" onclick="bookService('Knotless Braids/Twists')">Book</button>
@@ -529,7 +537,7 @@
         <div class="service-desc">Bold, sculptural styles with human hair included. Statement-making protective styles that last.</div>
         <div class="service-footer">
           <div>
-            <div class="service-price">from £90</div>
+            <div class="service-price price-loading" data-cat="Goddess Braids/Twists">Loading price…</div>
             <div class="service-duration">~3–7.5 hours depending on size</div>
           </div>
           <button class="service-book-btn" onclick="bookService('Goddess Braids/Twists')">Book</button>
@@ -541,7 +549,7 @@
         <div class="service-desc">A timeless braided style with soft flowing curls. Elegant, lightweight, and perfect for making a statement.</div>
         <div class="service-footer">
           <div>
-            <div class="service-price">from £130</div>
+            <div class="service-price price-loading" data-cat="Fulani French Curls">Loading price…</div>
             <div class="service-duration">~4-7hours depending on size</div>
           </div>
           <button class="service-book-btn" onclick="bookService('Fulani French Curls')">Book</button>
@@ -553,7 +561,7 @@
         <div class="service-desc">Clean parts, flawless lines, and a sleek finish. Precision-braided for a natural look that lasts</div>
         <div class="service-footer">
           <div>
-            <div class="service-price">from £50</div>
+            <div class="service-price price-loading" data-cat="Feed In / Stitch Braids">Loading price…</div>
             <div class="service-duration">~1h 30m-4 hours depending on size</div>
           </div>
           <button class="service-book-btn" onclick="bookService('Feed In / Stitch Braids')">Book</button>
@@ -607,6 +615,8 @@
 </div>
 
 <!-- BOOKING -->
+<!-- Booking fee amounts (class="js-fee" / "js-fee-amt") are filled in from
+     admin → Settings → Booking fee / deposit. -->
 <div id="booking-wrap">
   <section id="booking">
     <div class="booking-info">
@@ -618,7 +628,7 @@
           <div class="policy-icon">🔒</div>
           <div class="policy-text">
             <h4>Secure deposit</h4>
-            <p>A <strong>£25 booking fee</strong> is required to secure your appointment. Booking fees are <strong>non-refundable and non-transferable</strong> unless your appointment is cancelled by KSHO Hair.</p>
+            <p>A <strong><span class="js-fee"></span>booking fee</strong> is required to secure your appointment. Booking fees are <strong>non-refundable and non-transferable</strong> unless your appointment is cancelled by KSHO Hair.</p>
           </div>
         </div>
         <div class="policy-item">
@@ -635,7 +645,7 @@
           <div class="policy-icon">💳</div>
           <div class="policy-text">
             <h4>Payment</h4>
-            <p>Cash or Bank Transfer on the day. A £25 deposit secures your booking.</p>
+            <p>Cash or Bank Transfer on the day. A <span class="js-fee"></span>deposit secures your booking.</p>
           </div>
         </div>
       </div>
@@ -673,15 +683,17 @@
           <div class="category-tabs" id="cat-tabs"></div>
         </div>
         <div class="cat-scroll-hint" id="cat-scroll-hint">Scroll for more styles ▾</div>
-        <div class="service-panels" id="service-panels"></div>
+        <div class="service-panels" id="service-panels">
+          <div class="svc-load-msg">Loading styles &amp; latest prices…</div>
+        </div>
         <div class="addon-section" id="addon-section">
 
-          <div class="addon-group" id="addon-length">
+          <div class="addon-group hidden" id="addon-length">
             <div class="addon-group-title">Length</div>
             <div class="addon-chips" id="length-chips"></div>
           </div>
 
-          <div class="addon-group" id="addon-colour">
+          <div class="addon-group hidden" id="addon-colour">
             <div class="addon-group-title">Hair Colour</div>
             <div class="colour-swatches" id="colour-swatches"></div>
             <div class="addon-chips" id="colourmix-chips" style="margin-top:0.5rem"></div>
@@ -801,13 +813,13 @@
           <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
           <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
           <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
-          <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">£25</span></div>
+          <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">—</span></div>
         </div>
         <div class="payment-options">
           <div class="payment-option selected" onclick="selectPayment(this,'deposit')" id="pay-deposit">
             <h4>🔒 Deposit</h4>
             <p>Secure your slot now</p>
-            <div class="pay-amount">£25</div>
+            <div class="pay-amount js-fee-amt">—</div>
           </div>
           <div class="payment-option" onclick="selectPayment(this,'full')" id="pay-full">
             <h4>✓ Pay in Full</h4>
@@ -817,7 +829,7 @@
         </div>
         <div class="stripe-redirect-note">
           <span>🔒</span>
-          <span>No payment is taken now. Once I receive your order I'll email you a secure payment link (and your full appointment address) to confirm your slot. The £25 booking fee is non-refundable unless K.SHO Hair cancels.</span>
+          <span>No payment is taken now. Once I receive your order I'll email you a secure payment link (and your full appointment address) to confirm your slot. The <span class="js-fee"></span>booking fee is non-refundable unless K.SHO Hair cancels.</span>
         </div>
         <div class="tc-row">
           <input type="checkbox" id="agree-tc"/>
@@ -1125,16 +1137,24 @@
     }
   };
 
+  /* Load everything in parallel (faster in Instagram's in-app browser),
+     and ALWAYS announce "ready" — even on failure — so the page never
+     hangs or falls back to old prices. */
   (async () => {
-    const [svcs, pf, revs] = await Promise.all([loadCol('services'), loadCol('portfolio'), loadReviews()]);
-    const content  = await loadDoc('content','main');
-    const settings = await loadDoc('settings','main');
-    const availability = await loadDoc('settings','availability');
-    const addons = await loadDoc('settings','addons');
+    let svcs = [], pf = [], revs = [], content = null, settings = null, availability = null, addons = null;
+    try {
+      [svcs, pf, revs, content, settings, availability, addons] = await Promise.all([
+        loadCol('services'), loadCol('portfolio'), loadReviews(),
+        loadDoc('content','main'), loadDoc('settings','main'),
+        loadDoc('settings','availability'), loadDoc('settings','addons')
+      ]);
+    } catch (e) {
+      console.warn('Live data failed to load:', e);
+    }
     window.KSHO = {
-      services:  svcs.filter(s=>!s.hidden),
-      portfolio: pf,
-      reviews:   revs,
+      services:  (svcs || []).filter(s=>!s.hidden),
+      portfolio: pf || [],
+      reviews:   revs || [],
       content:   content  || null,
       settings:  settings || null,
       availability: availability || null,
@@ -1496,26 +1516,14 @@ function initCarousel() {
 
 /* ============================================================
    SERVICES DATA
+   ------------------------------------------------------------
+   No prices live in this file any more. Services, sizes and
+   prices come ONLY from the admin portal (Firestore "services").
    ============================================================ */
-let SERVICES = [
-  { cat: "Goddess Braids/Twists", hairNote: "Hair included: +£80 per bundle of human hair (x1 bundle included in price)", sizes: [ { name: "Small", detail: "~7h 30min", price: 150 }, { name: "Smedium", detail: "~6 hours", price: 130 }, { name: "Medium", detail: "~4h 30min", price: 110 }, { name: "Large", detail: "~3 hours", price: 90 } ] },
-  { cat: "Boho Braids/Twists", hairNote: "Hair included: £160 (x3 bundles of human hair included in price)", sizes: [ { name: "Small", detail: "~8 hours", price: 180 }, { name: "Smedium", detail: "~7 hours", price: 150 }, { name: "Medium", detail: "~5 hours", price: 130 }, { name: "Large", detail: "~3 hours", price: 110 } ] },
-  { cat: "Knotless Braids/Twists", hairNote: null, sizes: [ { name: "Small", detail: "~7 hours", price: 145 }, { name: "Smedium", detail: "~5 hours", price: 125 }, { name: "Medium", detail: "~4 hours", price: 110 }, { name: "Large", detail: "~2 hours", price: 90 } ] },
-  { cat: "French Curls", hairNote: null, sizes: [ { name: "Small", detail: "~7 hours", price: 160 }, { name: "Smedium", detail: "~5 hours", price: 140 }, { name: "Medium", detail: "~4 hours", price: 120 } ] },
-  { cat: "Boho French Curls", hairNote: null, sizes: [ { name: "Small", detail: "~7h 30min", price: 190 }, { name: "Smedium", detail: "~5h 30min", price: 170 }, { name: "Medium", detail: "~4h 30min", price: 150 } ] },
-  { cat: "Fulani Braids/Twists", hairNote: null, sizes: [ { name: "Small", detail: "~7 hours", price: 150 }, { name: "Smedium", detail: "~5 hours", price: 130 }, { name: "Medium", detail: "~4 hours", price: 120 }, { name: "Large", detail: "~2 hours", price: 100 } ] },
-  { cat: "Fulani French Curls", hairNote: null, sizes: [ { name: "Small", detail: "~7 hours", price: 160 }, { name: "Smedium", detail: "~5 hours", price: 140 }, { name: "Medium", detail: "~4 hours", price: 130 } ] },
-  { cat: "Kinky Twists", hairNote: "Hair included in price", sizes: [ { name: "Small", detail: "~7 hours", price: 140 }, { name: "Smedium", detail: "~5 hours", price: 120 }, { name: "Medium", detail: "~4 hours", price: 95 } ] },
-  { cat: "Feed In / Stitch Braids", hairNote: "Hair included. £10 extra for every 2 cornrows added.", sizes: [ { name: "2–4 cornrows", detail: "~1h 30min", price: 50 }, { name: "4–6 cornrows", detail: "~2h 30min", price: 60 }, { name: "8–10 cornrows", detail: "~3h 30min", price: 70 }, { name: "10+ cornrows", detail: "~4 hours", price: 90 } ] },
-  { cat: "Miracle Knots (Hair Provided)", hairNote: "Hair provided by stylist: +£160 added to service price", sizes: [ { name: "Small", detail: "~7 hours", price: 100 }, { name: "Smedium", detail: "~5 hours", price: 90 }, { name: "Medium", detail: "~4 hours", price: 80 }, { name: "Large", detail: "~2 hours", price: 70 } ] },
-  { cat: "Miracle Knots (Own Hair)", hairNote: "Please bring your own hair to the appointment", sizes: [ { name: "Small", detail: "~7 hours", price: 100 }, { name: "Smedium", detail: "~5 hours", price: 90 }, { name: "Medium", detail: "~4 hours", price: 80 }, { name: "Large", detail: "~2 hours", price: 70 } ] },
-  { cat: "Feed In + Sew In", hairNote: null, sizes: [ { name: "Small", detail: "", price: 100 }, { name: "Medium", detail: "", price: 80 }, { name: "Large", detail: "", price: 70 } ] },
-  { cat: "Natural Hair Braids/Twists", hairNote: null, sizes: [ { name: "Small", detail: "~3 hours", price: 90 }, { name: "Smedium", detail: "~2 hours", price: 70 }, { name: "Medium", detail: "~1 hour", price: 60 }, { name: "Large", detail: "~45 min", price: 50 } ] },
-  { cat: "Wig Cornrows", hairNote: null, sizes: [{ name: "Standard", detail: "", price: 15 }] }
-];
+let SERVICES = [];
 
 let selectedCat  = 0;
-let selectedSize = { price: SERVICES[0].sizes[0].price, name: SERVICES[0].sizes[0].name };
+let selectedSize = {};
 let payMode      = 'deposit';
 let calYear, calMonth;
 let selectedDate = null;
@@ -1524,57 +1532,29 @@ let selectedDateY = null, selectedDateM = null, selectedDateD = null; // numeric
 
 const addonState = { length: null, colourMix: null, freestyle: null, curl: {}, miracleKnotsHair: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
 
-/* Fallback defaults — used only if the admin hasn't saved add-ons in Firestore yet */
-const DEFAULT_ADDONS = {
-  length: [
-    { label: 'Standard length', price: 0 },
-    { label: 'Lower back length', price: 15 },
-    { label: 'Bum length', price: 30 }
-  ],
-  colours: [
-    { label: '1 (Jet Black)', hex: '#0a0a0a' },
-    { label: '1B (Off Black)', hex: '#1a1008' },
-    { label: '2 (Dark Brown)', hex: '#2c1a0e' },
-    { label: '4 (Medium Brown)', hex: '#6b3a1f' },
-    { label: '8 (Light Brown)', hex: '#9e6b3a' },
-    { label: '27 (Honey Blonde)', hex: '#c9843a' },
-    { label: '30 (Auburn)', hex: '#8b3a1a' },
-    { label: '613 (Platinum)', hex: '#f5e6b8' }
-  ],
-  colourMix: [
-    { label: 'Custom mix: Blonde', price: 15 },
-    { label: 'Custom mix: Brown', price: 15 }
-  ],
-  freestyle: [
-    { label: 'Simple freestyle', price: 10 },
-    { label: 'Complex freestyle', price: 20 },
-    { label: 'Extreme freestyle', price: 30 },
-    { label: 'Barrel ends', price: 20 },
-    { label: 'Curls', price: 20 }
-  ],
-  curl: [
-    { label: 'Deep Wave', price: 75 },
-    { label: 'Burmese Curly', price: 80 },
-    { label: 'Body Wave', price: 85 },
-    { label: 'Loose Deep Wave', price: 75 }
-  ],
-  miracleKnotsHair: [
-    { label: 'Body Wave', price: 170 },
-    { label: 'Deep Wave', price: 160 },
-    { label: 'Burmese Curly', price: 165 },
-    { label: 'Loose Deep Wave', price: 165 }
-  ],
-  fulaniUpgrade: [
-    { label: 'Boho & Goddess upgrade', price: 20 }
-  ],
-  frenchCurlHair: [
-    { label: 'French Curl Braiding Hair', price: 75 }
-  ]
-};
-
+/* Add-ons (and their prices) come ONLY from admin → Add-ons & colours
+   (Firestore settings/addons). If nothing is saved there, no add-ons show. */
 function currentAddons() {
   const remote = window.KSHO && window.KSHO.addons;
-  return (remote && Object.keys(remote).length) ? remote : DEFAULT_ADDONS;
+  return (remote && typeof remote === 'object') ? remote : {};
+}
+
+/* Booking fee / deposit comes ONLY from admin → Settings. Returns null if not set. */
+function getBookingFee() {
+  const s = window.KSHO && window.KSHO.settings;
+  if (!s || s.bookingFee == null || s.bookingFee === '') return null;
+  const n = Number(s.bookingFee);
+  return isFinite(n) ? n : null;
+}
+
+/* Fills in the "from £…" price on each Services card from the live admin prices */
+function renderServiceCardPrices() {
+  document.querySelectorAll('.service-price[data-cat]').forEach(el => {
+    const svc = SERVICES.find(s => s.cat === el.dataset.cat);
+    const prices = svc ? (svc.sizes || []).map(sz => Number(sz.price)).filter(p => isFinite(p) && p > 0) : [];
+    el.classList.remove('price-loading');
+    el.textContent = prices.length ? 'from £' + Math.min.apply(null, prices) : '';
+  });
 }
 
 /* Category-specific overrides that live in code rather than the admin panel */
@@ -1691,7 +1671,9 @@ function buildAddonUI() {
 
 /* Rebuilds the parts of the add-on UI whose *content* (not just visibility) changes by category */
 function rebuildCategoryDependentAddons() {
-  const cat = SERVICES[selectedCat].cat;
+  const svc = SERVICES[selectedCat];
+  if (!svc) return;
+  const cat = svc.cat;
 
   const excludedColourTokens = COLOUR_EXCLUDE_BY_CAT[cat] || [];
   const allColours = currentAddons().colours || [];
@@ -1721,7 +1703,8 @@ const ALL_ADDON_GROUPS = [
   { key: 'frenchCurlHair',   label: 'French Curl Braiding Hair' }
 ];
 
-/* Legacy fallback — only used for a service that hasn't had its add-on checkboxes saved yet in admin */
+/* Legacy fallback — only used for a service that hasn't had its add-on checkboxes saved yet in admin.
+   (Which groups show — no prices.) */
 const ADDON_GROUPS_BY_CAT = {
   'Goddess Braids/Twists':          ['length', 'colour', 'curl'],
   'Boho Braids/Twists':             ['length', 'colour', 'curl'],
@@ -1743,26 +1726,36 @@ const DEFAULT_ADDON_GROUPS = ['length', 'colour'];
 function normalizeServices(list) {
   return (list || []).map(s => ({
     ...s,
+    sizes: Array.isArray(s.sizes) ? s.sizes : [],
     addonGroups: (Array.isArray(s.addonGroups) && s.addonGroups.length)
       ? s.addonGroups
       : (ADDON_GROUPS_BY_CAT[s.cat] || DEFAULT_ADDON_GROUPS)
   }));
 }
 
+function hideAllAddonGroups() {
+  document.querySelectorAll('#addon-section .addon-group').forEach(g => g.classList.add('hidden'));
+  const bar = document.getElementById('addon-total-bar');
+  if (bar) bar.style.display = 'none';
+}
+
 function updateAddonVisibility() {
   const svc = SERVICES[selectedCat];
-  const cat = svc.cat;
+  if (!svc) { hideAllAddonGroups(); return; }
   const groups = new Set(svc.addonGroups && svc.addonGroups.length ? svc.addonGroups : DEFAULT_ADDON_GROUPS);
+  const addons = currentAddons();
+  const has = (k) => Array.isArray(addons[k]) && addons[k].length > 0;
 
   rebuildCategoryDependentAddons();
 
-  const showLength           = groups.has('length');
-  const showColour           = groups.has('colour');
-  const showFreestyle        = groups.has('freestyle');
-  const showCurl             = groups.has('curl');
-  const showMiracleKnotsHair = groups.has('miracleKnotsHair');
-  const showFulaniUpgrade    = groups.has('fulaniUpgrade');
-  const showFrenchCurlHair   = groups.has('frenchCurlHair');
+  // Only show a group if the service has it ticked AND admin has options saved for it
+  const showLength           = groups.has('length') && has('length');
+  const showColour           = groups.has('colour') && (has('colours') || has('colourMix'));
+  const showFreestyle        = groups.has('freestyle') && has('freestyle');
+  const showCurl             = groups.has('curl') && has('curl');
+  const showMiracleKnotsHair = groups.has('miracleKnotsHair') && has('miracleKnotsHair');
+  const showFulaniUpgrade    = groups.has('fulaniUpgrade') && has('fulaniUpgrade');
+  const showFrenchCurlHair   = groups.has('frenchCurlHair') && has('frenchCurlHair');
 
   document.getElementById('addon-length').classList.toggle('hidden', !showLength);
   document.getElementById('addon-colour').classList.toggle('hidden', !showColour);
@@ -1855,16 +1848,28 @@ function getAddonSummaryText() {
 function buildServiceUI() {
   const tabs   = document.getElementById('cat-tabs');
   const panels = document.getElementById('service-panels');
+  tabs.innerHTML = '';
+  panels.innerHTML = '';
+
+  renderServiceCardPrices();
+
+  if (!SERVICES.length) {
+    panels.innerHTML = '<div class="svc-load-msg">Sorry — the price list couldn’t be loaded just now. ' +
+      '<a href="#" onclick="location.reload();return false;">Tap here to refresh</a>, or message me to book.</div>';
+    hideAllAddonGroups();
+    initCatScrollHint();
+    return;
+  }
 
   SERVICES.forEach((svc, i) => {
     const tab = document.createElement('button');
-    tab.className = 'cat-tab' + (i === 0 ? ' active' : '');
+    tab.className = 'cat-tab' + (i === selectedCat ? ' active' : '');
     tab.textContent = svc.cat;
     tab.onclick = () => selectCat(i);
     tabs.appendChild(tab);
 
     const panel = document.createElement('div');
-    panel.className = 'service-panel' + (i === 0 ? ' active' : '');
+    panel.className = 'service-panel' + (i === selectedCat ? ' active' : '');
     panel.id = 'panel-' + i;
 
     if (svc.hairNote) {
@@ -1879,11 +1884,11 @@ function buildServiceUI() {
 
     svc.sizes.forEach((sz, j) => {
       const opt = document.createElement('div');
-      opt.className = 'size-opt' + (i === 0 && j === 0 ? ' selected' : '');
+      opt.className = 'size-opt' + (i === selectedCat && j === 0 ? ' selected' : '');
       opt.innerHTML =
-        '<div class="svc-size-name">' + sz.name + '</div>' +
-        (sz.detail ? '<div class="svc-size-detail">' + sz.detail + '</div>' : '') +
-        '<div class="svc-size-price">£' + sz.price + '</div>';
+        '<div class="svc-size-name">' + escapeHtml(sz.name) + '</div>' +
+        (sz.detail ? '<div class="svc-size-detail">' + escapeHtml(sz.detail) + '</div>' : '') +
+        '<div class="svc-size-price">£' + escapeHtml(sz.price) + '</div>';
       opt.onclick = () => selectSize(i, j, opt, sz);
       grid.appendChild(opt);
     });
@@ -1891,6 +1896,9 @@ function buildServiceUI() {
     panel.appendChild(grid);
     panels.appendChild(panel);
   });
+
+  const first = SERVICES[selectedCat] && SERVICES[selectedCat].sizes[0];
+  selectedSize = first ? { price: Number(first.price) || 0, name: first.name } : {};
 
   buildAddonUI();
 
@@ -1925,15 +1933,17 @@ function initCatScrollHint() {
 }
 
 function selectCat(i) {
+  if (!SERVICES[i]) return;
   selectedCat  = i;
   selectedSize = {};
   document.querySelectorAll('.cat-tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
   document.querySelectorAll('.service-panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
+  document.querySelectorAll('#panel-' + i + ' .size-opt').forEach(o => o.classList.remove('selected'));
   const firstOpt = document.querySelector('#panel-' + i + ' .size-opt');
   if (firstOpt) {
     firstOpt.classList.add('selected');
     const sz = SERVICES[i].sizes[0];
-    selectedSize = { price: sz.price, name: sz.name };
+    selectedSize = { price: Number(sz.price) || 0, name: sz.name };
   }
   updateAddonVisibility();
 }
@@ -1941,7 +1951,7 @@ function selectCat(i) {
 function selectSize(catIdx, szIdx, el, sz) {
   document.querySelectorAll('#panel-' + catIdx + ' .size-opt').forEach(o => o.classList.remove('selected'));
   el.classList.add('selected');
-  selectedSize = { price: sz.price, name: sz.name };
+  selectedSize = { price: Number(sz.price) || 0, name: sz.name };
 }
 
 /* Keeps the booking card in view when the form step changes.
@@ -1967,6 +1977,8 @@ function keepBookingInView() {
 }
 
 function goToStep(n) {
+  // Can't move past step 1 until the live price list has loaded and a style is picked
+  if (n > 1 && (!SERVICES.length || !SERVICES[selectedCat] || !selectedSize.name)) return;
   document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.step-dot').forEach((d, i) => {
     d.classList.remove('active', 'done');
@@ -1989,26 +2001,29 @@ function updatePaySummary() {
   const basePrice  = selectedSize.price || 0;
   const addonCost  = getAddonTotal();
   const totalPrice = basePrice + addonCost;
+  const fee        = getBookingFee();
 
-  document.getElementById('sum-service').textContent = SERVICES[selectedCat].cat;
+  document.getElementById('sum-service').textContent = SERVICES[selectedCat] ? SERVICES[selectedCat].cat : '—';
   document.getElementById('sum-size').textContent    = selectedSize.name || '—';
   document.getElementById('sum-addons').textContent  = getAddonSummaryText();
   document.getElementById('sum-date').textContent    = selectedDate || '—';
   document.getElementById('sum-time').textContent    = selectedTime || '—';
   document.getElementById('sum-total').textContent   = totalPrice ? '£' + totalPrice : '—';
   document.getElementById('full-amount').textContent = totalPrice ? '£' + totalPrice : '—';
-  document.getElementById('sum-paying').textContent  = payMode === 'deposit' ? '£25 deposit' : (totalPrice ? '£' + totalPrice : '—');
+  document.getElementById('sum-paying').textContent  = payMode === 'deposit'
+    ? (fee != null ? '£' + fee + ' deposit' : 'Deposit')
+    : (totalPrice ? '£' + totalPrice : '—');
 }
 
 /* ============================================================
    STALE-TAB GUARD — re-check live Firestore data before sending
    ------------------------------------------------------------
    Customers who leave the tab open for a while can be looking at
-   an out-of-date menu/calendar. Just before an order is sent we
-   pull the latest services + availability from Firestore and make
-   sure the chosen style and date are still valid. If the live-data
-   helper isn't available (module failed / offline) we don't block
-   the booking — we just proceed as before.
+   an out-of-date menu/calendar/prices. Just before an order is sent
+   we pull the latest services + availability from Firestore and make
+   sure the chosen style, size, PRICE and date are still valid. If the
+   live-data helper isn't available (module failed / offline) we don't
+   block the booking — we just proceed as before.
    ============================================================ */
 async function revalidateBeforeBooking() {
   if (typeof window.kshoRefreshBookingData !== 'function') return { ok: true, skipped: true };
@@ -2018,17 +2033,17 @@ async function revalidateBeforeBooking() {
   catch (e) { return { ok: true, skipped: true }; }
   if (!fresh || !fresh.ok) return { ok: true, skipped: true };
 
-  // --- Is the chosen style still on the live menu? ---
-  // Only enforced when Firestore actually returned services, so an empty result
-  // (outage, or a site still running on the built-in fallback list) won't wrongly reject.
+  // --- Is the chosen style still on the live menu, at the same price? ---
   if (fresh.hadServices) {
     const wantedCat = SERVICES[selectedCat] && SERVICES[selectedCat].cat;
     const match = (fresh.services || []).find(s => s.cat === wantedCat);
     if (!match) return { ok: false, reason: 'service' };
 
     const sizes = Array.isArray(match.sizes) ? match.sizes : [];
-    if (sizes.length && selectedSize && selectedSize.name && !sizes.some(sz => sz.name === selectedSize.name)) {
-      return { ok: false, reason: 'size' };
+    if (sizes.length && selectedSize && selectedSize.name) {
+      const liveSize = sizes.find(sz => sz.name === selectedSize.name);
+      if (!liveSize) return { ok: false, reason: 'size' };
+      if (Number(liveSize.price) !== Number(selectedSize.price)) return { ok: false, reason: 'price' };
     }
   }
 
@@ -2048,19 +2063,13 @@ async function revalidateBeforeBooking() {
 /* Rebuild the Step-1 service picker from the freshly-fetched Firestore services */
 function rebuildServicesFromFirestore() {
   try {
-    const source = (window.KSHO && window.KSHO.services && window.KSHO.services.length)
-      ? window.KSHO.services : SERVICES;
-    SERVICES = normalizeServices(source);
+    if (window.KSHO && window.KSHO.services && window.KSHO.services.length) {
+      SERVICES = normalizeServices(window.KSHO.services);
+    }
   } catch (e) {}
 
-  const tabs   = document.getElementById('cat-tabs');
-  const panels = document.getElementById('service-panels');
-  if (tabs)   tabs.innerHTML = '';
-  if (panels) panels.innerHTML = '';
-
   selectedCat = 0;
-  const firstSize = SERVICES[0] && SERVICES[0].sizes && SERVICES[0].sizes[0];
-  selectedSize = firstSize ? { price: firstSize.price, name: firstSize.name } : {};
+  selectedSize = {};
 
   addonState.length = null; addonState.colourMix = null; addonState.freestyle = null;
   addonState.curl = {}; addonState.miracleKnotsHair = null; addonState.fulaniUpgrade = null;
@@ -2092,6 +2101,7 @@ async function confirmBooking() {
   const notes     = document.getElementById('client-notes').value.trim();
   const agreed    = document.getElementById('agree-tc').checked;
 
+  if (!SERVICES[selectedCat] || !selectedSize.name) { showErr('Please choose a style and size first.'); goToStep(1); return; }
   if (!selectedDate || !selectedTime) { showErr('Please choose a date and time first.'); goToStep(2); return; }
   if (!first || !last) { alert('Please enter your first and last name.'); goToStep(3); return; }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('Please enter a valid email address.'); goToStep(3); return; }
@@ -2100,20 +2110,21 @@ async function confirmBooking() {
 
   const originalLabel = btn.textContent;
 
-  // ── Stale-tab guard: verify the style & date against LIVE Firestore data
-  // before we let the order through, so a page that's been open a while can't
-  // book a removed service or a date that's since become unavailable. ──
+  // ── Stale-tab guard: verify the style, price & date against LIVE Firestore data ──
   btn.disabled = true;
   btn.textContent = 'Checking availability…';
   const freshness = await revalidateBeforeBooking();
   if (!freshness.ok) {
     btn.disabled = false;
     btn.textContent = originalLabel;
-    if (freshness.reason === 'service' || freshness.reason === 'size') {
+    if (freshness.reason === 'service' || freshness.reason === 'size' || freshness.reason === 'price') {
       rebuildServicesFromFirestore();
-      showErr(freshness.reason === 'size'
-        ? 'The size you picked for this style is no longer offered — the menu was updated since you opened this page. I’ve refreshed the options above, please choose again.'
-        : 'The style you picked is no longer available — the menu was updated since you opened this page. I’ve refreshed the list above, please choose an available style.');
+      const msgs = {
+        price:   'Prices were updated since you opened this page. I’ve refreshed the menu above with the latest prices — please re-select your style and size.',
+        size:    'The size you picked for this style is no longer offered — the menu was updated since you opened this page. I’ve refreshed the options above, please choose again.',
+        service: 'The style you picked is no longer available — the menu was updated since you opened this page. I’ve refreshed the list above, please choose an available style.'
+      };
+      showErr(msgs[freshness.reason]);
       goToStep(1);
     } else {
       refreshCalendarFromFirestore();
@@ -2127,8 +2138,11 @@ async function confirmBooking() {
 
   const basePrice = selectedSize.price || 0;
   const total     = basePrice + getAddonTotal();
+  const fee       = getBookingFee();
   const payChoice = payMode === 'deposit'
-    ? '£25 deposit now, remainder (£' + (total - 25) + ') on the day'
+    ? (fee != null
+        ? '£' + fee + ' deposit now, remainder (£' + Math.max(0, total - fee) + ') on the day'
+        : 'Deposit now, remainder on the day')
     : 'Paying in full — £' + total;
 
   currentOrderRef = generateOrderRef();
@@ -2187,7 +2201,8 @@ async function confirmBooking() {
       ref: currentOrderRef, service: SERVICES[selectedCat].cat,
       size: selectedSize.name || '', addons: getAddonSummaryText(),
       date: selectedDate, time: selectedTime, total: total,
-      name: first + ' ' + last, email, phone, notes: notes || '—'
+      name: first + ' ' + last, email, phone, notes: notes || '—',
+      payMode: payMode
     });
     showSuccess();
   } catch (err) {
@@ -2295,21 +2310,22 @@ function renderTimes() {
   container.appendChild(wrap);
 }
 
-/* ---- Init ---- */
+/* ---- Init ----
+   The page now waits for the LIVE admin data before building the
+   booking form. There is no timed fallback to built-in prices any more. */
 let __kshoBooted = false;
 function kshoBoot(){
   if (__kshoBooted) return; __kshoBooted = true;
   try {
-    const source = (window.KSHO && window.KSHO.services && window.KSHO.services.length) ? window.KSHO.services : SERVICES;
-    SERVICES = normalizeServices(source);
-  } catch(e){}
+    SERVICES = normalizeServices((window.KSHO && window.KSHO.services) || []);
+  } catch(e){ SERVICES = []; }
+  applyDynamicSettings();
   buildServiceUI();
   initCal();
   applyDynamicContent();
   renderDynamicPortfolio();
   initCarousel();
   renderDynamicReviews();
-  applyDynamicSettings();
 }
 function renderDynamicPortfolio(){
   const items = (window.KSHO && window.KSHO.portfolio) || [];
@@ -2345,18 +2361,27 @@ function applyDynamicContent(){
   if (socials[1] && c.tiktok)    socials[1].href = c.tiktok;
 }
 function applyDynamicSettings(){
-  const s = window.KSHO && window.KSHO.settings; if (!s) return;
-  if (s.times){
+  const s = window.KSHO && window.KSHO.settings;
+  if (s && s.times){
     const arr = s.times.split(',').map(x=>x.trim()).filter(Boolean);
     if (arr.length && typeof TIMES !== 'undefined'){ TIMES.length=0; arr.forEach(t=>TIMES.push(t)); }
   }
-  if (s.bookingFee!=null){
-    document.querySelectorAll('#pay-deposit .pay-amount').forEach(el=>{ el.textContent='£'+s.bookingFee; });
-  }
+  // Booking fee — only ever from admin → Settings
+  const fee = getBookingFee();
+  document.querySelectorAll('.js-fee').forEach(el => { el.textContent = fee != null ? '£' + fee + ' ' : ''; });
+  document.querySelectorAll('.js-fee-amt').forEach(el => { el.textContent = fee != null ? '£' + fee : '—'; });
 }
 if (window.__kshoReady) kshoBoot();
 else window.addEventListener('ksho:ready', kshoBoot);
-setTimeout(kshoBoot, 3500);
+
+/* If the live data is slow (common in Instagram's in-app browser on weak signal),
+   tell the customer we're still loading rather than showing anything out of date. */
+setTimeout(() => {
+  if (__kshoBooted) return;
+  const p = document.getElementById('service-panels');
+  if (p) p.innerHTML = '<div class="svc-load-msg">Still loading the latest prices… if this takes too long, ' +
+    '<a href="#" onclick="location.reload();return false;">tap here to refresh</a>.</div>';
+}, 6000);
 </script>
 </body>
 </html>

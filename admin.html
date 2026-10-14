@@ -2230,7 +2230,14 @@ async function sendCustomerEmail(kind, r, btn){
       if(kind==='confirm') bumpStatusAfterConfirm(r);
       if(kind==='cancel') markCancelled(r);
     }catch(e){
-      toast('Couldn\'t send automatically — opening a draft instead',true);
+      // Show EmailJS's real reason so problems can be fixed, not guessed at
+      const reason = (e && (e.text || e.message)) || String(e);
+      const status = (e && e.status) ? ' (code '+e.status+')' : '';
+      console.error('EmailJS send failed', {kind, template: tpl, error: e});
+      alert('This email couldn\'t be sent automatically.\n\n' +
+        'Email type: ' + kind + '\nTemplate ID: ' + tpl + '\n' +
+        'EmailJS said: ' + reason + status + '\n\n' +
+        'A ready-made draft will open in your email app instead, so you can still send it.');
       openDraft(kind,r);
     }
     btn.disabled=false; btn.textContent=orig;

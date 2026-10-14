@@ -323,6 +323,8 @@
   .btn-send.review:hover{background:var(--rose-dark)}
   .btn-send.soft{background:#fff;color:var(--plum);border:1.5px solid var(--line)}
   .btn-send.soft:hover{border-color:var(--plum)}
+  .btn-send.cancel{background:#fff;color:var(--danger);border:1.5px solid rgba(192,57,43,.35)}
+  .btn-send.cancel:hover{background:var(--danger-tint);border-color:var(--danger)}
   .btn-send:disabled{opacity:.6;cursor:wait}
 
   /* ---------- AVAILABILITY ---------- */
@@ -470,6 +472,7 @@
     .bk-pay .btn{flex:1}
     .send-group{display:grid;grid-template-columns:1fr 1fr;width:100%}
     .btn-send{padding:.68rem .6rem}
+     .btn-send.cancel{grid-column:1/-1}
     .manage-group{width:100%;margin-left:0}
     .manage-group .btn{flex:1}
 
@@ -813,6 +816,7 @@ const EMAILJS_TPL_PAYMENT = "template_j176nyt"; // template for "here's your pay
 const EMAILJS_TPL_CONFIRM = "template_4xxwo1m"; // template for "booking confirmed / payment received"
 const EMAILJS_TPL_REMINDER = "template_0w6zo79"; // "your appointment is tomorrow" reminder
 const EMAILJS_TPL_REVIEW   = "template_05g1q4j"; // "how was it? leave a review"
+const EMAILJS_TPL_CANCEL   = "PASTE_CANCEL_TEMPLATE_ID"; // "your appointment has been cancelled"
 
 /* Shown in emails + used as reply-to */
 const BIZ = { name:"K.SHO Hair", email:"kshohair@gmail.com", phone:"07517147325" };
@@ -2072,6 +2076,7 @@ function bookingCard(r, lead){
         <button class="btn-send confirm bk-send-confirm">✓ Confirmation</button>
         <button class="btn-send soft bk-send-reminder" title="Send the day-before appointment reminder">⏰ Reminder</button>
         <button class="btn-send review bk-send-review" title="Ask this client to leave a review">⭐ Review ask</button>
+          <button class="btn-send cancel bk-send-cancel" title="Email the client that this appointment is cancelled">✕ Cancellation</button>
       </div>
       <div class="manage-group">
         <button class="btn btn-ghost btn-sm bk-edit">✎ Edit</button>
@@ -2130,6 +2135,12 @@ function bookingCard(r, lead){
   $('.bk-send-review',c).addEventListener('click', ev=>{
     if(!email){ toast('No customer email on this booking',true); return; }
     sendCustomerEmail('review', {...r, _email:email, _name:name}, ev.currentTarget);
+  });
+       $('.bk-send-cancel',c).addEventListener('click', ev=>{
+    if(!email){ toast('No customer email on this booking',true); return; }
+    const when=[dateTxt, timeTxt?('at '+timeTxt):''].filter(Boolean).join(' ');
+    if(!confirm(`Send a cancellation email to ${name}${when?` for ${when}`:''}?\n\nThe booking will also be marked as Cancelled.`)) return;
+    sendCustomerEmail('cancel', {...r, _email:email, _name:name}, ev.currentTarget);
   });
 
   $('.bk-del',c).addEventListener('click', async ()=>{
@@ -2200,20 +2211,23 @@ function emailParams(r){
 async function sendCustomerEmail(kind, r, btn){
   const params=emailParams(r);
   if(EMAILJS_ON){
-    const tpl = kind==='payment'  ? EMAILJS_TPL_PAYMENT
+      const tpl = kind==='payment'  ? EMAILJS_TPL_PAYMENT
              : kind==='reminder' ? EMAILJS_TPL_REMINDER
              : kind==='review'   ? EMAILJS_TPL_REVIEW
+             : kind==='cancel'   ? EMAILJS_TPL_CANCEL
              : EMAILJS_TPL_CONFIRM;
     if(!tpl || tpl.indexOf('PASTE')===0){ openDraft(kind,r); return; }
     const orig=btn.textContent; btn.disabled=true; btn.textContent='Sending…';
     try{
       await emailjs.send(EMAILJS_SERVICE_ID, tpl, params);
-      const doneMsg = kind==='payment' ? 'Payment link emailed to '+params.to_name
+          const doneMsg = kind==='payment' ? 'Payment link emailed to '+params.to_name
                     : kind==='reminder' ? 'Reminder emailed to '+params.to_name
                     : kind==='review'   ? 'Review request emailed to '+params.to_name
+                    : kind==='cancel'   ? 'Cancellation emailed to '+params.to_name
                     : 'Confirmation emailed to '+params.to_name;
       toast(doneMsg);
       if(kind==='confirm') bumpStatusAfterConfirm(r);
+         if(kind==='cancel') markCancelled(r);
     }catch(e){
       toast('Couldn\'t send automatically — opening a draft instead',true);
       openDraft(kind,r);
@@ -2257,6 +2271,16 @@ function openDraft(kind, r){
       `Please arrive with your hair clean, detangled and product-free unless we've agreed otherwise.`,
       `Need to make a change? Reply to this email as soon as possible.`,'',
       `See you soon!`,`${BIZ.name}`,`${BIZ.phone}`);
+         }else if(kind==='cancel'){
+    subject=`Your ${BIZ.name} appointment has been cancelled`;
+    lines.push(`Hi ${p.to_name},`,'',
+      `Thanks for letting me know. This email confirms that your appointment has been cancelled:`,'',
+      `• Service: ${p.service}${p.size?` (${p.size})`:''}`,
+      `• Date: ${p.date}`,
+      `• Time: ${p.time}`,
+      p.ref?`• Reference: ${p.ref}`:null,'',
+      `Whenever you're ready to rebook, you can choose a new date at ${LINKS.site}, or just reply to this email.`,'',
+      `Hope to see you soon,`,`${BIZ.name}`,`${BIZ.phone}`);
   }else if(kind==='review'){
     subject=`How's the hair? 🌸 — ${BIZ.name}`;
     lines.push(`Hi ${p.to_name},`,'',
@@ -2284,6 +2308,7 @@ function openDraft(kind, r){
   const href=`mailto:${encodeURIComponent(p.to_email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.location.href=href;
   if(kind==='confirm') bumpStatusAfterConfirm(r);
+     if(kind==='cancel') markCancelled(r);
 }
 
 async function bumpStatusAfterConfirm(r){
@@ -2296,9 +2321,23 @@ async function bumpStatusAfterConfirm(r){
       const card=$(`.bk-card[data-id="${r.id}"]`);
       const sel=card&&$('.bk-status',card);
       if(sel){ sel.value='confirmed'; sel.dataset.s='confirmed'; card.dataset.s='confirmed'; }
+         
       renderBkQuick();
     }catch(e){}
   }
+     async function markCancelled(r){
+  // Mark as cancelled unless it's already cancelled or refunded
+  const cur=(r.status||'new').toLowerCase();
+  if(cur==='cancelled'||cur==='refunded') return;
+  try{
+    await setDoc(doc(db,'bookings',r.id),{status:'cancelled'},{merge:true});
+    const orig=bookings.find(b=>b.id===r.id); if(orig) orig.status='cancelled';
+    const card=$(`.bk-card[data-id="${r.id}"]`);
+    const sel=card&&$('.bk-status',card);
+    if(sel){ sel.value='cancelled'; sel.dataset.s='cancelled'; card.dataset.s='cancelled'; }
+    renderBkQuick();
+  }catch(e){ toast('Email sent, but couldn\'t update the status: '+e.message,true); }
+}
 }
 $('#refresh-bk-btn').addEventListener('click', loadBookings);
 

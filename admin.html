@@ -381,6 +381,32 @@
   .time-preview{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.6rem}
   .time-preview span{background:var(--ivory);border:1px solid var(--line);border-radius:100px;padding:.2rem .65rem;font-size:.8rem}
 
+  /* ---------- HAIR SALES ---------- */
+  .sales-hero{background:radial-gradient(ellipse 90% 120% at 85% 0%,#4a2850 0%,var(--plum) 65%);color:var(--champagne);
+    border-radius:var(--r);padding:1.6rem 1.6rem 1.5rem;margin-bottom:1rem;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1.2rem 1.6rem;align-items:center;box-shadow:var(--shadow)}
+  .sales-hero h3{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--champagne);line-height:1.15}
+  .sales-hero h3 em{color:var(--rose);font-style:italic}
+  .sales-hero p{font-size:.9rem;opacity:.82;margin-top:.45rem;max-width:48ch}
+  .sales-feats{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.9rem}
+  .sales-feats span{border:1px solid rgba(232,213,183,.28);border-radius:100px;padding:.2rem .7rem;font-size:.76rem}
+  .btn-champagne{background:var(--champagne);color:var(--plum);text-decoration:none}
+  .btn-champagne:hover{background:#fff}
+  .sales-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+  .sales-link{display:flex;flex-direction:column;gap:.2rem;background:#fff;border:1px solid var(--line);border-radius:var(--r);
+    padding:1rem 1.1rem;text-decoration:none;color:var(--charcoal);box-shadow:var(--shadow-sm);transition:border-color .15s}
+  .sales-link:hover{border-color:var(--rose)}
+  .sales-link b{color:var(--plum);font-size:.95rem}
+  .sales-link span{font-size:.82rem;color:var(--muted)}
+  .sales-steps{counter-reset:st;display:grid;gap:.55rem;list-style:none}
+  .sales-steps li{counter-increment:st;display:grid;grid-template-columns:28px 1fr;gap:.6rem;font-size:.88rem;align-items:start}
+  .sales-steps li::before{content:counter(st);width:26px;height:26px;border-radius:50%;background:var(--rose-tint);color:var(--rose-dark);
+    font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+  @media (max-width:820px){
+    .sales-hero{grid-template-columns:1fr;padding:1.3rem}
+    .sales-hero .btn{width:100%}
+    .sales-links{grid-template-columns:1fr}
+  }
+
   /* ---------- MISC ---------- */
   .empty{text-align:center;padding:3rem 1rem;color:var(--muted);background:#fff;border:1px dashed var(--line-2);border-radius:var(--r)}
   .empty .big{font-size:2.2rem;margin-bottom:.6rem}
@@ -555,6 +581,9 @@
       <button class="navbtn" data-page="availability"><span class="ico">🗓️</span><span class="lbl">Availability</span></button>
       <button class="navbtn" data-page="reviews"><span class="ico">⭐</span><span class="lbl">Reviews</span><span class="nav-badge" id="nav-badge-rv" style="background:var(--muted)"></span></button>
 
+      <div class="nav-group">Your shop</div>
+      <button class="navbtn" data-page="sales"><span class="ico">🛍️</span><span class="lbl">Hair sales</span></button>
+
       <div class="nav-group">Your website</div>
       <button class="navbtn" data-page="services"><span class="ico">✂️</span><span class="lbl">Services &amp; prices</span></button>
       <button class="navbtn" data-page="addons"><span class="ico">➕</span><span class="lbl">Add-ons &amp; colours</span></button>
@@ -692,6 +721,40 @@
         <div id="reviews-list"><div class="loading">Loading reviews…</div></div>
       </section>
 
+      <!-- HAIR SALES -->
+      <section class="page" id="page-sales">
+        <div class="page-head">
+          <div>
+            <h2>Hair sales</h2>
+            <p>Your French Curl bundle orders and earnings live in the sales portal.</p>
+          </div>
+        </div>
+
+        <div class="sales-hero">
+          <div>
+            <h3>Sales <em>portal</em></h3>
+            <p>Upload your Stripe export to see your earnings, track which orders to pack and post, and send customers branded order updates.</p>
+            <div class="sales-feats"><span>Earnings &amp; fees</span><span>Orders to pack</span><span>Tracking numbers</span><span>Order update emails</span></div>
+          </div>
+          <a class="btn btn-champagne" id="sales-portal-link" href="sales-portal.html" target="_blank" rel="noopener">Open sales portal ↗</a>
+        </div>
+
+        <div class="sales-links" style="margin-bottom:1rem">
+          <a class="sales-link" id="stripe-payments-link" href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener"><b>Stripe payments ↗</b><span>See payments and export your sales CSV</span></a>
+          <a class="sales-link" id="stripe-payouts-link" href="https://dashboard.stripe.com/payouts" target="_blank" rel="noopener"><b>Stripe payouts ↗</b><span>When money reaches your bank</span></a>
+          <a class="sales-link" id="stripe-links-link" href="https://dashboard.stripe.com/payment-links" target="_blank" rel="noopener"><b>Payment links ↗</b><span>The Buy now links on your bundles page</span></a>
+        </div>
+
+        <div class="card">
+          <h3>Updating your sales</h3>
+          <ol class="sales-steps">
+            <li><span>In Stripe, open <b>Payments</b> and click <b>Export</b>. Add the Shipping and Customer email columns, then download the CSV.</span></li>
+            <li><span>Open the sales portal and drop the file in. Orders you've already imported are updated, never duplicated.</span></li>
+            <li><span>Open an order to add its tracking number, then send the customer a Dispatched email.</span></li>
+          </ol>
+        </div>
+      </section>
+
       <!-- SERVICES -->
       <section class="page" id="page-services">
         <div class="page-head">
@@ -827,6 +890,7 @@ const LINKS = {
   site:      "https://kshohair.co.uk",               // your website URL (booking / manage link)
   reviewUrl: "https://www.google.com/search?sca_esv=3469be4bb7334307&rlz=1C1CHBF_en-GBGB1153GB1153&sxsrf=APpeQnsgau802_qLS7fi1cVPVLY0nma6Xg:1785340325131&si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_2xaDxX2kAIOVPdvGFbhEYxTP54YoBv9n-ThyS4ckx25K_XkSUmieUXKzKlXiU_pwkqm1H2PMudBPs6cKXly82mhb22C&q=KSHO+Hair+Reviews&sa=X&ved=2ahUKEwiKs4f_nviVAxUUWEEAHbdxFccQ0bkNegQIJhAI&biw=1440&bih=731&dpr=2",   // Google reviews page
   instagram: "https://www.instagram.com/ksho.hair/",
+  salesPortal: "sales-portal.html",                  // the sales portal (same folder as this page, or a full link)
   address:   "Medway, Kent"                          // shown in the reminder email's Location row
 };
 
@@ -1047,6 +1111,7 @@ function showPage(page){
   window.scrollTo({top:0});
 }
 $$('.navbtn').forEach(b=> b.addEventListener('click', ()=> showPage(b.dataset.page)));
+if (LINKS.salesPortal) $('#sales-portal-link').href = LINKS.salesPortal;
 
 /* Keyboard: "/" jumps to booking search, Esc closes things */
 document.addEventListener('keydown', e=>{

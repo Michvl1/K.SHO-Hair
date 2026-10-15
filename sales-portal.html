@@ -25,6 +25,7 @@
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ color-scheme:dark; } }
 :root[data-theme="dark"]{ color-scheme:dark; }
 *,*::before,*::after{ box-sizing:border-box; }
+[hidden]{ display:none !important; }
 html{ background:var(--plum-deep); }
 body{ margin:0; min-height:100%; color:var(--text); font:400 15px/1.6 var(--body);
   background:radial-gradient(1100px 700px at 80% -10%, var(--plum) 0%, var(--plum-deep) 65%) fixed, var(--plum-deep);
@@ -213,6 +214,7 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
   <div class="wrap">
     <div class="brand"><span class="logo">K.SHO Hair</span><small>Sales portal</small></div>
     <span class="store-chip" id="storeChip" data-mode="">Connecting…</span>
+    <button class="btn ghost" id="newOrderBtn" type="button">New order</button>
     <button class="btn" id="uploadBtn" type="button">Upload Stripe export</button>
     <input type="file" id="fileInput" accept=".csv,text/csv" multiple hidden>
   </div>
@@ -220,7 +222,7 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
     <div class="wrap" role="tablist">
       <button class="tab" role="tab" id="tab-earnings" data-tab="earnings" aria-selected="true">Earnings</button>
       <button class="tab" role="tab" id="tab-orders" data-tab="orders" aria-selected="false">Orders <span class="badge" id="topackBadge"></span></button>
-      <button class="tab" role="tab" id="tab-emails" data-tab="emails" aria-selected="false">Email templates</button>
+      <button class="tab" role="tab" id="tab-emails" data-tab="emails" aria-selected="false">Emails &amp; settings</button>
     </div>
   </nav>
 </header>
@@ -275,6 +277,7 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
       <div><p class="eyebrow">Orders</p><h2>Pack, post, <em>update</em></h2></div>
       <button class="btn ghost small" type="button" id="exportBtn">Download orders CSV</button>
     </div>
+    <div class="banner" id="numberBanner" hidden><span id="numberBannerText"></span><button class="btn small" type="button" data-action="number">Give them order numbers</button></div>
     <div class="toolbar">
       <input class="search" id="search" type="search" placeholder="Search name, email, postcode, order ref…" aria-label="Search orders">
       <div class="chips" id="statusChips" role="group" aria-label="Filter by status"></div>
@@ -307,6 +310,15 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
       <p class="note" style="margin-top:.7rem">Emails open as a draft in this Gmail account, so they come from your address and sit in your Sent folder.</p>
     </div>
     <div class="card">
+      <h3>Order numbers</h3>
+      <p class="hint">Every order gets its own number, given out in the order they come in. It shows in the portal, your emails and the CSV download.</p>
+      <div class="row">
+        <div class="field"><label for="setPrefix">Starts with</label><input class="input" id="setPrefix" type="text" maxlength="8" placeholder="KS-"></div>
+        <div class="field"><label for="setStart">First number</label><input class="input" id="setStart" type="number" min="1" step="1" placeholder="1001"></div>
+      </div>
+      <p class="note" id="nextNoNote" style="margin-top:.7rem"></p>
+    </div>
+    <div class="card">
       <div class="tpl-head"><div><h3>How your emails look</h3><p class="hint" style="margin:0">Preview with an example customer. Your own orders fill in their real details.</p></div>
         <select class="input" id="previewTpl" style="width:auto" aria-label="Template to preview"></select></div>
       <div class="email-preview" id="themePreview" style="margin-top:.8rem"></div>
@@ -316,7 +328,7 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
       <div class="tokens" id="tokenList"></div>
     </div>
     <div class="tpl-list" id="tplList"></div>
-    <div class="toolbar"><button class="btn ghost small" type="button" id="addTpl">Add a template</button><span style="flex:1"></span><button class="btn small" type="button" id="saveTpls">Save templates</button></div>
+    <div class="toolbar"><button class="btn ghost small" type="button" id="addTpl">Add a template</button><span style="flex:1"></span><button class="btn small" type="button" id="saveTpls">Save changes</button></div>
     <div class="card">
       <h3>Your data</h3>
       <p class="hint" id="dataNote"></p>
@@ -475,7 +487,8 @@ const fmtMoney = (n, cur=BASE_CURRENCY) => { try{ return new Intl.NumberFormat("
 const fmtMoney0 = n => new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0}).format(n||0);
 const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 const fmtShort = iso => new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
-const ref = o => "KS-" + String(o.stripeId||o.id).replace(/[^A-Za-z0-9]/g,"").slice(-6).toUpperCase();
+const fmtRef = n => (state.settings.orderPrefix == null ? "KS-" : state.settings.orderPrefix) + n;
+const ref = o => o.orderNo ? fmtRef(o.orderNo) : "No number yet";
 const firstName = o => { const n = (o.name||"").trim().split(/\s+/)[0] || ""; return n ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : "there"; };
 const addressText = a => a ? [a.line1,a.line2,a.city,a.state,a.postal,a.country].filter(Boolean).join("\n") : "";
 let toastTimer;
@@ -519,7 +532,7 @@ const TOKENS = ["{first_name}","{name}","{order_ref}","{item}","{in_colour}","{c
 const state = {
   mode: null,              // "db" | "local" | "example"
   orders: new Map(),
-  settings: { gmail:"kshohair@gmail.com", signoff:"K.SHO Hair", emailStyle:"branded", website:"kshohair.co.uk", instagram:"", templates: DEFAULT_TEMPLATES },
+  settings: { gmail:"kshohair@gmail.com", signoff:"K.SHO Hair", emailStyle:"branded", website:"kshohair.co.uk", instagram:"", orderPrefix:"KS-", orderStart:1001, templates: DEFAULT_TEMPLATES },
   period: "month",
   statusFilter: "open",
   search: "",
@@ -708,7 +721,7 @@ function filteredOrders(){
     if(state.statusFilter === "open" && !(s==="topack"||s==="onhold"||s==="dispatched")) return false;
     if(state.statusFilter !== "open" && state.statusFilter !== "all" && s !== state.statusFilter) return false;
     if(!q) return true;
-    return [o.name,o.email,o.item,o.colour,ref(o),o.stripeId,o.tracking,o.address&&o.address.postal,o.address&&o.address.city].some(v => v && String(v).toLowerCase().includes(q));
+    return [o.name,o.email,o.item,o.colour,ref(o),o.stripeId,o.tracking,addressText(o.address)].some(v => v && String(v).toLowerCase().includes(q));
   }).sort((a,b) => b.created.localeCompare(a.created));
 }
 function renderOrders(){
@@ -731,6 +744,9 @@ function renderOrders(){
       <b>${esc(o.name||"No name")}</b><span class="num">${fmtMoney(o.amount,o.currency)}</span>
       <small class="muted">${fmtShort(o.created)} · ${esc(o.item||ref(o))}</small>${pill(o)}</button>`).join("") || `<p class="note">No orders match. Try another filter.</p>`;
   $("#orderCount").textContent = `Showing ${list.length} of ${state.orders.size} orders`;
+  const un = [...state.orders.values()].filter(o => !o.orderNo).length;
+  $("#numberBanner").hidden = !un;
+  $("#numberBannerText").textContent = `${un} order${un===1?" doesn't":"s don't"} have an order number yet. Numbers are given out oldest first, starting from ${fmtRef(nextOrderNo())}.`;
 }
 
 /* ================= Order sheet + email ================= */
@@ -843,7 +859,7 @@ function gmailUrl(o){
 
 function openSheet(id){
   const o = state.orders.get(id); if(!o) return;
-  state.openId = id; loadDraft(o, suggestTemplate(o));
+  state.openId = id; state.delConfirm = false; loadDraft(o, suggestTemplate(o));
   renderSheet();
   $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden","false"); $("#scrim").classList.add("open");
   setTimeout(()=>{ const x=$("#sheet .x"); x&&x.focus(); },50);
@@ -860,15 +876,16 @@ function renderSheet(){
   const missingTracking = /\[add tracking number\]/.test(state.draft.body+state.draft.subject);
   const active = document.activeElement && document.activeElement.id;
   $("#sheet").innerHTML = `
-    <div class="sheet-head"><div><p class="eyebrow">${ref(o)} · ${fmtDate(o.created)}</p><h2>${esc(o.name||"No name")}</h2></div><button class="x" type="button" data-close aria-label="Close order">×</button></div>
+    <div class="sheet-head"><div><p class="eyebrow">Order ${ref(o)} · ${fmtDate(o.created)}${o.orderNo?` <button class="linkbtn" type="button" data-copy="ref" style="letter-spacing:0;text-transform:none;margin-left:.3rem">Copy</button>`:""}</p><h2>${esc(o.name||"No name")}</h2></div><button class="x" type="button" data-close aria-label="Close order">×</button></div>
     <dl class="facts">
       <dt>Item</dt><dd>${esc(o.item||"Not recorded")}${o.qty?` × ${esc(o.qty)}`:""}</dd>
       <dt>Paid</dt><dd class="num">${fmtMoney(o.amount,o.currency)} <span class="muted">· fee ${fmtMoney(o.fee,o.currency)} · net ${fmtMoney(o.net,o.currency)}</span></dd>
-      <dt>Stripe</dt><dd>${esc(o.stripeStatus||"Paid")}${o.refunded?` · ${fmtMoney(o.refunded,o.currency)} refunded`:""} <span class="muted">· ${esc(o.stripeId)}</span></dd>
+      ${o.manual ? `<dt>Payment</dt><dd>Paid by ${esc((o.paidVia||"other").toLowerCase())} <span class="muted">· added by hand</span></dd>`
+        : `<dt>Stripe</dt><dd>${esc(o.stripeStatus||"Paid")}${o.refunded?` · ${fmtMoney(o.refunded,o.currency)} refunded`:""} <span class="muted">· ${esc(o.stripeId)}</span></dd>`}
     </dl>
     <div class="section">
       <h3>Customer</h3>
-      <div class="copyline"><span>${esc(o.email||"No email in the export")}</span>${o.email?`<button class="linkbtn" type="button" data-copy="email">Copy email</button>`:""}</div>
+      <div class="copyline"><span>${esc(o.email||(o.manual?"No email added yet":"No email in the export"))}</span>${o.email?`<button class="linkbtn" type="button" data-copy="email">Copy email</button>`:""}</div>
       ${o.phone?`<div class="copyline"><span>${esc(o.phone)}</span><button class="linkbtn" type="button" data-copy="phone">Copy</button></div>`:""}
       <div class="copyline"><span>${addr?esc(o.name?o.name+"\n"+addr:addr):`<span class="muted">No shipping address in the export</span>`}</span>${addr?`<button class="linkbtn" type="button" data-copy="address">Copy address</button>`:""}</div>
     </div>
@@ -876,6 +893,8 @@ function renderSheet(){
       <h3>Order status</h3>
       <div class="seg" role="group" aria-label="Order status">${STATUSES.map(x=>`<button type="button" class="s-${x.id}" data-status="${x.id}" aria-pressed="${s===x.id}">${x.label}</button>`).join("")}</div>
       <div class="row">
+        ${o.manual ? `<div class="field"><label for="fEmail">Customer email</label><input class="input" id="fEmail" data-field="email" type="email" value="${esc(o.email||"")}"></div>
+        <div class="field"><label for="fName">Customer name</label><input class="input" id="fName" data-field="name" type="text" value="${esc(o.name||"")}"></div>` : ""}
         <div class="field"><label for="fItem">Item</label><input class="input" id="fItem" data-field="item" value="${esc(o.item||"")}" placeholder='e.g. French Curl 16" · full head'></div>
         <div class="field"><label for="fColour">Colour</label><input class="input" id="fColour" data-field="colour" value="${esc(o.colour||"")}" placeholder="e.g. 1B"></div>
         <div class="field"><label for="fCourier">Courier</label><select class="input" id="fCourier" data-field="courier">${Object.keys(COURIERS).map(c=>`<option ${ (o.courier||"Royal Mail")===c?"selected":""}>${c}</option>`).join("")}</select></div>
@@ -885,7 +904,7 @@ function renderSheet(){
     </div>
     <div class="section">
       <h3>Email the customer</h3>
-      ${o.email ? "" : `<p class="error">This order has no customer email. Add the Customer email column to your Stripe export, then upload it again.</p>`}
+      ${o.email ? "" : `<p class="error">${o.manual ? "Add the customer's email under Order status above, then pick a template." : "This order has no customer email. Add the Customer email column to your Stripe export, then upload it again."}</p>`}
       <div class="field"><label for="fTpl">Template</label><select class="input" id="fTpl">${templates().map(t=>`<option value="${esc(t.id)}" ${t.id===state.draft.tplId?"selected":""}>${esc(t.name)}</option>`).join("")}</select></div>
       <div class="field"><label for="fSubject">Subject</label><input class="input" id="fSubject" value="${esc(state.draft.subject)}"></div>
       ${branded() ? `<div class="field"><label for="fHeading">Heading</label><input class="input" id="fHeading" value="${esc(state.draft.heading)}"></div>` : ""}
@@ -903,7 +922,10 @@ function renderSheet(){
       </div>`}
       ${state.draft.opened ? `<div class="confirm"><span>Sent it from Gmail?${tpl&&tpl.setStatus?` This also marks the order <b>${statusLabel(tpl.setStatus)}</b>.`:""}</span><span style="display:flex;gap:.5rem"><button class="btn small" type="button" id="markSent">Yes, log it</button><button class="btn ghost small" type="button" id="notSent">Not yet</button></span></div>` : `<p class="note">Sends from ${esc(state.settings.gmail||"your Gmail")}. Come back here afterwards to log it.</p>`}
       ${(o.emails||[]).length ? `<ul class="log">${o.emails.slice().reverse().map(e=>`<li><b>${esc(e.template)}</b><span>${fmtDate(e.at)} ${new Date(e.at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span></li>`).join("")}</ul>` : `<p class="note">No emails logged for this order yet.</p>`}
-    </div>`;
+    </div>
+    ${o.manual ? `<div class="section">${state.delConfirm
+      ? `<div class="confirm" style="border-color:var(--rose)"><span>Delete order ${esc(ref(o))}? This can't be undone.</span><span style="display:flex;gap:.5rem"><button class="btn danger small" type="button" id="delOrderYes">Delete order</button><button class="btn ghost small" type="button" id="delOrderNo">Keep it</button></span></div>`
+      : `<button class="btn danger small" type="button" id="delOrder" style="align-self:flex-start">Delete this order</button>`}</div>` : ""}`;
   if(active && $("#"+active)) { const el = $("#"+active); el.focus(); }
 }
 
@@ -961,6 +983,7 @@ async function doImport(){
     if(n.stripeStatus === "Refunded") merged.status = "refunded";
     return merged;
   });
+  assignNumbers(list);
   const btn = $("#doImport"); btn.disabled = true;
   const r = await saveMany(list, (d,t) => { btn.textContent = `Saving ${d} of ${t}…`; });
   closeModal(); state.pending = null; state.tab = "earnings"; render();
@@ -980,7 +1003,7 @@ function exampleOrders(){
     const fee = +(gross*0.015+0.2).toFixed(2); const refunded = i===9 ? gross : 0;
     const created = new Date(now - (i*i*0.17 + i*1.3) * 864e5 - (i*3%11)*3600e3);
     const age = (now - created)/864e5;
-    out.push({ id:"example_"+i, stripeId:"ch_example"+(1000+i), created:created.toISOString(), amount:gross, fee, refunded, net:+(gross-fee-refunded).toFixed(2), currency:"gbp",
+    out.push({ id:"example_"+i, orderNo: 1001 + (45 - i), stripeId:"ch_example"+(1000+i), created:created.toISOString(), amount:gross, fee, refunded, net:+(gross-fee-refunded).toFixed(2), currency:"gbp",
       stripeStatus: refunded?"Refunded":"Paid", email: nm.split(" ")[0].toLowerCase()+"@example.com", name:nm, phone:"",
       item:`French Curl ${p.len}" · ${kind==="full"?"full head (10 packs)":kind+" packs"}`, colour: cols[i%cols.length], qty:"",
       address:{ line1:`${12+i} Example Road`, line2:"", city, state:"", postal:pc, country:"GB" },
@@ -1006,6 +1029,9 @@ function renderTemplates(){
   $("#setStyle").value = state.settings.emailStyle || "branded";
   $("#setWebsite").value = state.settings.website || "";
   $("#setInstagram").value = state.settings.instagram || "";
+  $("#setPrefix").value = state.settings.orderPrefix == null ? "KS-" : state.settings.orderPrefix;
+  $("#setStart").value = state.settings.orderStart || 1001;
+  renderNextNo();
   $("#tokenList").innerHTML = TOKENS.map(t=>`<code>${t}</code>`).join("");
   $("#tplList").innerHTML = templates().map((t,i) => `
     <div class="tpl" data-i="${i}">
@@ -1078,6 +1104,7 @@ $("#modalCard").addEventListener("change", e => {
 });
 $("#modalCard").addEventListener("click", e => {
   if(e.target.id === "doImport") doImport();
+  if(e.target.id === "createOrder") createManual();
   if(e.target.id === "confirmClear") clearAll();
 });
 
@@ -1094,6 +1121,7 @@ $("#sheet").addEventListener("click", async e => {
   if(st){ o.status = st.dataset.status; await saveOrder({...o}).catch(()=>{}); renderSheet(); renderAfterChange(); return; }
   const cp = e.target.closest("[data-copy]");
   if(cp){ const k = cp.dataset.copy;
+    if(k==="ref") copy(ref(o),"Order number");
     if(k==="email") copy(o.email,"Email");
     if(k==="phone") copy(o.phone,"Phone number");
     if(k==="address") copy((o.name?o.name+"\n":"")+addressText(o.address),"Address");
@@ -1108,6 +1136,9 @@ $("#sheet").addEventListener("click", async e => {
     await saveOrder(next).then(()=>toast(tpl&&tpl.setStatus ? `Logged · marked ${statusLabel(tpl.setStatus)}` : "Email logged")).catch(()=>{});
     renderSheet(); renderAfterChange(); return; }
   if(e.target.id === "notSent"){ state.draft.opened = false; renderSheet(); }
+  if(e.target.id === "delOrder"){ state.delConfirm = true; renderSheet(); }
+  if(e.target.id === "delOrderNo"){ state.delConfirm = false; renderSheet(); }
+  if(e.target.id === "delOrderYes"){ const r = ref(o); await deleteOrder(o.id); closeSheet(); render(); toast(`Order ${r} deleted`); }
 });
 $("#sheet").addEventListener("input", e => {
   const o = state.orders.get(state.openId); if(!o) return;
@@ -1124,16 +1155,16 @@ $("#sheet").addEventListener("change", e => {
   const o = state.orders.get(state.openId); if(!o) return;
   if(e.target.id === "fTpl"){ loadDraft(o, e.target.value); renderSheet(); return; }
   if(e.target.dataset.field === "courier"){ o.courier = e.target.value; saveOrder({...o}).catch(()=>{}); return; }
-  if(e.target.id === "fTracking"){ clearTimeout(fieldTimer); saveOrder({...o}).catch(()=>{}); loadDraft(o, state.draft.tplId); renderSheet(); renderAfterChange(); }
+  if(e.target.id === "fTracking" || e.target.id === "fEmail" || e.target.id === "fName"){ clearTimeout(fieldTimer); saveOrder({...o}).catch(()=>{}); loadDraft(o, state.draft.tplId); renderSheet(); renderAfterChange(); }
 });
 function updateGmailHref(o){ const a = $("#gmailBtn"); if(a && o.email) a.href = gmailUrl(o); }
 function renderAfterChange(){ if(state.orders.size){ renderOrders(); renderEarnings(); } const toPack=[...state.orders.values()].filter(o=>(o.status||"topack")==="topack").length; $("#topackBadge").textContent = toPack||""; }
 
 /* templates */
 $("#saveTpls").addEventListener("click", async () => {
-  state.settings = { ...state.settings, gmail: $("#setGmail").value.trim(), signoff: $("#setSignoff").value.trim(), emailStyle: $("#setStyle").value, website: $("#setWebsite").value.trim(), instagram: $("#setInstagram").value.trim(), templates: readTemplatesFromForm() };
-  if(await saveSettings()) toast(state.mode==="example" ? "Templates updated (examples aren't saved)" : "Templates saved");
-  renderTemplates();
+  state.settings = { ...state.settings, gmail: $("#setGmail").value.trim(), signoff: $("#setSignoff").value.trim(), emailStyle: $("#setStyle").value, website: $("#setWebsite").value.trim(), instagram: $("#setInstagram").value.trim(), orderPrefix: $("#setPrefix").value.trim(), orderStart: Math.max(1, parseInt($("#setStart").value,10) || 1001), templates: readTemplatesFromForm() };
+  if(await saveSettings()) toast(state.mode==="example" ? "Updated (examples aren't saved)" : "Saved");
+  renderTemplates(); render();
 });
 $("#addTpl").addEventListener("click", () => {
   state.settings.templates = [...readTemplatesFromForm(), { id:"t"+Date.now().toString(36), name:"New template", setStatus:"", subject:"Your K.SHO Hair order {order_ref}", body:"Hi {first_name},\n\n\n\n{signoff}" }];
@@ -1148,6 +1179,103 @@ $("#tplList").addEventListener("click", e => {
 $("#previewTpl").addEventListener("change", renderThemePreview);
 let previewTimer = null;
 $("#panel-emails").addEventListener("input", e => { if(e.target.closest(".tpl") || ["setSignoff","setWebsite","setInstagram"].includes(e.target.id)){ clearTimeout(previewTimer); previewTimer = setTimeout(renderThemePreview, 250); } });
+
+/* ================= Order numbers ================= */
+function nextOrderNo(){
+  let n = Math.floor(Number(state.settings.orderStart)) || 1001;
+  state.orders.forEach(o => { if(o.orderNo && o.orderNo >= n) n = o.orderNo + 1; });
+  return n;
+}
+function assignNumbers(list){
+  let n = nextOrderNo();
+  list.filter(o => !o.orderNo).sort((a,b) => a.created.localeCompare(b.created)).forEach(o => { o.orderNo = n++; });
+}
+async function numberExisting(){
+  const list = [...state.orders.values()].filter(o => !o.orderNo).map(o => ({...o}));
+  if(!list.length) return;
+  assignNumbers(list);
+  const r = await saveMany(list);
+  render();
+  toast(r.failed ? `Numbered ${r.ok} orders; ${r.failed} didn't save — try again` : `Numbered ${r.ok} order${r.ok===1?"":"s"}`);
+}
+function renderNextNo(){
+  const prefix = $("#setPrefix").value.trim();
+  const start = Math.max(1, parseInt($("#setStart").value,10) || 1001);
+  let n = start; state.orders.forEach(o => { if(o.orderNo && o.orderNo >= n) n = o.orderNo + 1; });
+  const highest = n > start;
+  $("#nextNoNote").innerHTML = `Next order number: <b style="color:var(--cream)">${esc(prefix + n)}</b>.` + (highest ? ` It carries on from your highest existing order, so changing the first number only matters if you set it higher.` : "") + ` Changing "Starts with" updates every order's number.`;
+}
+async function deleteOrder(id){
+  if(state.mode === "db"){ try{ await ordersCol.doc(id).delete(); }catch(e){ toast("Couldn't delete — try again"); return; } }
+  state.orders.delete(id); lsSave();
+}
+
+/* New order (taken outside Stripe) */
+const COLOUR_NAMES = ["1B","4","27","27/613","30","33","350","613","Pink","Burgundy"];
+function itemOptions(){
+  const opts = [];
+  PRODUCTS.forEach(p => {
+    opts.push({ key:`${p.len}-full`, label:`French Curl ${p.len}" · full head (10 packs)`, price:p.full, per:false, len:p.len });
+    opts.push({ key:`${p.len}-single`, label:`French Curl ${p.len}" · extra packs (${fmtMoney(p.single)} each)`, price:p.single, per:true, len:p.len });
+  });
+  return opts;
+}
+function openNewOrder(){
+  const opts = itemOptions(), today = new Date().toISOString().slice(0,10);
+  openModal(`
+    <p class="eyebrow">New order</p>
+    <h2>Order <span style="color:var(--pink)">${esc(fmtRef(nextOrderNo()))}</span></h2>
+    <p class="note">For orders taken outside Stripe, like Instagram DMs, bank transfers or cash. It gets the next order number and counts towards your earnings.</p>
+    <div class="row">
+      <div class="field"><label for="nName">Customer name</label><input class="input" id="nName" type="text" autocomplete="off"></div>
+      <div class="field"><label for="nEmail">Email</label><input class="input" id="nEmail" type="email" autocomplete="off"></div>
+      <div class="field"><label for="nItem">Item</label><select class="input" id="nItem">${opts.map(o=>`<option value="${o.key}" ${o.len===16&&!o.per?"selected":""}>${esc(o.label)}</option>`).join("")}<option value="other">Something else</option></select></div>
+      <div class="field" id="nQtyWrap" hidden><label for="nQty">How many packs</label><input class="input" id="nQty" type="number" min="1" step="1" value="1"></div>
+      <div class="field" id="nOtherWrap" hidden><label for="nOther">Describe the item</label><input class="input" id="nOther" type="text"></div>
+      <div class="field"><label for="nColour">Colour</label><input class="input" id="nColour" type="text" list="colourList" placeholder="e.g. 1B"><datalist id="colourList">${COLOUR_NAMES.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></div>
+      <div class="field"><label for="nAmount">Amount paid (£)</label><input class="input" id="nAmount" type="number" min="0" step="0.01" value="44.99"></div>
+      <div class="field"><label for="nPaid">Paid by</label><select class="input" id="nPaid"><option>Bank transfer</option><option>Cash</option><option>Card in person</option><option>PayPal</option><option>Other</option></select></div>
+      <div class="field"><label for="nDate">Order date</label><input class="input" id="nDate" type="date" value="${today}" max="${today}"></div>
+    </div>
+    <div class="field"><label for="nAddress">Shipping address</label><textarea class="input" id="nAddress" style="min-height:5rem" placeholder="House and street&#10;Town&#10;Postcode"></textarea></div>
+    <p class="error" id="newErr" hidden></p>
+    <div class="toolbar"><button class="btn" type="button" id="createOrder">Create order ${esc(fmtRef(nextOrderNo()))}</button><button class="btn ghost" type="button" data-close>Cancel</button></div>`);
+  setTimeout(() => { const f = $("#nName"); f && f.focus(); }, 60);
+}
+function syncNewOrderAmount(){
+  const sel = $("#nItem"); if(!sel) return;
+  const opt = itemOptions().find(o => o.key === sel.value);
+  $("#nQtyWrap").hidden = !(opt && opt.per);
+  $("#nOtherWrap").hidden = !!opt;
+  if(opt){ const q = Math.max(1, parseInt($("#nQty").value,10) || 1); $("#nAmount").value = (opt.per ? opt.price*q : opt.price).toFixed(2); }
+}
+async function createManual(){
+  const err = $("#newErr"); err.hidden = true;
+  const name = $("#nName").value.trim(), amount = parseFloat($("#nAmount").value);
+  const opt = itemOptions().find(o => o.key === $("#nItem").value);
+  const q = Math.max(1, parseInt($("#nQty").value,10) || 1);
+  const item = opt ? (opt.per ? `French Curl ${opt.len}" · ${q} pack${q>1?"s":""}` : opt.label) : $("#nOther").value.trim();
+  if(!name){ err.textContent = "Add the customer's name."; err.hidden = false; $("#nName").focus(); return; }
+  if(!(amount >= 0) || isNaN(amount)){ err.textContent = "Add the amount they paid, for example 44.99."; err.hidden = false; $("#nAmount").focus(); return; }
+  if(!item){ err.textContent = "Describe the item they bought."; err.hidden = false; $("#nOther").focus(); return; }
+  const d = $("#nDate").value, today = new Date().toISOString().slice(0,10);
+  const created = !d || d === today ? new Date().toISOString() : new Date(d + "T12:00:00").toISOString();
+  const lines = $("#nAddress").value.split("\n").map(l => l.trim()).filter(Boolean);
+  const o = { id:"manual_" + Date.now().toString(36), orderNo: nextOrderNo(), manual:true, paidVia: $("#nPaid").value, stripeId:"",
+    created, amount:+amount.toFixed(2), fee:0, refunded:0, net:+amount.toFixed(2), currency:"gbp", stripeStatus:"Paid",
+    email: $("#nEmail").value.trim(), name, phone:"", item, colour: $("#nColour").value.trim(), qty:"",
+    address:{ line1: lines.join("\n"), line2:"", city:"", state:"", postal:"", country:"" },
+    status:"topack", emails:[], itemEdited:true, colourEdited:true, importedAt:new Date().toISOString() };
+  const btn = $("#createOrder"); btn.disabled = true;
+  try{ await saveOrder(o); }catch(e){ btn.disabled = false; return; }
+  closeModal(); state.tab = "orders"; render(); openSheet(o.id);
+  toast(`Order ${ref(o)} created`);
+}
+$("#newOrderBtn").addEventListener("click", openNewOrder);
+$("#modalCard").addEventListener("input", e => { if(e.target.id === "nQty") syncNewOrderAmount(); });
+$("#modalCard").addEventListener("change", e => { if(e.target.id === "nItem") syncNewOrderAmount(); });
+document.addEventListener("click", e => { if(e.target.closest('[data-action="number"]')) numberExisting(); });
+["setPrefix","setStart"].forEach(id => $("#"+id).addEventListener("input", renderNextNo));
 
 /* clear + export */
 $("#clearBtn").addEventListener("click", () => {

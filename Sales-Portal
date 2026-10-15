@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>K.SHO Sales Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+/* Layout: one working column — header with upload, three tabs (Earnings / Orders / Emails), order details in a side sheet.
+   Brand tokens copied from the K.SHO bundles page; the brand is dark in every theme. */
+:root{
+  --plum-deep:#28172A; --plum:#351C3B; --plum-lift:#43264A; --plum-card:#3A2140;
+  --cream:#EBDDC3; --pink:#C98BAB; --pink-hover:#D59BB9; --pink-ink:#2A1629;
+  --text:#D9C8CF; --muted:#A993A2; --line:rgba(235,221,195,.14); --line-strong:rgba(235,221,195,.34);
+  --teal:#7FC1B4; --amber:#E2B36B; --rose:#E58A8A; --lilac:#B7A3E0;
+  --scrim:rgba(15,6,16,.62);
+  --display:"Playfair Display", Georgia, "Times New Roman", serif;
+  --body:"DM Sans", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ color-scheme:dark; } }
+:root[data-theme="dark"]{ color-scheme:dark; }
+*,*::before,*::after{ box-sizing:border-box; }
+html{ background:var(--plum-deep); }
+body{ margin:0; min-height:100%; color:var(--text); font:400 15px/1.6 var(--body);
+  background:radial-gradient(1100px 700px at 80% -10%, var(--plum) 0%, var(--plum-deep) 65%) fixed, var(--plum-deep);
+  -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+button,select,input,textarea{ font:inherit; color:inherit; }
+a{ color:var(--pink); }
+:focus-visible{ outline:2px solid var(--pink); outline-offset:2px; border-radius:6px; }
+.wrap{ width:100%; max-width:1180px; margin-inline:auto; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+h1,h2,h3{ font-family:var(--display); font-weight:500; color:var(--cream); line-height:1.1; margin:0; text-wrap:balance; }
+h2 em, h1 em{ color:var(--pink); font-style:italic; }
+.eyebrow{ color:var(--pink); font-size:.74rem; font-weight:600; letter-spacing:.18em; text-transform:uppercase; margin:0; }
+.muted{ color:var(--muted); }
+.num{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:inline-flex; align-items:center; justify-content:center; gap:.45rem; border:1px solid var(--pink); background:var(--pink); color:var(--pink-ink); padding:.62rem 1.2rem; border-radius:999px; cursor:pointer; font-weight:600; text-decoration:none; white-space:nowrap; transition:background .15s, transform .15s; }
+.btn:hover{ background:var(--pink-hover); }
+.btn.ghost{ background:transparent; color:var(--cream); border-color:var(--line-strong); font-weight:500; }
+.btn.ghost:hover{ background:rgba(235,221,195,.07); }
+.btn.small{ padding:.38rem .85rem; font-size:.86rem; }
+.btn.danger{ background:transparent; border-color:var(--rose); color:var(--rose); }
+.btn:disabled, .btn.disabled{ opacity:.45; cursor:not-allowed; }
+
+/* header */
+header.top{ position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:color-mix(in srgb, var(--plum-deep) 88%, transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--line); }
+header.top .wrap{ display:flex; align-items:center; gap:1rem; flex-wrap:wrap; padding-block:.8rem; }
+.brand{ display:flex; flex-direction:column; line-height:1.1; margin-right:auto; }
+.logo{ font-family:var(--display); font-style:italic; font-size:1.6rem; color:var(--cream); }
+.brand small{ color:var(--muted); font-size:.78rem; letter-spacing:.14em; text-transform:uppercase; }
+.store-chip{ font-size:.8rem; color:var(--muted); display:flex; align-items:center; gap:.45rem; }
+.store-chip::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--muted); }
+.store-chip[data-mode="db"]::before{ background:var(--teal); }
+.store-chip[data-mode="local"]::before{ background:var(--amber); }
+.store-chip[data-mode="example"]::before{ background:var(--lilac); }
+nav.tabs{ display:flex; gap:.3rem; border-top:1px solid var(--line); }
+nav.tabs .wrap{ display:flex; gap:.2rem; overflow-x:auto; }
+.tab{ background:none; border:none; padding:.75rem .9rem; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; font-weight:500; display:flex; gap:.4rem; align-items:center; white-space:nowrap; }
+.tab[aria-selected="true"]{ color:var(--cream); border-bottom-color:var(--pink); }
+.badge{ background:var(--pink); color:var(--pink-ink); border-radius:999px; font-size:.72rem; font-weight:600; padding:0 .45rem; min-width:1.3rem; text-align:center; }
+.badge:empty{ display:none; }
+
+main{ padding-block:1.6rem 4rem; }
+.panel{ display:flex; flex-direction:column; gap:1.6rem; }
+.panel-head{ display:flex; justify-content:space-between; align-items:end; gap:1rem; flex-wrap:wrap; }
+.panel-head h2{ font-size:clamp(1.8rem,4vw,2.5rem); }
+
+.banner{ border:1px dashed var(--line-strong); border-radius:18px; padding:.85rem 1.1rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap; justify-content:space-between; font-size:.92rem; }
+.banner.example{ border-color:var(--lilac); color:var(--text); }
+
+/* empty state */
+.empty{ border:1px solid var(--line); border-radius:28px; background:rgba(67,38,74,.35); padding:clamp(1.6rem,5vw,3rem); display:grid; grid-template-columns:1.2fr 1fr; gap:2rem; align-items:center; }
+.empty h2{ font-size:clamp(1.8rem,4vw,2.6rem); margin-bottom:.8rem; }
+.empty ol{ margin:0; padding-left:1.2rem; display:grid; gap:.5rem; color:var(--text); }
+.empty ol b{ color:var(--cream); font-weight:500; }
+.drop{ border:1.5px dashed var(--line-strong); border-radius:22px; padding:2rem 1.2rem; text-align:center; display:flex; flex-direction:column; gap:.8rem; align-items:center; cursor:pointer; transition:border-color .15s, background .15s; }
+.drop.over{ border-color:var(--pink); background:rgba(201,139,171,.08); }
+.drop p{ margin:0; }
+@media (max-width:760px){ .empty{ grid-template-columns:1fr; } }
+
+/* period chips */
+.chips{ display:flex; gap:.4rem; flex-wrap:wrap; }
+.chip{ border:1px solid var(--line-strong); background:transparent; border-radius:999px; padding:.35rem .9rem; cursor:pointer; font-size:.86rem; color:var(--text); }
+.chip[aria-pressed="true"]{ background:var(--cream); color:var(--pink-ink); border-color:var(--cream); }
+
+/* KPIs */
+.kpis{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:24px; overflow:hidden; }
+.kpi{ background:var(--plum-deep); padding:1.1rem 1.3rem; display:flex; flex-direction:column; gap:.2rem; min-width:0; }
+.kpi.hero{ background:linear-gradient(160deg, var(--plum-lift), var(--plum)); }
+.kpi .label{ font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+.kpi .value{ font-family:var(--display); font-size:clamp(1.5rem,3.4vw,2.2rem); color:var(--cream); line-height:1.15; font-variant-numeric:tabular-nums lining-nums; }
+.kpi.hero .value{ color:var(--pink); }
+.kpi .sub{ font-size:.84rem; color:var(--muted); }
+.delta.up{ color:var(--teal); } .delta.down{ color:var(--rose); }
+@media (max-width:640px){ .kpis{ grid-template-columns:repeat(2,minmax(0,1fr)); } .kpi.hero{ grid-column:1/-1; } }
+
+.card{ border:1px solid var(--line); border-radius:24px; background:rgba(67,38,74,.35); padding:1.2rem 1.3rem; min-width:0; }
+.card h3{ font-size:1.25rem; margin-bottom:.2rem; }
+.card .hint{ font-size:.84rem; color:var(--muted); margin:0 0 .8rem; }
+.two{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1.2rem; }
+@media (max-width:760px){ .two{ grid-template-columns:1fr; } }
+.chart{ width:100%; overflow-x:auto; }
+.chart svg{ display:block; width:100%; min-width:520px; height:auto; }
+.legend{ display:flex; gap:1rem; font-size:.82rem; color:var(--muted); margin-top:.4rem; }
+.legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:.35rem; vertical-align:-1px; }
+
+.bars{ display:grid; gap:.55rem; }
+.bar-row{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.15rem .8rem; font-size:.9rem; }
+.bar-row .track{ grid-column:1/-1; height:6px; border-radius:6px; background:rgba(235,221,195,.08); overflow:hidden; }
+.bar-row .track span{ display:block; height:100%; background:var(--pink); border-radius:6px; }
+.bar-row .name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--cream); }
+
+/* orders */
+.toolbar{ display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+.search{ flex:1 1 220px; min-width:0; background:rgba(40,23,42,.6); border:1px solid var(--line-strong); border-radius:999px; padding:.55rem 1rem; color:var(--cream); }
+.search::placeholder{ color:var(--muted); }
+.table-wrap{ border:1px solid var(--line); border-radius:22px; overflow-x:auto; background:rgba(40,23,42,.4); }
+table{ width:100%; border-collapse:collapse; font-size:.92rem; }
+th{ text-align:left; font-weight:500; color:var(--muted); font-size:.76rem; letter-spacing:.12em; text-transform:uppercase; padding:.8rem 1rem; border-bottom:1px solid var(--line); white-space:nowrap; }
+td{ padding:.75rem 1rem; border-bottom:1px solid var(--line); vertical-align:top; }
+tbody tr{ cursor:pointer; }
+tbody tr:hover td{ background:rgba(235,221,195,.04); }
+tbody tr:last-child td{ border-bottom:none; }
+td.r, th.r{ text-align:right; }
+.cust b{ color:var(--cream); font-weight:500; display:block; }
+.cust small{ color:var(--muted); }
+.pill{ display:inline-flex; align-items:center; gap:.35rem; border-radius:999px; padding:.12rem .65rem; font-size:.8rem; font-weight:500; border:1px solid currentColor; white-space:nowrap; }
+.pill::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.s-topack{ color:var(--amber); } .s-dispatched{ color:var(--lilac); } .s-delivered{ color:var(--teal); } .s-onhold{ color:var(--rose); } .s-refunded{ color:var(--muted); }
+.lastmail{ font-size:.82rem; color:var(--muted); white-space:nowrap; }
+.mobile-list{ display:none; }
+@media (max-width:700px){
+  .table-wrap{ display:none; }
+  .mobile-list{ display:grid; gap:.6rem; }
+  .ocard{ border:1px solid var(--line); border-radius:18px; padding:.9rem 1rem; background:rgba(40,23,42,.45); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.25rem .8rem; cursor:pointer; text-align:left; width:100%; }
+  .ocard b{ color:var(--cream); font-weight:500; }
+}
+.count-note{ font-size:.85rem; color:var(--muted); }
+
+/* sheet */
+.scrim{ position:fixed; inset:0; background:var(--scrim); z-index:40; opacity:0; pointer-events:none; transition:opacity .2s; }
+.scrim.open{ opacity:1; pointer-events:auto; }
+.sheet{ position:fixed; top:0; right:0; bottom:0; width:min(560px,100%); z-index:50; background:var(--plum); border-left:1px solid var(--line); transform:translateX(100%); transition:transform .25s ease; overflow-y:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 1.2rem) max(1.3rem, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 2rem) 1.3rem; display:flex; flex-direction:column; gap:1.3rem; }
+.sheet.open{ transform:none; }
+.sheet-head{ display:flex; justify-content:space-between; gap:1rem; align-items:start; }
+.sheet-head h2{ font-size:1.9rem; }
+.x{ background:rgba(40,23,42,.85); border:1px solid var(--line); color:var(--cream); border-radius:999px; width:2.4rem; height:2.4rem; font-size:1.3rem; line-height:1; cursor:pointer; flex:none; }
+.facts{ display:grid; grid-template-columns:auto minmax(0,1fr); gap:.35rem 1rem; margin:0; font-size:.92rem; }
+.facts dt{ color:var(--muted); }
+.facts dd{ margin:0; color:var(--cream); overflow-wrap:anywhere; }
+.section{ display:flex; flex-direction:column; gap:.7rem; border-top:1px solid var(--line); padding-top:1.1rem; }
+.section h3{ font-size:1.2rem; }
+.field{ display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+.field label{ font-size:.8rem; color:var(--muted); letter-spacing:.06em; }
+.input, select.input, textarea.input{ background:rgba(40,23,42,.7); border:1px solid var(--line-strong); border-radius:12px; padding:.55rem .75rem; color:var(--cream); width:100%; min-width:0; }
+textarea.input{ resize:vertical; min-height:7rem; line-height:1.5; }
+.row{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; }
+@media (max-width:420px){ .row{ grid-template-columns:1fr; } }
+.seg{ display:flex; flex-wrap:wrap; gap:.4rem; }
+.seg button{ border:1px solid var(--line-strong); background:transparent; border-radius:999px; padding:.35rem .8rem; font-size:.86rem; cursor:pointer; color:var(--text); }
+.seg button[aria-pressed="true"]{ border-color:currentColor; background:rgba(235,221,195,.08); }
+.copyline{ display:flex; gap:.5rem; align-items:start; justify-content:space-between; }
+.copyline span{ min-width:0; overflow-wrap:anywhere; white-space:pre-line; color:var(--cream); }
+.linkbtn{ background:none; border:none; color:var(--pink); cursor:pointer; padding:0; font-size:.85rem; white-space:nowrap; }
+.log{ list-style:none; margin:0; padding:0; display:grid; gap:.35rem; font-size:.86rem; }
+.log li{ display:flex; justify-content:space-between; gap:.8rem; color:var(--muted); }
+.log li b{ color:var(--text); font-weight:500; }
+.note{ font-size:.84rem; color:var(--muted); margin:0; }
+.confirm{ border:1px solid var(--pink); border-radius:16px; padding:.8rem 1rem; display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; justify-content:space-between; font-size:.9rem; }
+
+/* modal */
+.modal{ position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:max(16px, env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) max(16px, env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px)); pointer-events:none; opacity:0; transition:opacity .2s; }
+.modal.open{ opacity:1; pointer-events:auto; }
+.modal-card{ background:var(--plum); border:1px solid var(--line); border-radius:26px; width:min(640px,100%); max-height:100%; overflow-y:auto; padding:1.6rem; display:flex; flex-direction:column; gap:1.1rem; box-shadow:0 40px 100px rgba(0,0,0,.45); }
+.modal-card h2{ font-size:1.8rem; }
+.stats{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6rem; }
+.stat{ border:1px solid var(--line); border-radius:14px; padding:.6rem .8rem; }
+.stat b{ display:block; font-family:var(--display); font-size:1.5rem; color:var(--cream); font-weight:500; }
+.stat span{ font-size:.8rem; color:var(--muted); }
+.check{ display:flex; gap:.6rem; align-items:flex-start; font-size:.92rem; cursor:pointer; }
+.check input{ margin-top:.3rem; accent-color:var(--pink); }
+details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
+.map-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; margin-top:.7rem; }
+@media (max-width:480px){ .map-grid, .stats{ grid-template-columns:1fr 1fr; } }
+.error{ color:var(--rose); font-size:.9rem; margin:0; }
+
+/* templates */
+.tpl-list{ display:grid; gap:1rem; }
+.tpl{ border:1px solid var(--line); border-radius:22px; padding:1.1rem 1.2rem; background:rgba(40,23,42,.4); display:flex; flex-direction:column; gap:.7rem; }
+.tpl-head{ display:flex; justify-content:space-between; align-items:center; gap:.6rem; flex-wrap:wrap; }
+.tpl-head h3{ font-size:1.25rem; }
+.tokens{ display:flex; flex-wrap:wrap; gap:.35rem; }
+.tokens code{ font-size:.8rem; border:1px solid var(--line-strong); border-radius:8px; padding:.05rem .45rem; color:var(--cream); background:rgba(40,23,42,.6); }
+
+.email-preview{ border:1px solid var(--line); border-radius:16px; overflow:auto; max-height:560px; background:#F3EBDD; }
+.email-preview a{ pointer-events:none; }
+.steps-note{ font-size:.84rem; color:var(--muted); margin:0; }
+.steps-note kbd{ font:inherit; border:1px solid var(--line-strong); border-radius:6px; padding:0 .3rem; color:var(--cream); }
+
+.toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 1.2rem); transform:translate(-50%,150%); background:var(--cream); color:var(--pink-ink); padding:.7rem 1.2rem; border-radius:999px; font-weight:500; z-index:80; transition:transform .25s; max-width:calc(100% - 32px); text-align:center; }
+.toast.show{ transform:translate(-50%,0); }
+@media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="logo">K.SHO Hair</span><small>Sales portal</small></div>
+    <span class="store-chip" id="storeChip" data-mode="">Connecting…</span>
+    <button class="btn" id="uploadBtn" type="button">Upload Stripe export</button>
+    <input type="file" id="fileInput" accept=".csv,text/csv" multiple hidden>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <div class="wrap" role="tablist">
+      <button class="tab" role="tab" id="tab-earnings" data-tab="earnings" aria-selected="true">Earnings</button>
+      <button class="tab" role="tab" id="tab-orders" data-tab="orders" aria-selected="false">Orders <span class="badge" id="topackBadge"></span></button>
+      <button class="tab" role="tab" id="tab-emails" data-tab="emails" aria-selected="false">Email templates</button>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap" id="main">
+  <div id="exampleBanner" class="banner example" hidden>
+    <span>You're looking at <b>example orders</b>. Nothing here is saved, and none of it is your real data.</span>
+    <span style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn small" type="button" data-action="upload">Upload my Stripe export</button><button class="btn small ghost" type="button" id="exitExample">Clear examples</button></span>
+  </div>
+
+  <section id="emptyState" class="empty" hidden>
+    <div>
+      <p class="eyebrow" style="margin-bottom:.8rem">Get started</p>
+      <h2>Bring in your <em>Stripe</em> sales</h2>
+      <ol>
+        <li>In Stripe, go to <b>Payments</b> (or <b>Transactions</b>) and click <b>Export</b>.</li>
+        <li>Pick a date range, keep the default columns, and download the <b>CSV</b>.</li>
+        <li>Drop the file here. Upload again any time; orders you already have are updated, never duplicated.</li>
+      </ol>
+      <p class="note" style="margin-top:1rem">Tip: in the export's column picker, add the <b>Shipping</b> and <b>Customer email</b> columns so addresses and emails come through.</p>
+    </div>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a Stripe CSV export">
+      <p style="font-family:var(--display);font-size:1.4rem;color:var(--cream)">Drop your CSV here</p>
+      <p class="muted">or tap to choose a file</p>
+      <button class="btn ghost small" type="button" id="tryExample">Try it with example orders</button>
+    </div>
+  </section>
+
+  <!-- EARNINGS -->
+  <section class="panel" id="panel-earnings" role="tabpanel" aria-labelledby="tab-earnings">
+    <div class="panel-head">
+      <div><p class="eyebrow">Earnings</p><h2>How the <em>shop</em> is doing</h2></div>
+      <div class="chips" id="periodChips" role="group" aria-label="Period"></div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <p class="count-note" id="currencyNote" hidden></p>
+    <div class="card">
+      <h3>By month</h3>
+      <p class="hint">Last 12 months. Net is what reaches your bank after Stripe fees and refunds.</p>
+      <div class="chart" id="chart"></div>
+      <div class="legend"><span><i style="background:var(--pink)"></i>Net earnings</span><span><i style="background:rgba(235,221,195,.22)"></i>Gross sales</span></div>
+    </div>
+    <div class="two">
+      <div class="card"><h3>What sells</h3><p class="hint">Revenue by item in this period</p><div class="bars" id="byItem"></div></div>
+      <div class="card"><h3>Colours</h3><p class="hint">Orders by colour in this period</p><div class="bars" id="byColour"></div></div>
+    </div>
+  </section>
+
+  <!-- ORDERS -->
+  <section class="panel" id="panel-orders" role="tabpanel" aria-labelledby="tab-orders" hidden>
+    <div class="panel-head">
+      <div><p class="eyebrow">Orders</p><h2>Pack, post, <em>update</em></h2></div>
+      <button class="btn ghost small" type="button" id="exportBtn">Download orders CSV</button>
+    </div>
+    <div class="toolbar">
+      <input class="search" id="search" type="search" placeholder="Search name, email, postcode, order ref…" aria-label="Search orders">
+      <div class="chips" id="statusChips" role="group" aria-label="Filter by status"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Customer</th><th>Item</th><th class="r">Total</th><th>Status</th><th>Last email</th></tr></thead>
+        <tbody id="orderRows"></tbody>
+      </table>
+    </div>
+    <div class="mobile-list" id="orderCards"></div>
+    <p class="count-note" id="orderCount"></p>
+  </section>
+
+  <!-- EMAIL TEMPLATES -->
+  <section class="panel" id="panel-emails" role="tabpanel" aria-labelledby="tab-emails" hidden>
+    <div class="panel-head">
+      <div><p class="eyebrow">Emails</p><h2>Order update <em>templates</em></h2></div>
+    </div>
+    <div class="card">
+      <div class="row">
+        <div class="field"><label for="setGmail">Send from (Gmail address)</label><input class="input" id="setGmail" type="email"></div>
+        <div class="field"><label for="setSignoff">Sign off as</label><input class="input" id="setSignoff" type="text"></div>
+      </div>
+      <div class="row" style="margin-top:.7rem">
+        <div class="field"><label for="setStyle">Email style</label><select class="input" id="setStyle"><option value="branded">Branded (K.SHO colours)</option><option value="plain">Plain text</option></select></div>
+        <div class="field"><label for="setWebsite">Website in the footer</label><input class="input" id="setWebsite" type="text" placeholder="kshohair.co.uk"></div>
+        <div class="field"><label for="setInstagram">Instagram in the footer (optional)</label><input class="input" id="setInstagram" type="text" placeholder="@yourhandle"></div>
+      </div>
+      <p class="note" style="margin-top:.7rem">Emails open as a draft in this Gmail account, so they come from your address and sit in your Sent folder.</p>
+    </div>
+    <div class="card">
+      <div class="tpl-head"><div><h3>How your emails look</h3><p class="hint" style="margin:0">Preview with an example customer. Your own orders fill in their real details.</p></div>
+        <select class="input" id="previewTpl" style="width:auto" aria-label="Template to preview"></select></div>
+      <div class="email-preview" id="themePreview" style="margin-top:.8rem"></div>
+    </div>
+    <div>
+      <p class="note" style="margin-bottom:.5rem">Placeholders you can use in any template:</p>
+      <div class="tokens" id="tokenList"></div>
+    </div>
+    <div class="tpl-list" id="tplList"></div>
+    <div class="toolbar"><button class="btn ghost small" type="button" id="addTpl">Add a template</button><span style="flex:1"></span><button class="btn small" type="button" id="saveTpls">Save templates</button></div>
+    <div class="card">
+      <h3>Your data</h3>
+      <p class="hint" id="dataNote"></p>
+      <div id="clearArea"><button class="btn danger small" type="button" id="clearBtn">Delete all orders</button></div>
+    </div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" aria-hidden="true" aria-label="Order details"></aside>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true"><div class="modal-card" id="modalCard"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+/*PARSER-START*/
+/* ================= Shop settings ================= */
+const PRODUCTS = [
+  { len:12, full:37.99, single:6 },
+  { len:16, full:44.99, single:7 },
+  { len:22, full:47.99, single:8 },
+  { len:24, full:49.99, single:8.99 },
+];
+const BASE_CURRENCY = "gbp";
+
+/* ================= Stripe CSV reading ================= */
+const norm = h => String(h||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+const FIELD_ALIASES = {
+  id:          ["id","paymentintentid","chargeid","sourceid","balancetransactionid","paymentid"],
+  date:        ["createddateutc","createdutc","createddate","created","date","createdat"],
+  amount:      ["amount","gross","amounttotal","total","grossamount"],
+  convAmount:  ["convertedamount"],
+  currency:    ["currency"],
+  convCurrency:["convertedcurrency"],
+  refunded:    ["amountrefunded","refundedamount"],
+  convRefunded:["convertedamountrefunded"],
+  fee:         ["fee","fees","feeamount","stripefee"],
+  net:         ["net","netamount"],
+  status:      ["status","paymentstatus"],
+  captured:    ["captured"],
+  category:    ["reportingcategory"],
+  email:       ["customeremail","email","customerdetailsemail","receiptemail","billingemail"],
+  name:        ["shippingname","customername","customerdetailsname","cardname","billingname","customerdescription","name"],
+  phone:       ["shippingphone","customerphone","customerdetailsphone","phone"],
+  description: ["description","productname","product","lineitems","item"],
+  line1:       ["shippingaddressline1","shippingline1","customerdetailsaddressline1","cardaddressline1","addressline1"],
+  line2:       ["shippingaddressline2","shippingline2","customerdetailsaddressline2","cardaddressline2","addressline2"],
+  city:        ["shippingaddresscity","shippingcity","customerdetailsaddresscity","cardaddresscity","addresscity","city"],
+  state:       ["shippingaddressstate","shippingstate","customerdetailsaddressstate","cardaddressstate","addressstate"],
+  postal:      ["shippingaddresspostalcode","shippingpostalcode","shippingaddresszip","customerdetailsaddresspostalcode","cardaddresszip","cardaddresspostalcode","addresspostalcode","postcode","postalcode"],
+  country:     ["shippingaddresscountry","shippingcountry","customerdetailsaddresscountry","cardaddresscountry","addresscountry","country"],
+};
+function detectColumns(headers){
+  const byNorm = {};
+  headers.forEach(h => { const n = norm(h); if(n && !(n in byNorm)) byNorm[n] = h; });
+  const map = {};
+  for(const [field, aliases] of Object.entries(FIELD_ALIASES)){
+    for(const a of aliases){ if(a in byNorm){ map[field] = byNorm[a]; break; } }
+  }
+  const colour = headers.find(h => /colou?r/i.test(h));
+  if(colour) map.colour = colour;
+  const qty = headers.find(h => /quantity|qty/i.test(h));
+  if(qty) map.qty = qty;
+  return map;
+}
+function toNum(v){
+  if(v == null) return 0;
+  let s = String(v).trim(); if(!s) return 0;
+  let neg = /^\(.*\)$/.test(s) || /^-/.test(s);
+  s = s.replace(/[()£$€\s,-]/g,"").replace(/^[A-Za-z]+/,"").replace(/[A-Za-z]+$/,"");
+  const n = parseFloat(s);
+  return isFinite(n) ? (neg ? -n : n) : 0;
+}
+function toDate(v){
+  if(v == null) return null;
+  const s = String(v).trim(); if(!s) return null;
+  if(/^\d{10}$/.test(s)) return new Date(Number(s)*1000);
+  let m = s.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{1,2}:\d{2}(?::\d{2})?)(.*)$/);
+  if(m){ const tz = m[3].trim(); return new Date(`${m[1]}T${m[2].length===4?"0"+m[2]:m[2]}${/^(Z|[+-]\d{2}:?\d{2})$/i.test(tz)?tz:"Z"}`); }
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s+"T12:00:00Z");
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ ,]+(\d{1,2}):(\d{2}))?/);
+  if(m) return new Date(Date.UTC(+m[3], +m[2]-1, +m[1], +(m[4]||12), +(m[5]||0)));
+  const d = new Date(s); return isNaN(d) ? null : d;
+}
+const close = (a,b) => Math.abs(a-b) < 0.005;
+function inferItem(amount){
+  const hits = [];
+  for(const p of PRODUCTS){
+    if(close(amount, p.full)) hits.push(`French Curl ${p.len}" · full head (10 packs)`);
+    for(let q=1; q<=20; q++) if(close(amount, p.single*q)) hits.push(`French Curl ${p.len}" · ${q} pack${q>1?"s":""}`);
+  }
+  return hits.length === 1 ? hits[0] : "";
+}
+function safeId(s){ return String(s).replace(/[^A-Za-z0-9_\-.~:@+]/g,"_").replace(/^\.+$/,"_").slice(0,190); }
+function hash(s){ let h=5381; for(let i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))|0; return (h>>>0).toString(36); }
+const cleanText = v => String(v==null?"":v).trim();
+
+/* Turns one CSV row into an order, or returns {skip:reason}. */
+function rowToOrder(row, map){
+  const get = f => map[f] ? cleanText(row[map[f]]) : "";
+  const cat = get("category").toLowerCase();
+  if(cat && !["charge","payment"].includes(cat)) return { skip:"other" };
+  const st = get("status").toLowerCase();
+  if(/fail|cancel|incomplete|requires|block|declin|uncaptured|expired|open/.test(st)) return { skip:"failed" };
+  if(get("captured").toLowerCase() === "false") return { skip:"failed" };
+  const date = toDate(get("date"));
+  if(!date) return { skip:"nodate" };
+  let amount, currency, refunded;
+  if(map.convAmount && get("convAmount") !== ""){
+    amount = toNum(get("convAmount"));
+    currency = (get("convCurrency") || BASE_CURRENCY).toLowerCase();
+    refunded = toNum(map.convRefunded ? get("convRefunded") : get("refunded"));
+  } else {
+    amount = toNum(get("amount"));
+    currency = (get("currency") || BASE_CURRENCY).toLowerCase();
+    refunded = toNum(get("refunded"));
+  }
+  if(!(amount > 0)) return { skip:"zero" };
+  const fee = Math.abs(toNum(get("fee")));
+  const net = map.net && get("net") !== "" ? toNum(get("net")) : +(amount - fee - refunded).toFixed(2);
+  const email = get("email");
+  const rawId = get("id") || ("row-" + hash(date.toISOString() + email + amount));
+  const description = get("description");
+  const descUseful = description && !/^(payment for|subscription|invoice)/i.test(description) ? description : "";
+  return { order: {
+    id: safeId(rawId),
+    stripeId: rawId,
+    created: date.toISOString(),
+    amount: +amount.toFixed(2), fee: +fee.toFixed(2), refunded: +refunded.toFixed(2), net: +net.toFixed(2),
+    currency,
+    stripeStatus: refunded >= amount - 0.005 ? "Refunded" : refunded > 0 ? "Partly refunded" : "Paid",
+    email, name: get("name"), phone: get("phone"),
+    item: descUseful || inferItem(amount),
+    colour: get("colour"),
+    qty: get("qty"),
+    address: { line1:get("line1"), line2:get("line2"), city:get("city"), state:get("state"), postal:get("postal"), country:get("country") },
+  }};
+}
+function readRows(rows, map){
+  const out = { orders:[], skipped:{ failed:0, other:0, nodate:0, zero:0 } };
+  const seen = new Set();
+  for(const r of rows){
+    const res = rowToOrder(r, map);
+    if(res.skip){ out.skipped[res.skip]++; continue; }
+    if(seen.has(res.order.id)) continue;
+    seen.add(res.order.id); out.orders.push(res.order);
+  }
+  return out;
+}
+/*PARSER-END*/
+
+/* ================= Helpers ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtMoney = (n, cur=BASE_CURRENCY) => { try{ return new Intl.NumberFormat("en-GB",{style:"currency",currency:cur.toUpperCase()}).format(n||0); }catch(e){ return (n||0).toFixed(2)+" "+cur.toUpperCase(); } };
+const fmtMoney0 = n => new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0}).format(n||0);
+const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+const fmtShort = iso => new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const ref = o => "KS-" + String(o.stripeId||o.id).replace(/[^A-Za-z0-9]/g,"").slice(-6).toUpperCase();
+const firstName = o => { const n = (o.name||"").trim().split(/\s+/)[0] || ""; return n ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : "there"; };
+const addressText = a => a ? [a.line1,a.line2,a.city,a.state,a.postal,a.country].filter(Boolean).join("\n") : "";
+let toastTimer;
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600); }
+async function copy(text, label){
+  try{ await navigator.clipboard.writeText(text); toast((label||"Text")+" copied"); }
+  catch(e){ toast("Couldn't copy — select the text and copy it by hand"); }
+}
+
+const STATUSES = [
+  { id:"topack",     label:"To pack" },
+  { id:"dispatched", label:"Dispatched" },
+  { id:"delivered",  label:"Delivered" },
+  { id:"onhold",     label:"On hold" },
+  { id:"refunded",   label:"Refunded" },
+];
+const statusLabel = id => (STATUSES.find(s=>s.id===id)||STATUSES[0]).label;
+const COURIERS = {
+  "Royal Mail": n => `https://www.royalmail.com/track-your-item#/tracking-results/${encodeURIComponent(n)}`,
+  "Evri":       n => `https://www.evri.com/track/parcel/${encodeURIComponent(n)}/details`,
+  "DPD":        n => `https://track.dpd.co.uk/search?reference=${encodeURIComponent(n)}`,
+  "Parcelforce":n => `https://www.parcelforce.com/track-trace?trackNumber=${encodeURIComponent(n)}`,
+  "Other":      () => "",
+};
+
+const DEFAULT_TEMPLATES = [
+  { id:"received", name:"Order received", setStatus:"", subject:"Your K.SHO Hair order {order_ref}",
+    body:"Hi {first_name},\n\nThank you for ordering {item}{in_colour}! I've received your order and I'm getting it ready. Orders are dispatched within 2 working days, and I'll email you your tracking details as soon as it's on its way.\n\nIf anything needs changing, just reply to this email.\n\nThank you,\n{signoff}" },
+  { id:"dispatched", name:"Dispatched", setStatus:"dispatched", subject:"Your order {order_ref} is on its way",
+    body:"Hi {first_name},\n\nGood news: your French Curl hair has been posted with {courier}.\n\nTracking number: {tracking_number}\nTrack it here: {tracking_link}\n\nWhen it arrives, remove the packaging and gently brush the hair from the bottom upwards, then refresh the curls with an oil sheen spray or serum before installing.\n\nThank you for shopping with me,\n{signoff}" },
+  { id:"delay", name:"Short delay", setStatus:"onhold", subject:"An update on your order {order_ref}",
+    body:"Hi {first_name},\n\nI wanted to let you know your order is taking a little longer than usual to dispatch, and I'm sorry for the wait. I expect to post it within the next few days and will send your tracking details as soon as it's on its way.\n\nIf you'd rather cancel for a full refund, just reply to this email.\n\nThank you for your patience,\n{signoff}" },
+  { id:"delivered", name:"Delivered check-in", setStatus:"delivered", subject:"How are you getting on with your French Curl hair?",
+    body:"Hi {first_name},\n\nYour order should have arrived by now, and I hope you love it!\n\nA few tips to keep the curls defined: finger-detangle rather than brush, refresh them with an oil sheen spray or serum, and sleep in a satin or silk bonnet.\n\nIf anything isn't right with your order, reply with a photo and I'll put it right. And if you're happy, I'd love to see your braids, so tag me on Instagram.\n\n{signoff}" },
+];
+const DEFAULT_HEADINGS = { received:"Thank you for your order", dispatched:"Your hair is on its way", delay:"A quick update on your order", delivered:"How's your new hair?" };
+DEFAULT_TEMPLATES.forEach(t => { t.heading = DEFAULT_HEADINGS[t.id]; });
+const TOKENS = ["{first_name}","{name}","{order_ref}","{item}","{in_colour}","{colour}","{total}","{courier}","{tracking_number}","{tracking_link}","{signoff}"];
+
+/* ================= State ================= */
+const state = {
+  mode: null,              // "db" | "local" | "example"
+  orders: new Map(),
+  settings: { gmail:"kshohair@gmail.com", signoff:"K.SHO Hair", emailStyle:"branded", website:"kshohair.co.uk", instagram:"", templates: DEFAULT_TEMPLATES },
+  period: "month",
+  statusFilter: "open",
+  search: "",
+  tab: "earnings",
+  openId: null,
+  pending: null,           // import preview
+  draft: { tplId:"received", subject:"", body:"", opened:false },
+};
+let db = null, uid = null, ordersCol = null, settingsDoc = null, downloads = null;
+let realOrders = null;     // stash of real orders while examples are showing
+
+/* ================= Storage ================= */
+const LS_KEY = "ksho-portal-v1";
+function lsLoad(){ try{ const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; } }
+function lsSave(){ if(state.mode!=="local") return; try{ localStorage.setItem(LS_KEY, JSON.stringify({ orders:[...state.orders.values()], settings:state.settings })); }catch(e){ toast("This browser wouldn't save the change"); } }
+
+async function saveOrder(o){
+  o.updatedAt = new Date().toISOString();
+  state.orders.set(o.id, o);
+  if(state.mode === "db"){
+    try{ await ordersCol.doc(o.id).set(JSON.parse(JSON.stringify(o))); }
+    catch(e){ toast(e && e.code==="quota_exceeded" ? "Storage is full — delete old orders to add more" : "Couldn't save that change — check your connection and try again"); throw e; }
+  } else lsSave();
+}
+async function saveMany(list, onProgress){
+  if(state.mode !== "db"){ list.forEach(o=>{ o.updatedAt=new Date().toISOString(); state.orders.set(o.id,o); }); lsSave(); return { ok:list.length, failed:0 }; }
+  let i = 0, ok = 0, failed = 0;
+  async function worker(){
+    while(i < list.length){
+      const o = list[i++]; o.updatedAt = new Date().toISOString();
+      try{ await ordersCol.doc(o.id).set(JSON.parse(JSON.stringify(o))); state.orders.set(o.id,o); ok++; }
+      catch(e){ if(e && e.code==="unavailable"){ try{ await new Promise(r=>setTimeout(r,400+Math.random()*400)); await ordersCol.doc(o.id).set(JSON.parse(JSON.stringify(o))); state.orders.set(o.id,o); ok++; }catch(e2){ failed++; } } else failed++; }
+      onProgress && onProgress(ok+failed, list.length);
+    }
+  }
+  await Promise.all([worker(),worker(),worker()]);
+  return { ok, failed };
+}
+async function saveSettings(){
+  if(state.mode === "db"){ try{ await settingsDoc.set(JSON.parse(JSON.stringify(state.settings))); return true; }catch(e){ toast("Couldn't save templates — try again"); return false; } }
+  if(state.mode === "local"){ lsSave(); return true; }
+  return true;
+}
+
+async function boot(){
+  render();
+  try{
+    if(typeof claude === "undefined" || !claude.use) throw new Error("no runtime");
+    db = await claude.use("db");
+    const user = await claude.use("user");
+    uid = user ? await user.id() : null;
+    downloads = await claude.use("downloads");
+  }catch(e){ db = null; }
+  if(db && uid){
+    state.mode = "db";
+    const base = db.doc("data/users/" + uid + "/shop");
+    ordersCol = base.collection("orders");
+    settingsDoc = db.doc("data/users/" + uid + "/settings");
+    ordersCol.limit(1000).onSnapshot(snap => {
+      if(realOrders){ realOrders = new Map(snap.docs.map(d=>[d.id, d.data()])); return; }
+      state.orders = new Map(snap.docs.map(d => [d.id, {...d.data()}]));
+      render();
+    }, () => { toast("Lost the connection to your saved orders — reload the page"); });
+    settingsDoc.onSnapshot(snap => {
+      if(snap.exists){ const d = snap.data(); state.settings = { ...state.settings, ...d, templates: Array.isArray(d.templates) && d.templates.length ? d.templates.map(t=>({...t})) : DEFAULT_TEMPLATES }; renderTemplates(); }
+    });
+  } else {
+    state.mode = "local";
+    const saved = lsLoad();
+    if(saved){ (saved.orders||[]).forEach(o => state.orders.set(o.id,o)); if(saved.settings) state.settings = { ...state.settings, ...saved.settings }; }
+  }
+  render(); renderTemplates();
+}
+
+/* ================= Derived data ================= */
+function periodRange(p, now = new Date()){
+  const y = now.getFullYear(), m = now.getMonth();
+  switch(p){
+    case "month":  return [new Date(y,m,1), new Date(y,m+1,1), "this month"];
+    case "last":   return [new Date(y,m-1,1), new Date(y,m,1), "last month"];
+    case "3m":     return [new Date(y,m-2,1), new Date(y,m+1,1), "last 3 months"];
+    case "year":   return [new Date(y,0,1), new Date(y+1,0,1), "this year"];
+    default:       return [new Date(0), new Date(8.64e15), "all time"];
+  }
+}
+function previousRange(p){
+  const [s,e] = periodRange(p);
+  if(p === "all") return null;
+  if(p === "year") return [new Date(s.getFullYear()-1,0,1), new Date(s.getFullYear(),0,1)];
+  const months = p === "3m" ? 3 : 1;
+  return [new Date(s.getFullYear(), s.getMonth()-months, 1), s];
+}
+function inRange(o, [s,e]){ const t = new Date(o.created); return t >= s && t < e; }
+function totals(list){
+  const t = { gross:0, fees:0, refunds:0, net:0, count:0 };
+  list.forEach(o => { t.gross += o.amount; t.fees += o.fee; t.refunds += o.refunded; t.net += o.net; t.count++; });
+  t.avg = t.count ? t.gross / t.count : 0;
+  return t;
+}
+const baseOrders = () => [...state.orders.values()].filter(o => (o.currency||BASE_CURRENCY) === BASE_CURRENCY);
+
+/* ================= Rendering ================= */
+function render(){
+  const has = state.orders.size > 0;
+  $("#storeChip").dataset.mode = state.mode || "";
+  $("#storeChip").textContent = state.mode === "db" ? "Saved to your account" : state.mode === "local" ? "Saved in this browser only" : state.mode === "example" ? "Example data" : "Connecting…";
+  $("#exampleBanner").hidden = state.mode !== "example";
+  $("#emptyState").hidden = has || state.mode === null;
+  ["earnings","orders","emails"].forEach(t => {
+    $("#tab-"+t).setAttribute("aria-selected", String(state.tab===t));
+    $("#panel-"+t).hidden = state.tab !== t || (!has && t !== "emails");
+  });
+  const toPack = [...state.orders.values()].filter(o => (o.status||"topack") === "topack").length;
+  $("#topackBadge").textContent = toPack ? toPack : "";
+  $("#dataNote").textContent = state.mode === "db"
+    ? `${state.orders.size} orders saved privately to your Claude account. Only you can see them, on any device you sign in on.`
+    : state.mode === "local" ? `${state.orders.size} orders saved in this browser only. They don't sync to other devices, and clearing your browser data deletes them, so use Download orders CSV now and then as a backup.`
+    : "Example orders aren't saved.";
+  if(has){ renderEarnings(); renderOrders(); }
+  if(state.openId) renderSheet();
+}
+
+function renderEarnings(){
+  const P = [["month","This month"],["last","Last month"],["3m","3 months"],["year","This year"],["all","All time"]];
+  $("#periodChips").innerHTML = P.map(([id,l]) => `<button class="chip" type="button" data-period="${id}" aria-pressed="${state.period===id}">${l}</button>`).join("");
+  const range = periodRange(state.period);
+  const list = baseOrders().filter(o => inRange(o, range));
+  const t = totals(list);
+  const prev = previousRange(state.period);
+  let delta = "";
+  if(prev){
+    const pt = totals(baseOrders().filter(o => inRange(o, prev)));
+    if(pt.net > 0){ const d = (t.net - pt.net) / pt.net * 100; delta = `<span class="delta ${d>=0?"up":"down"}">${d>=0?"▲":"▼"} ${Math.abs(d).toFixed(0)}%</span> vs ${state.period==="year"?"last year":"previous period"}`; }
+    else if(t.net > 0) delta = `First sales in this comparison window`;
+  }
+  $("#kpis").innerHTML = `
+    <div class="kpi hero"><span class="label">Net earnings · ${range[2]}</span><span class="value">${fmtMoney(t.net)}</span><span class="sub">${delta || "After Stripe fees and refunds"}</span></div>
+    <div class="kpi"><span class="label">Gross sales</span><span class="value">${fmtMoney(t.gross)}</span><span class="sub">${t.count} order${t.count===1?"":"s"}</span></div>
+    <div class="kpi"><span class="label">Average order</span><span class="value">${fmtMoney(t.avg)}</span><span class="sub">Gross ÷ orders</span></div>
+    <div class="kpi"><span class="label">Stripe fees</span><span class="value">${fmtMoney(t.fees)}</span><span class="sub">${t.gross ? (t.fees/t.gross*100).toFixed(1)+"% of sales" : "—"}</span></div>
+    <div class="kpi"><span class="label">Refunds</span><span class="value">${fmtMoney(t.refunds)}</span><span class="sub">${list.filter(o=>o.refunded>0).length} refunded</span></div>
+    <div class="kpi"><span class="label">To pack</span><span class="value">${[...state.orders.values()].filter(o=>(o.status||"topack")==="topack").length}</span><span class="sub">Across all orders</span></div>`;
+  const other = [...state.orders.values()].filter(o => (o.currency||BASE_CURRENCY) !== BASE_CURRENCY);
+  $("#currencyNote").hidden = !other.length;
+  $("#currencyNote").textContent = other.length ? `${other.length} order${other.length>1?"s are":" is"} in another currency without a converted GBP amount, so ${other.length>1?"they're":"it's"} left out of these totals. Include Stripe's "Converted amount" column in your export to count ${other.length>1?"them":"it"}.` : "";
+  renderChart();
+  renderBars("#byItem", list, o => o.item || "Item not recorded", o => o.amount, true);
+  renderBars("#byColour", list, o => o.colour || "Colour not recorded", () => 1, false);
+}
+
+function renderBars(sel, list, keyFn, valFn, money){
+  const m = new Map();
+  list.forEach(o => { const k = keyFn(o); m.set(k, (m.get(k)||0) + valFn(o)); });
+  const rows = [...m.entries()].sort((a,b) => b[1]-a[1]).slice(0,6);
+  const max = rows.length ? rows[0][1] : 1;
+  $(sel).innerHTML = rows.length ? rows.map(([k,v]) => `<div class="bar-row"><span class="name">${esc(k)}</span><span class="num">${money ? fmtMoney(v) : v + " order"+(v===1?"":"s")}</span><div class="track"><span style="width:${(v/max*100).toFixed(1)}%"></span></div></div>`).join("")
+    : `<p class="note">No orders in this period.</p>`;
+}
+
+function niceMax(v){ if(v<=0) return 100; const p = Math.pow(10, Math.floor(Math.log10(v))); const n = v/p; return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p; }
+function renderChart(){
+  const now = new Date(); const months = [];
+  for(let i=11;i>=0;i--){ const d = new Date(now.getFullYear(), now.getMonth()-i, 1); months.push({ d, gross:0, net:0 }); }
+  baseOrders().forEach(o => { const t = new Date(o.created); const idx = months.findIndex(m => m.d.getFullYear()===t.getFullYear() && m.d.getMonth()===t.getMonth()); if(idx>=0){ months[idx].gross += o.amount; months[idx].net += o.net; } });
+  const W=720, H=250, L=56, R=12, T=14, B=34; const iw=W-L-R, ih=H-T-B;
+  const max = niceMax(Math.max(...months.map(m=>m.gross)));
+  const y = v => T + ih - (v/max)*ih;
+  const step = iw/12, bw = Math.min(30, step*0.56);
+  let g = "";
+  for(let k=0;k<=4;k++){ const v = max*k/4; g += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${fmtMoney0(v)}</text>`; }
+  months.forEach((m,i) => {
+    const cx = L + step*i + step/2;
+    const isNow = i === 11;
+    g += `<rect x="${cx-bw/2}" y="${y(m.gross)}" width="${bw}" height="${Math.max(0,T+ih-y(m.gross))}" rx="5" fill="rgba(235,221,195,.16)"><title>${m.d.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}: gross ${fmtMoney(m.gross)}</title></rect>`;
+    g += `<rect x="${cx-bw/2+4}" y="${y(Math.max(0,m.net))}" width="${bw-8}" height="${Math.max(0,T+ih-y(Math.max(0,m.net)))}" rx="4" fill="var(--pink)" opacity="${isNow?1:.82}"><title>${m.d.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}: net ${fmtMoney(m.net)}</title></rect>`;
+    g += `<text x="${cx}" y="${H-12}" text-anchor="middle" font-size="11" fill="${isNow?"var(--cream)":"var(--muted)"}">${m.d.toLocaleDateString("en-GB",{month:"short"})}</text>`;
+    if(isNow && m.net>0) g += `<text x="${cx}" y="${y(m.gross)-6}" text-anchor="middle" font-size="11" fill="var(--cream)">${fmtMoney0(m.net)}</text>`;
+  });
+  $("#chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Net earnings and gross sales by month, last 12 months">${g}</svg>`;
+}
+
+function filteredOrders(){
+  const q = state.search.trim().toLowerCase();
+  return [...state.orders.values()].filter(o => {
+    const s = o.status || "topack";
+    if(state.statusFilter === "open" && !(s==="topack"||s==="onhold"||s==="dispatched")) return false;
+    if(state.statusFilter !== "open" && state.statusFilter !== "all" && s !== state.statusFilter) return false;
+    if(!q) return true;
+    return [o.name,o.email,o.item,o.colour,ref(o),o.stripeId,o.tracking,o.address&&o.address.postal,o.address&&o.address.city].some(v => v && String(v).toLowerCase().includes(q));
+  }).sort((a,b) => b.created.localeCompare(a.created));
+}
+function renderOrders(){
+  const counts = {}; [...state.orders.values()].forEach(o => { const s=o.status||"topack"; counts[s]=(counts[s]||0)+1; });
+  const open = (counts.topack||0)+(counts.onhold||0)+(counts.dispatched||0);
+  const F = [["open",`Open · ${open}`],["topack",`To pack · ${counts.topack||0}`],["dispatched",`Dispatched · ${counts.dispatched||0}`],["delivered",`Delivered · ${counts.delivered||0}`],["onhold",`On hold · ${counts.onhold||0}`],["refunded",`Refunded · ${counts.refunded||0}`],["all",`All · ${state.orders.size}`]];
+  $("#statusChips").innerHTML = F.map(([id,l]) => `<button class="chip" type="button" data-filter="${id}" aria-pressed="${state.statusFilter===id}">${l}</button>`).join("");
+  const list = filteredOrders();
+  const last = o => { const e = (o.emails||[]).slice(-1)[0]; return e ? `${esc(e.template)} · ${fmtShort(e.at)}` : "—"; };
+  const pill = o => { const s=o.status||"topack"; return `<span class="pill s-${s}">${statusLabel(s)}</span>`; };
+  $("#orderRows").innerHTML = list.length ? list.map(o => `<tr data-id="${esc(o.id)}" tabindex="0">
+      <td class="num" style="white-space:nowrap">${fmtShort(o.created)}<br><small class="muted">${ref(o)}</small></td>
+      <td class="cust"><b>${esc(o.name||"No name")}</b><small>${esc(o.email||"No email")}</small></td>
+      <td>${esc(o.item||"—")}${o.colour?`<br><small class="muted">Colour ${esc(o.colour)}</small>`:""}</td>
+      <td class="r num">${fmtMoney(o.amount,o.currency)}</td>
+      <td>${pill(o)}</td>
+      <td class="lastmail">${last(o)}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="muted" style="padding:1.4rem;cursor:default">No orders match. Try another filter.</td></tr>`;
+  $("#orderCards").innerHTML = list.map(o => `<button class="ocard" type="button" data-id="${esc(o.id)}">
+      <b>${esc(o.name||"No name")}</b><span class="num">${fmtMoney(o.amount,o.currency)}</span>
+      <small class="muted">${fmtShort(o.created)} · ${esc(o.item||ref(o))}</small>${pill(o)}</button>`).join("") || `<p class="note">No orders match. Try another filter.</p>`;
+  $("#orderCount").textContent = `Showing ${list.length} of ${state.orders.size} orders`;
+}
+
+/* ================= Order sheet + email ================= */
+function fillTemplate(text, o){
+  const courier = o.courier || "Royal Mail";
+  const link = o.tracking ? (COURIERS[courier]||COURIERS.Other)(o.tracking) : "";
+  const vals = {
+    first_name: firstName(o), name: o.name || "", order_ref: ref(o),
+    item: o.item || "French Curl hair", colour: o.colour || "", in_colour: o.colour ? ` in colour ${o.colour}` : "",
+    total: fmtMoney(o.amount, o.currency), courier, tracking_number: o.tracking || "[add tracking number]",
+    tracking_link: link || (o.tracking ? "" : "[add tracking number]"), signoff: state.settings.signoff || "K.SHO Hair",
+  };
+  return text.replace(/\{(\w+)\}/g, (m,k) => k in vals ? vals[k] : m);
+}
+function templates(){ return state.settings.templates && state.settings.templates.length ? state.settings.templates : DEFAULT_TEMPLATES; }
+function suggestTemplate(o){
+  const s = o.status || "topack";
+  const sent = new Set((o.emails||[]).map(e=>e.templateId));
+  if(s==="topack" && !sent.has("received")) return "received";
+  if(s==="topack" || s==="onhold") return o.tracking ? "dispatched" : (sent.has("received") ? "dispatched" : "received");
+  if(s==="dispatched") return sent.has("dispatched") ? "delivered" : "dispatched";
+  return "delivered";
+}
+function loadDraft(o, tplId){
+  const t = templates().find(x=>x.id===tplId) || templates()[0];
+  state.draft = { tplId: t.id, heading: fillTemplate(t.heading || DEFAULT_HEADINGS[t.id] || "Your K.SHO Hair order", o), subject: fillTemplate(t.subject, o), body: fillTemplate(t.body, o), opened:false };
+}
+const branded = () => (state.settings.emailStyle || "branded") === "branded";
+
+/* ================= Branded email theme =================
+   Table layout with inline styles only, so it survives pasting into Gmail
+   and displays in Outlook, Apple Mail and phone mail apps. */
+const EM = { plum:"#351C3B", deep:"#28172A", cream:"#EBDDC3", pink:"#C98BAB", ink:"#2A1629", paper:"#FFFCF7", ground:"#F3EBDD",
+             soft:"#F8EFF4", softLine:"#EBD4E0", rule:"#EADFD0", muted:"#7D6676", link:"#9B4F78", footText:"#B9A3B2" };
+const EM_SANS = "Arial, Helvetica, sans-serif", EM_SERIF = "Georgia, 'Times New Roman', serif";
+function emLinkify(s){ return s.replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" style="color:${EM.link};text-decoration:underline;word-break:break-all;">${u}</a>`); }
+function emailHTML(o, d){
+  const courier = o.courier || "Royal Mail";
+  const trackUrl = o.tracking ? (COURIERS[courier]||COURIERS.Other)(o.tracking) : "";
+  const signoff = (state.settings.signoff || "K.SHO Hair").trim();
+  const isTrackLine = l => o.tracking && (/^\s*tracking number\s*:/i.test(l) || /^\s*track it here\s*:/i.test(l));
+  const trackBox = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 22px;background:${EM.soft};border:1px solid ${EM.softLine};border-radius:14px;border-collapse:separate;">
+      <tr><td style="padding:18px 20px;">
+        <div style="font-family:${EM_SANS};font-size:11px;line-height:16px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;color:${EM.link};">Tracking · ${esc(courier)}</div>
+        <div style="font-family:'Courier New',Courier,monospace;font-size:19px;line-height:26px;font-weight:bold;letter-spacing:1px;color:${EM.plum};margin:6px 0 ${trackUrl?"14px":"0"};">${esc(o.tracking)}</div>
+        ${trackUrl ? `<a href="${esc(trackUrl)}" style="display:inline-block;background:${EM.pink};color:${EM.ink};font-family:${EM_SANS};font-size:15px;font-weight:bold;line-height:20px;text-decoration:none;padding:12px 26px;border-radius:999px;">Track your parcel</a>` : ""}
+      </td></tr></table>`;
+  let placed = false, out = "";
+  const paras = String(d.body||"").split(/\n\s*\n/).map(p => p.replace(/\s+$/,"")).filter(p => p.trim());
+  paras.forEach(p => {
+    const lines = p.split("\n"); const kept = lines.filter(l => !isTrackLine(l)); const hadTrack = kept.length !== lines.length;
+    if(kept.some(l => l.trim())){
+      const html = kept.map(l => { const e = emLinkify(esc(l)); return l.trim() === signoff ? `<span style="font-family:${EM_SERIF};font-style:italic;font-size:21px;line-height:30px;color:${EM.plum};">${e}</span>` : e; }).join("<br>");
+      out += `<p style="margin:0 0 16px;font-family:${EM_SANS};font-size:16px;line-height:26px;color:${EM.ink};">${html}</p>`;
+    }
+    if(hadTrack && !placed){ out += trackBox; placed = true; }
+  });
+  const row = (k,v) => v ? `<tr><td style="padding:10px 0;border-bottom:1px solid ${EM.rule};font-family:${EM_SANS};font-size:14px;line-height:20px;color:${EM.muted};">${k}</td><td align="right" style="padding:10px 0;border-bottom:1px solid ${EM.rule};font-family:${EM_SANS};font-size:14px;line-height:20px;color:${EM.ink};font-weight:bold;">${esc(v)}</td></tr>` : "";
+  const summary = `<div style="font-family:${EM_SANS};font-size:11px;line-height:16px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;color:${EM.link};margin:26px 0 4px;">Your order</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${EM.rule};">
+      ${row("Order", ref(o))}${row("Item", o.item)}${row("Colour", o.colour)}${row("Total", fmtMoney(o.amount, o.currency))}
+    </table>`;
+  const site = (state.settings.website||"").trim().replace(/^https?:\/\//,"").replace(/\/$/,"");
+  const ig = (state.settings.instagram||"").trim().replace(/^@/,"");
+  const footLinks = [site && `<a href="https://${esc(site)}" style="color:${EM.cream};text-decoration:none;">${esc(site)}</a>`, ig && `<a href="https://instagram.com/${esc(ig)}" style="color:${EM.cream};text-decoration:none;">@${esc(ig)}</a>`].filter(Boolean).join(`<span style="color:${EM.pink};">&nbsp;&nbsp;·&nbsp;&nbsp;</span>`);
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${EM.ground};">
+  <tr><td align="center" style="padding:24px 12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;border-collapse:separate;">
+      <tr><td style="background:${EM.plum};padding:28px 32px 24px;border-radius:22px 22px 0 0;">
+        <div style="font-family:${EM_SERIF};font-style:italic;font-size:30px;line-height:34px;color:${EM.cream};">K.SHO Hair</div>
+        <div style="font-family:${EM_SANS};font-size:11px;line-height:16px;letter-spacing:3px;text-transform:uppercase;font-weight:bold;color:${EM.pink};margin-top:8px;">Order ${esc(ref(o))}</div>
+      </td></tr>
+      <tr><td style="background:${EM.pink};height:4px;line-height:4px;font-size:0;">&nbsp;</td></tr>
+      <tr><td style="background:${EM.paper};padding:34px 32px 30px;">
+        <h1 style="margin:0 0 20px;font-family:${EM_SERIF};font-weight:normal;font-size:28px;line-height:34px;color:${EM.plum};">${esc(d.heading||"")}</h1>
+        ${out}
+        ${o.tracking && !placed && d.tplId==="dispatched" ? trackBox : ""}
+        ${summary}
+      </td></tr>
+      <tr><td style="background:${EM.deep};padding:24px 32px 26px;border-radius:0 0 22px 22px;">
+        <div style="font-family:${EM_SERIF};font-style:italic;font-size:18px;line-height:24px;color:${EM.cream};">K.SHO Hair <span style="font-family:${EM_SANS};font-style:normal;font-size:13px;color:${EM.footText};">· Medway, Kent</span></div>
+        ${footLinks ? `<div style="font-family:${EM_SANS};font-size:13px;line-height:20px;margin-top:8px;">${footLinks}</div>` : ""}
+        <div style="font-family:${EM_SANS};font-size:12px;line-height:18px;color:${EM.footText};margin-top:10px;">Questions about your order? Just reply to this email.</div>
+      </td></tr>
+    </table>
+  </td></tr></table>`;
+}
+async function copyRich(html, text){
+  try{
+    if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+      await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([html],{type:"text/html"}), "text/plain": new Blob([text],{type:"text/plain"}) })]);
+      return true;
+    }
+  }catch(e){}
+  try{
+    const box = document.createElement("div"); box.contentEditable = "true"; box.style.cssText = "position:fixed;left:-9999px;top:0;width:600px;";
+    box.innerHTML = html; document.body.appendChild(box);
+    const r = document.createRange(); r.selectNodeContents(box); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    const ok = document.execCommand("copy"); s.removeAllRanges(); box.remove(); return ok;
+  }catch(e){ return false; }
+}
+function updatePreview(o){ const p = $("#emailPreview"); if(p) p.innerHTML = emailHTML(o, state.draft); }
+
+function gmailUrl(o){
+  const p = new URLSearchParams({ view:"cm", fs:"1", to:o.email||"", su:state.draft.subject });
+  if(!branded()) p.set("body", state.draft.body);
+  if(state.settings.gmail) p.set("authuser", state.settings.gmail);
+  return "https://mail.google.com/mail/?" + p.toString();
+}
+
+function openSheet(id){
+  const o = state.orders.get(id); if(!o) return;
+  state.openId = id; loadDraft(o, suggestTemplate(o));
+  renderSheet();
+  $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden","false"); $("#scrim").classList.add("open");
+  setTimeout(()=>{ const x=$("#sheet .x"); x&&x.focus(); },50);
+}
+function closeSheet(){
+  state.openId = null;
+  $("#sheet").classList.remove("open"); $("#sheet").setAttribute("aria-hidden","true"); $("#scrim").classList.remove("open");
+}
+function renderSheet(){
+  const o = state.orders.get(state.openId); if(!o){ closeSheet(); return; }
+  const s = o.status || "topack";
+  const addr = addressText(o.address);
+  const tpl = templates().find(t=>t.id===state.draft.tplId);
+  const missingTracking = /\[add tracking number\]/.test(state.draft.body+state.draft.subject);
+  const active = document.activeElement && document.activeElement.id;
+  $("#sheet").innerHTML = `
+    <div class="sheet-head"><div><p class="eyebrow">${ref(o)} · ${fmtDate(o.created)}</p><h2>${esc(o.name||"No name")}</h2></div><button class="x" type="button" data-close aria-label="Close order">×</button></div>
+    <dl class="facts">
+      <dt>Item</dt><dd>${esc(o.item||"Not recorded")}${o.qty?` × ${esc(o.qty)}`:""}</dd>
+      <dt>Paid</dt><dd class="num">${fmtMoney(o.amount,o.currency)} <span class="muted">· fee ${fmtMoney(o.fee,o.currency)} · net ${fmtMoney(o.net,o.currency)}</span></dd>
+      <dt>Stripe</dt><dd>${esc(o.stripeStatus||"Paid")}${o.refunded?` · ${fmtMoney(o.refunded,o.currency)} refunded`:""} <span class="muted">· ${esc(o.stripeId)}</span></dd>
+    </dl>
+    <div class="section">
+      <h3>Customer</h3>
+      <div class="copyline"><span>${esc(o.email||"No email in the export")}</span>${o.email?`<button class="linkbtn" type="button" data-copy="email">Copy email</button>`:""}</div>
+      ${o.phone?`<div class="copyline"><span>${esc(o.phone)}</span><button class="linkbtn" type="button" data-copy="phone">Copy</button></div>`:""}
+      <div class="copyline"><span>${addr?esc(o.name?o.name+"\n"+addr:addr):`<span class="muted">No shipping address in the export</span>`}</span>${addr?`<button class="linkbtn" type="button" data-copy="address">Copy address</button>`:""}</div>
+    </div>
+    <div class="section">
+      <h3>Order status</h3>
+      <div class="seg" role="group" aria-label="Order status">${STATUSES.map(x=>`<button type="button" class="s-${x.id}" data-status="${x.id}" aria-pressed="${s===x.id}">${x.label}</button>`).join("")}</div>
+      <div class="row">
+        <div class="field"><label for="fItem">Item</label><input class="input" id="fItem" data-field="item" value="${esc(o.item||"")}" placeholder='e.g. French Curl 16" · full head'></div>
+        <div class="field"><label for="fColour">Colour</label><input class="input" id="fColour" data-field="colour" value="${esc(o.colour||"")}" placeholder="e.g. 1B"></div>
+        <div class="field"><label for="fCourier">Courier</label><select class="input" id="fCourier" data-field="courier">${Object.keys(COURIERS).map(c=>`<option ${ (o.courier||"Royal Mail")===c?"selected":""}>${c}</option>`).join("")}</select></div>
+        <div class="field"><label for="fTracking">Tracking number</label><input class="input" id="fTracking" data-field="tracking" value="${esc(o.tracking||"")}" placeholder="e.g. AB123456789GB"></div>
+      </div>
+      <div class="field"><label for="fNotes">Notes (only you see these)</label><textarea class="input" id="fNotes" data-field="notes" style="min-height:4rem" placeholder="Anything to remember about this order">${esc(o.notes||"")}</textarea></div>
+    </div>
+    <div class="section">
+      <h3>Email the customer</h3>
+      ${o.email ? "" : `<p class="error">This order has no customer email. Add the Customer email column to your Stripe export, then upload it again.</p>`}
+      <div class="field"><label for="fTpl">Template</label><select class="input" id="fTpl">${templates().map(t=>`<option value="${esc(t.id)}" ${t.id===state.draft.tplId?"selected":""}>${esc(t.name)}</option>`).join("")}</select></div>
+      <div class="field"><label for="fSubject">Subject</label><input class="input" id="fSubject" value="${esc(state.draft.subject)}"></div>
+      ${branded() ? `<div class="field"><label for="fHeading">Heading</label><input class="input" id="fHeading" value="${esc(state.draft.heading)}"></div>` : ""}
+      <div class="field"><label for="fBody">Message</label><textarea class="input" id="fBody" style="min-height:14rem">${esc(state.draft.body)}</textarea></div>
+      ${missingTracking ? `<p class="error">Add the tracking number above, then pick the template again to fill it in.</p>` : ""}
+      ${branded() ? `<div class="field"><label>Preview</label><div class="email-preview" id="emailPreview">${emailHTML(o, state.draft)}</div></div>
+      <div class="toolbar">
+        <button class="btn" type="button" id="copyStyled" ${o.email?"":"disabled"}>1 · Copy styled email</button>
+        <a class="btn ghost ${o.email?"":"disabled"}" id="gmailBtn" href="${o.email?esc(gmailUrl(o)):"#"}" target="_blank" rel="noopener" ${o.email?"":`aria-disabled="true"`}>2 · Open Gmail and paste</a>
+      </div>
+      <p class="steps-note">Gmail opens with the address and subject filled in. Click in the message box and paste with <kbd>Ctrl</kbd>+<kbd>V</kbd> (<kbd>⌘</kbd>+<kbd>V</kbd> on a Mac). Works best on a computer; the Gmail phone app pastes plain text.</p>`
+      : `<div class="toolbar">
+        <a class="btn ${o.email?"":"disabled"}" id="gmailBtn" href="${o.email?esc(gmailUrl(o)):"#"}" target="_blank" rel="noopener" ${o.email?"":`aria-disabled="true"`}>Open in Gmail</a>
+        <button class="btn ghost small" type="button" data-copy="message">Copy message</button>
+      </div>`}
+      ${state.draft.opened ? `<div class="confirm"><span>Sent it from Gmail?${tpl&&tpl.setStatus?` This also marks the order <b>${statusLabel(tpl.setStatus)}</b>.`:""}</span><span style="display:flex;gap:.5rem"><button class="btn small" type="button" id="markSent">Yes, log it</button><button class="btn ghost small" type="button" id="notSent">Not yet</button></span></div>` : `<p class="note">Sends from ${esc(state.settings.gmail||"your Gmail")}. Come back here afterwards to log it.</p>`}
+      ${(o.emails||[]).length ? `<ul class="log">${o.emails.slice().reverse().map(e=>`<li><b>${esc(e.template)}</b><span>${fmtDate(e.at)} ${new Date(e.at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span></li>`).join("")}</ul>` : `<p class="note">No emails logged for this order yet.</p>`}
+    </div>`;
+  if(active && $("#"+active)) { const el = $("#"+active); el.focus(); }
+}
+
+/* ================= Import ================= */
+function handleFiles(files){
+  files = [...files].filter(f => /\.csv$/i.test(f.name) || f.type.includes("csv"));
+  if(!files.length){ toast("Choose a .csv file exported from Stripe"); return; }
+  const all = { rows:[], headers:[], names:[] };
+  let left = files.length;
+  files.forEach(f => {
+    Papa.parse(f, { header:true, skipEmptyLines:true, complete: res => {
+      all.rows.push(...res.data); res.meta.fields.forEach(h => { if(!all.headers.includes(h)) all.headers.push(h); }); all.names.push(f.name);
+      if(--left === 0) preview(all);
+    }, error: () => { toast(`Couldn't read ${f.name}`); if(--left===0 && all.rows.length) preview(all); } });
+  });
+}
+function preview(all, map){
+  map = map || detectColumns(all.headers);
+  const res = readRows(all.rows, map);
+  const existing = res.orders.filter(o => state.orders.has(o.id)).length;
+  const dates = res.orders.map(o=>o.created).sort();
+  state.pending = { all, map, res };
+  const missing = ["date","amount"].filter(f => !map[f]);
+  const skippedTotal = Object.values(res.skipped).reduce((a,b)=>a+b,0);
+  const fields = [["date","Date"],["amount","Amount"],["fee","Stripe fee"],["refunded","Amount refunded"],["id","Payment ID"],["email","Customer email"],["name","Customer name"],["description","Description"],["line1","Address line 1"],["postal","Postcode"],["colour","Colour"],["status","Status"]];
+  const examples = state.mode === "example";
+  openModal(`
+    <p class="eyebrow">Check your import</p>
+    <h2>${esc(all.names.join(", "))}</h2>
+    ${missing.length ? `<p class="error">Couldn't find the ${missing.join(" and ")} column${missing.length>1?"s":""}. Choose ${missing.length>1?"them":"it"} below.</p>` : ""}
+    <div class="stats">
+      <div class="stat"><b>${res.orders.length - existing}</b><span>new orders</span></div>
+      <div class="stat"><b>${existing}</b><span>already here, will update</span></div>
+      <div class="stat"><b>${skippedTotal}</b><span>skipped (failed, refunds rows or blank)</span></div>
+    </div>
+    ${dates.length ? `<p class="note">Payments from ${fmtDate(dates[0])} to ${fmtDate(dates[dates.length-1])}. Fees, emails and addresses are read when the export includes them.</p>` : ""}
+    ${!map.email ? `<p class="error" style="color:var(--amber)">No customer email column found, so you won't be able to email these customers until you re-export with it.</p>` : ""}
+    <label class="check"><input type="checkbox" id="oldDelivered" checked> Mark orders older than 14 days as Delivered (their status can still be changed)</label>
+    ${examples ? `<p class="note">The example orders will be cleared and replaced with your real ones.</p>` : ""}
+    <details class="map" ${missing.length?"open":""}><summary>Columns used</summary>
+      <div class="map-grid">${fields.map(([f,l]) => `<div class="field"><label for="map-${f}">${l}</label><select class="input" id="map-${f}" data-map="${f}"><option value="">— not in file —</option>${all.headers.map(h=>`<option ${map[f]===h?"selected":""}>${esc(h)}</option>`).join("")}</select></div>`).join("")}</div>
+    </details>
+    <p class="error" id="importErr" hidden></p>
+    <div class="toolbar"><button class="btn" type="button" id="doImport" ${res.orders.length?"":"disabled"}>Add ${res.orders.length} order${res.orders.length===1?"":"s"}</button><button class="btn ghost" type="button" data-close>Cancel</button></div>`);
+}
+async function doImport(){
+  const { res } = state.pending; const markOld = $("#oldDelivered").checked;
+  if(state.mode === "example") exitExample(true);
+  const cutoff = Date.now() - 14*864e5;
+  const list = res.orders.map(n => {
+    const ex = state.orders.get(n.id);
+    const merged = ex ? { ...ex, ...n, item: ex.itemEdited ? ex.item : (n.item || ex.item), colour: ex.colourEdited ? ex.colour : (n.colour || ex.colour), name: n.name || ex.name, email: n.email || ex.email,
+                          address: Object.values(n.address).some(Boolean) ? n.address : ex.address }
+                      : { ...n, status: (markOld && new Date(n.created).getTime() < cutoff) ? "delivered" : "topack", emails:[], importedAt:new Date().toISOString() };
+    if(n.stripeStatus === "Refunded") merged.status = "refunded";
+    return merged;
+  });
+  const btn = $("#doImport"); btn.disabled = true;
+  const r = await saveMany(list, (d,t) => { btn.textContent = `Saving ${d} of ${t}…`; });
+  closeModal(); state.pending = null; state.tab = "earnings"; render();
+  toast(r.failed ? `Saved ${r.ok} orders; ${r.failed} didn't save — upload the file again to retry` : `Imported ${r.ok} orders`);
+}
+
+/* ================= Example data ================= */
+function exampleOrders(){
+  const names = [["Amara Okafor","Peckham","SE15 4QF"],["Jade Mensah","Chatham","ME4 6AA"],["Tolu Adeyemi","Rochester","ME1 1LX"],["Simone Clarke","Gillingham","ME7 1HG"],["Precious Nwosu","Maidstone","ME14 1PS"],["Kezia Boateng","Croydon","CR0 1NX"],["Leah Francis","Dartford","DA1 1DR"],["Bisi Ogun","Strood","ME2 4AT"],["Naomi Asante","Luton","LU1 2TA"],["Chloe Dube","Sittingbourne","ME10 4DT"]];
+  const items = [[0,"full"],[1,"full"],[1,"full"],[2,"full"],[3,"full"],[1,2],[0,3],[2,"full"]];
+  const cols = ["1B","1B","4","27/613","30","350","613","Pink","Burgundy","33","1B","27"];
+  const out = []; const now = Date.now();
+  for(let i=0;i<46;i++){
+    const [nm,city,pc] = names[i%names.length]; const [pi,kind] = items[(i*7)%items.length]; const p = PRODUCTS[pi];
+    const amount = kind==="full" ? p.full : +(p.single*kind).toFixed(2);
+    const ship = i%3===0 ? 3.95 : 0; const gross = +(amount+ship).toFixed(2);
+    const fee = +(gross*0.015+0.2).toFixed(2); const refunded = i===9 ? gross : 0;
+    const created = new Date(now - (i*i*0.17 + i*1.3) * 864e5 - (i*3%11)*3600e3);
+    const age = (now - created)/864e5;
+    out.push({ id:"example_"+i, stripeId:"ch_example"+(1000+i), created:created.toISOString(), amount:gross, fee, refunded, net:+(gross-fee-refunded).toFixed(2), currency:"gbp",
+      stripeStatus: refunded?"Refunded":"Paid", email: nm.split(" ")[0].toLowerCase()+"@example.com", name:nm, phone:"",
+      item:`French Curl ${p.len}" · ${kind==="full"?"full head (10 packs)":kind+" packs"}`, colour: cols[i%cols.length], qty:"",
+      address:{ line1:`${12+i} Example Road`, line2:"", city, state:"", postal:pc, country:"GB" },
+      status: refunded ? "refunded" : age < 2 ? "topack" : age < 5 ? (i===3?"onhold":"dispatched") : "delivered",
+      courier:"Royal Mail", tracking: age>=2 && !refunded ? `AB${(123456700+i*37)}GB` : "",
+      emails: age>=2 ? [{ at:new Date(created.getTime()+3600e3).toISOString(), template:"Order received", templateId:"received" }] : [] });
+  }
+  return out;
+}
+function enterExample(){
+  realOrders = state.orders; state.mode_before = state.mode; state.mode = "example";
+  state.orders = new Map(exampleOrders().map(o=>[o.id,o])); render();
+}
+function exitExample(silent){
+  state.mode = state.mode_before || "local"; state.orders = realOrders || new Map(); realOrders = null;
+  closeSheet(); render(); if(!silent) toast("Examples cleared");
+}
+
+/* ================= Templates tab ================= */
+function renderTemplates(){
+  $("#setGmail").value = state.settings.gmail || "";
+  $("#setSignoff").value = state.settings.signoff || "";
+  $("#setStyle").value = state.settings.emailStyle || "branded";
+  $("#setWebsite").value = state.settings.website || "";
+  $("#setInstagram").value = state.settings.instagram || "";
+  $("#tokenList").innerHTML = TOKENS.map(t=>`<code>${t}</code>`).join("");
+  $("#tplList").innerHTML = templates().map((t,i) => `
+    <div class="tpl" data-i="${i}">
+      <div class="tpl-head"><h3>${esc(t.name)}</h3><button class="linkbtn" type="button" data-deltpl="${i}">Remove</button></div>
+      <div class="row">
+        <div class="field"><label for="tn-${i}">Name</label><input class="input" id="tn-${i}" data-t="name" value="${esc(t.name)}"></div>
+        <div class="field"><label for="ts-${i}">After sending, mark order as</label><select class="input" id="ts-${i}" data-t="setStatus"><option value="">Leave status as it is</option>${STATUSES.map(s=>`<option value="${s.id}" ${t.setStatus===s.id?"selected":""}>${s.label}</option>`).join("")}</select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="tsub-${i}">Subject</label><input class="input" id="tsub-${i}" data-t="subject" value="${esc(t.subject)}"></div>
+        <div class="field"><label for="th-${i}">Heading (branded emails)</label><input class="input" id="th-${i}" data-t="heading" value="${esc(t.heading || DEFAULT_HEADINGS[t.id] || "")}"></div>
+      </div>
+      <div class="field"><label for="tb-${i}">Message</label><textarea class="input" id="tb-${i}" data-t="body" style="min-height:11rem">${esc(t.body)}</textarea></div>
+    </div>`).join("");
+  const sel = $("#previewTpl"), keep = sel.value;
+  sel.innerHTML = templates().map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("");
+  sel.value = templates().some(t=>t.id===keep) ? keep : (templates().some(t=>t.id==="dispatched") ? "dispatched" : templates()[0].id);
+  renderThemePreview();
+}
+const SAMPLE_ORDER = { id:"sample", stripeId:"ch_sample7Q2KX1", name:"Amara Okafor", email:"amara@example.com", item:'French Curl 16" · full head (10 packs)', colour:"1B", amount:44.99, currency:"gbp", courier:"Royal Mail", tracking:"AB123456789GB" };
+function renderThemePreview(){
+  const live = { ...state.settings, ...(document.querySelector(".tpl") ? { templates: readTemplatesFromForm() } : {}) };
+  const t = live.templates.find(x => x.id === $("#previewTpl").value) || live.templates[0];
+  const saved = state.settings;
+  state.settings = { ...saved, signoff: $("#setSignoff").value.trim() || saved.signoff, website: $("#setWebsite").value, instagram: $("#setInstagram").value };
+  const d = { tplId:t.id, heading: fillTemplate(t.heading || DEFAULT_HEADINGS[t.id] || "", SAMPLE_ORDER), subject: fillTemplate(t.subject, SAMPLE_ORDER), body: fillTemplate(t.body, SAMPLE_ORDER) };
+  $("#themePreview").innerHTML = emailHTML(SAMPLE_ORDER, d);
+  state.settings = saved;
+}
+function readTemplatesFromForm(){
+  return [...document.querySelectorAll(".tpl")].map((el,i) => {
+    const old = templates()[i] || {};
+    const v = k => el.querySelector(`[data-t="${k}"]`).value;
+    return { id: old.id || ("t"+Date.now().toString(36)+i), name: v("name").trim()||"Untitled", setStatus: v("setStatus"), subject: v("subject"), heading: v("heading"), body: v("body") };
+  });
+}
+
+/* ================= Modal ================= */
+function openModal(html){ $("#modalCard").innerHTML = html; $("#modal").classList.add("open"); $("#modal").setAttribute("aria-hidden","false"); $("#scrim").classList.add("open"); setTimeout(()=>{ const b=$("#modalCard .btn"); b&&b.focus(); },50); }
+function closeModal(){ $("#modal").classList.remove("open"); $("#modal").setAttribute("aria-hidden","true"); if(!state.openId) $("#scrim").classList.remove("open"); }
+
+/* ================= Events ================= */
+$("#uploadBtn").addEventListener("click", () => $("#fileInput").click());
+document.addEventListener("click", e => { if(e.target.closest('[data-action="upload"]')) $("#fileInput").click(); });
+$("#fileInput").addEventListener("change", e => { handleFiles(e.target.files); e.target.value = ""; });
+const drop = $("#drop");
+drop.addEventListener("click", e => { if(!e.target.closest("#tryExample")) $("#fileInput").click(); });
+drop.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); $("#fileInput").click(); } });
+["dragenter","dragover"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if(ev==="drop" || e.target===document.documentElement) drop.classList.remove("over"); }));
+document.addEventListener("drop", e => { if(e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+$("#tryExample").addEventListener("click", e => { e.stopPropagation(); enterExample(); });
+$("#exitExample").addEventListener("click", () => exitExample());
+
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { state.tab = t.dataset.tab; render(); }));
+$("#periodChips").addEventListener("click", e => { const b=e.target.closest("[data-period]"); if(b){ state.period=b.dataset.period; renderEarnings(); } });
+$("#statusChips").addEventListener("click", e => { const b=e.target.closest("[data-filter]"); if(b){ state.statusFilter=b.dataset.filter; renderOrders(); } });
+$("#search").addEventListener("input", e => { state.search = e.target.value; renderOrders(); });
+$("#orderRows").addEventListener("click", e => { const r=e.target.closest("[data-id]"); if(r) openSheet(r.dataset.id); });
+$("#orderRows").addEventListener("keydown", e => { const r=e.target.closest("[data-id]"); if(r && e.key==="Enter") openSheet(r.dataset.id); });
+$("#orderCards").addEventListener("click", e => { const r=e.target.closest("[data-id]"); if(r) openSheet(r.dataset.id); });
+$("#scrim").addEventListener("click", () => { if($("#modal").classList.contains("open")) closeModal(); else closeSheet(); });
+$("#modal").addEventListener("click", e => { if(e.target.id==="modal" || e.target.closest("[data-close]")) closeModal(); });
+document.addEventListener("keydown", e => { if(e.key==="Escape"){ if($("#modal").classList.contains("open")) closeModal(); else if(state.openId) closeSheet(); } });
+
+/* import modal */
+$("#modalCard").addEventListener("change", e => {
+  const s = e.target.closest("[data-map]");
+  if(s && state.pending){ const map = { ...state.pending.map }; if(s.value) map[s.dataset.map]=s.value; else delete map[s.dataset.map]; preview(state.pending.all, map); const d=$("#modalCard details.map"); d&&(d.open=true); }
+});
+$("#modalCard").addEventListener("click", e => {
+  if(e.target.id === "doImport") doImport();
+  if(e.target.id === "confirmClear") clearAll();
+});
+
+/* sheet */
+let fieldTimer = null;
+$("#sheet").addEventListener("click", async e => {
+  const o = state.orders.get(state.openId); if(!o) return;
+  if(e.target.closest("[data-close]")) return closeSheet();
+  if(e.target.id === "copyStyled"){
+    const ok = await copyRich(emailHTML(o, state.draft), state.draft.body);
+    toast(ok ? "Styled email copied. Now open Gmail and paste" : "Couldn't copy. Select the preview, copy it, then paste into Gmail");
+    return; }
+  const st = e.target.closest("[data-status]");
+  if(st){ o.status = st.dataset.status; await saveOrder({...o}).catch(()=>{}); renderSheet(); renderAfterChange(); return; }
+  const cp = e.target.closest("[data-copy]");
+  if(cp){ const k = cp.dataset.copy;
+    if(k==="email") copy(o.email,"Email");
+    if(k==="phone") copy(o.phone,"Phone number");
+    if(k==="address") copy((o.name?o.name+"\n":"")+addressText(o.address),"Address");
+    if(k==="message") copy(`To: ${o.email||""}\nSubject: ${state.draft.subject}\n\n${state.draft.body}`,"Message");
+    return; }
+  if(e.target.closest("#gmailBtn")){ if(!o.email){ e.preventDefault(); return; } setTimeout(()=>{ state.draft.opened = true; renderSheet(); }, 300); return; }
+  if(e.target.id === "markSent"){
+    const tpl = templates().find(t=>t.id===state.draft.tplId);
+    const next = { ...o, emails:[...(o.emails||[]), { at:new Date().toISOString(), template: tpl?tpl.name:"Email", templateId: tpl?tpl.id:"", subject: state.draft.subject }] };
+    if(tpl && tpl.setStatus) next.status = tpl.setStatus;
+    state.draft.opened = false;
+    await saveOrder(next).then(()=>toast(tpl&&tpl.setStatus ? `Logged · marked ${statusLabel(tpl.setStatus)}` : "Email logged")).catch(()=>{});
+    renderSheet(); renderAfterChange(); return; }
+  if(e.target.id === "notSent"){ state.draft.opened = false; renderSheet(); }
+});
+$("#sheet").addEventListener("input", e => {
+  const o = state.orders.get(state.openId); if(!o) return;
+  if(e.target.id === "fSubject"){ state.draft.subject = e.target.value; updateGmailHref(o); return; }
+  if(e.target.id === "fHeading"){ state.draft.heading = e.target.value; updatePreview(o); return; }
+  if(e.target.id === "fBody"){ state.draft.body = e.target.value; updateGmailHref(o); updatePreview(o); return; }
+  const f = e.target.dataset.field;
+  if(f && f !== "courier"){
+    o[f] = e.target.value; if(f==="item") o.itemEdited = true; if(f==="colour") o.colourEdited = true;
+    clearTimeout(fieldTimer); fieldTimer = setTimeout(() => { saveOrder({...o}).catch(()=>{}); renderAfterChange(); }, 700);
+  }
+});
+$("#sheet").addEventListener("change", e => {
+  const o = state.orders.get(state.openId); if(!o) return;
+  if(e.target.id === "fTpl"){ loadDraft(o, e.target.value); renderSheet(); return; }
+  if(e.target.dataset.field === "courier"){ o.courier = e.target.value; saveOrder({...o}).catch(()=>{}); return; }
+  if(e.target.id === "fTracking"){ clearTimeout(fieldTimer); saveOrder({...o}).catch(()=>{}); loadDraft(o, state.draft.tplId); renderSheet(); renderAfterChange(); }
+});
+function updateGmailHref(o){ const a = $("#gmailBtn"); if(a && o.email) a.href = gmailUrl(o); }
+function renderAfterChange(){ if(state.orders.size){ renderOrders(); renderEarnings(); } const toPack=[...state.orders.values()].filter(o=>(o.status||"topack")==="topack").length; $("#topackBadge").textContent = toPack||""; }
+
+/* templates */
+$("#saveTpls").addEventListener("click", async () => {
+  state.settings = { ...state.settings, gmail: $("#setGmail").value.trim(), signoff: $("#setSignoff").value.trim(), emailStyle: $("#setStyle").value, website: $("#setWebsite").value.trim(), instagram: $("#setInstagram").value.trim(), templates: readTemplatesFromForm() };
+  if(await saveSettings()) toast(state.mode==="example" ? "Templates updated (examples aren't saved)" : "Templates saved");
+  renderTemplates();
+});
+$("#addTpl").addEventListener("click", () => {
+  state.settings.templates = [...readTemplatesFromForm(), { id:"t"+Date.now().toString(36), name:"New template", setStatus:"", subject:"Your K.SHO Hair order {order_ref}", body:"Hi {first_name},\n\n\n\n{signoff}" }];
+  renderTemplates(); const last = document.querySelector(".tpl:last-child input"); last && last.focus();
+});
+$("#tplList").addEventListener("click", e => {
+  const b = e.target.closest("[data-deltpl]"); if(!b) return;
+  const list = readTemplatesFromForm(); list.splice(+b.dataset.deltpl, 1);
+  state.settings.templates = list.length ? list : DEFAULT_TEMPLATES; renderTemplates(); toast("Removed — press Save templates to keep this change");
+});
+
+$("#previewTpl").addEventListener("change", renderThemePreview);
+let previewTimer = null;
+$("#panel-emails").addEventListener("input", e => { if(e.target.closest(".tpl") || ["setSignoff","setWebsite","setInstagram"].includes(e.target.id)){ clearTimeout(previewTimer); previewTimer = setTimeout(renderThemePreview, 250); } });
+
+/* clear + export */
+$("#clearBtn").addEventListener("click", () => {
+  $("#clearArea").innerHTML = `<div class="confirm" style="border-color:var(--rose)"><span>Delete all ${state.orders.size} orders, including statuses, notes and email logs? This can't be undone. Templates are kept.</span><span style="display:flex;gap:.5rem"><button class="btn danger small" type="button" id="confirmClear">Delete everything</button><button class="btn ghost small" type="button" id="cancelClear">Keep my orders</button></span></div>`;
+});
+$("#clearArea").addEventListener("click", e => {
+  if(e.target.id === "confirmClear") clearAll();
+  if(e.target.id === "cancelClear") $("#clearArea").innerHTML = `<button class="btn danger small" type="button" id="clearBtn2">Delete all orders</button>`;
+  if(e.target.id === "clearBtn2") $("#clearBtn").click();
+});
+async function clearAll(){
+  if(state.mode === "example"){ exitExample(); }
+  else if(state.mode === "db"){ const ids=[...state.orders.keys()]; for(const id of ids){ try{ await ordersCol.doc(id).delete(); }catch(e){} } state.orders.clear(); }
+  else { state.orders.clear(); lsSave(); }
+  $("#clearArea").innerHTML = `<button class="btn danger small" type="button" id="clearBtn2">Delete all orders</button>`;
+  render(); toast("All orders deleted");
+}
+$("#exportBtn").addEventListener("click", async () => {
+  const cols = ["Order ref","Date","Customer","Email","Phone","Item","Colour","Total","Fee","Refunded","Net","Currency","Status","Courier","Tracking","Address","Notes","Emails sent","Stripe ID"];
+  const rows = filteredOrders().map(o => [ref(o), o.created.slice(0,10), o.name, o.email, o.phone, o.item, o.colour, o.amount, o.fee, o.refunded, o.net, (o.currency||"").toUpperCase(), statusLabel(o.status||"topack"), o.courier||"", o.tracking||"", addressText(o.address).replace(/\n/g,", "), o.notes||"", (o.emails||[]).map(e=>e.template+" "+e.at.slice(0,10)).join("; "), o.stripeId]);
+  const csv = Papa.unparse([cols, ...rows]);
+  if(!downloads){
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type:"text/csv" }));
+    a.download = `ksho-orders-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    return;
+  }
+  try{ await downloads.save({ filename:`ksho-orders-${new Date().toISOString().slice(0,10)}.csv`, data: csv }); }
+  catch(e){ if(e && e.code !== "cancelled" && e.code !== "declined") toast("Couldn't download — try again"); }
+});
+
+boot();
+</script>
+
+</body>
+</html>

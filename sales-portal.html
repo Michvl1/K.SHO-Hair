@@ -5,6 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/png" href="favicon.png">
+<!-- ================================================================
+     K.SHO Sales Portal
+     Orders are saved in your Firebase project (the same one as your
+     admin dashboard), in the "salesOrders" and "salesSettings"
+     collections, so they show on every browser you sign in on.
+
+     IMPORTANT: add these to your Firestore security rules
+     (Firebase console -> Firestore Database -> Rules), inside
+     "match /databases/{database}/documents { ... }", replacing the
+     email with the one you sign in to the admin dashboard with:
+
+       match /salesOrders/{orderId} {
+         allow read, write: if request.auth != null
+           && request.auth.token.email == "YOUR-ADMIN-EMAIL@example.com";
+       }
+       match /salesSettings/{docId} {
+         allow read, write: if request.auth != null
+           && request.auth.token.email == "YOUR-ADMIN-EMAIL@example.com";
+       }
+     ================================================================ -->
+<script>
+/* Firebase project (same as your admin dashboard) */
+window.KSHO_FIREBASE = {
+  apiKey: "AIzaSyAdYFmUbQlRXx0Hp0BOBpRlp5GLvqTh0fA",
+  authDomain: "kshohair1.firebaseapp.com",
+  projectId: "kshohair1",
+  storageBucket: "kshohair1.firebasestorage.app",
+  messagingSenderId: "1074287585319",
+  appId: "1:1074287585319:web:5a1ce51466e42df2278602"
+};
+</script>
 <title>K.SHO Sales Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -204,6 +235,16 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
 .steps-note{ font-size:.84rem; color:var(--muted); margin:0; }
 .steps-note kbd{ font:inherit; border:1px solid var(--line-strong); border-radius:6px; padding:0 .3rem; color:var(--cream); }
 
+/* sign-in screen (Firebase build) */
+.login{ position:fixed; inset:0; z-index:90; display:grid; place-items:center; overflow-y:auto;
+  background:radial-gradient(900px 600px at 70% 20%, var(--plum-lift) 0%, var(--plum-deep) 70%), var(--plum-deep);
+  padding:max(16px, env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) max(16px, env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px)); }
+.login-card{ width:min(400px,100%); background:var(--plum); border:1px solid var(--line); border-radius:28px; padding:2rem 1.8rem; display:flex; flex-direction:column; gap:1rem; box-shadow:0 40px 100px rgba(0,0,0,.4); }
+.login-card .logo{ font-size:2rem; }
+.login-card form{ display:flex; flex-direction:column; gap:.8rem; }
+.banner.alert{ border-style:solid; border-color:var(--rose); }
+.banner.move{ border-style:solid; border-color:var(--teal); }
+
 .toast{ position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 1.2rem); transform:translate(-50%,150%); background:var(--cream); color:var(--pink-ink); padding:.7rem 1.2rem; border-radius:999px; font-weight:500; z-index:80; transition:transform .25s; max-width:calc(100% - 32px); text-align:center; }
 .toast.show{ transform:translate(-50%,0); }
 @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
@@ -214,6 +255,7 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
   <div class="wrap">
     <div class="brand"><span class="logo">K.SHO Hair</span><small>Sales portal</small></div>
     <span class="store-chip" id="storeChip" data-mode="">Connecting…</span>
+    <button class="btn ghost small" id="signOutBtn" type="button" hidden>Sign out</button>
     <button class="btn ghost" id="newOrderBtn" type="button">New order</button>
     <button class="btn" id="uploadBtn" type="button">Upload Stripe export</button>
     <input type="file" id="fileInput" accept=".csv,text/csv" multiple hidden>
@@ -228,6 +270,11 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
 </header>
 
 <main class="wrap" id="main">
+  <div id="cloudAlert" class="banner alert" hidden><span id="cloudAlertText"></span></div>
+  <div id="moveBanner" class="banner move" hidden>
+    <span id="moveText"></span>
+    <span style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn small" type="button" id="moveYes">Move them to my account</button><button class="btn small ghost" type="button" id="moveNo">Not now</button></span>
+  </div>
   <div id="exampleBanner" class="banner example" hidden>
     <span>You're looking at <b>example orders</b>. Nothing here is saved, and none of it is your real data.</span>
     <span style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn small" type="button" data-action="upload">Upload my Stripe export</button><button class="btn small ghost" type="button" id="exitExample">Clear examples</button></span>
@@ -341,6 +388,18 @@ details.map summary{ cursor:pointer; color:var(--pink); font-size:.9rem; }
 <aside class="sheet" id="sheet" aria-hidden="true" aria-label="Order details"></aside>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true"><div class="modal-card" id="modalCard"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="login" id="loginView" hidden>
+  <div class="login-card">
+    <div><span class="logo">K.SHO Hair</span><p class="eyebrow" style="margin-top:.3rem">Sales portal</p></div>
+    <p class="muted" style="margin:0">Sign in with your admin dashboard login. Your orders sync to every browser you sign in on.</p>
+    <form id="loginForm" novalidate>
+      <div class="field"><label for="loginEmail">Email</label><input class="input" id="loginEmail" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="loginPass">Password</label><input class="input" id="loginPass" type="password" autocomplete="current-password" required></div>
+      <p class="error" id="loginErr" hidden></p>
+      <button class="btn" type="submit" id="loginBtn">Sign in</button>
+    </form>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
@@ -549,15 +608,102 @@ const LS_KEY = "ksho-portal-v1";
 function lsLoad(){ try{ const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; } }
 function lsSave(){ if(state.mode!=="local") return; try{ localStorage.setItem(LS_KEY, JSON.stringify({ orders:[...state.orders.values()], settings:state.settings })); }catch(e){ toast("This browser wouldn't save the change"); } }
 
+/* ---------- Firebase (used only when window.KSHO_FIREBASE is set) ---------- */
+const fb = { app:null, auth:null, db:null, A:null, F:null, user:null, unsubs:[], settingsExists:false, firstSnap:false };
+const ORDERS_COL = "salesOrders", SETTINGS_COL = "salesSettings", SETTINGS_DOC = "main";
+const plain = o => JSON.parse(JSON.stringify(o));
+function cloudError(e){
+  const code = e && e.code || "";
+  const msg = code === "permission-denied"
+    ? "Firebase blocked access to your sales data. Add the sales portal's security rules in Firebase (Firestore Database → Rules), publish them, then reload this page."
+    : code === "unavailable" ? "Can't reach Firebase right now. Changes will sync when your connection is back."
+    : "Something went wrong talking to Firebase. Reload the page and try again.";
+  $("#cloudAlertText").textContent = msg; $("#cloudAlert").hidden = false;
+}
+async function bootFirebase(){
+  const V = "12.15.0", base = `https://www.gstatic.com/firebasejs/${V}/`;
+  try{
+    const [appM, authM, fsM] = await Promise.all([import(base+"firebase-app.js"), import(base+"firebase-auth.js"), import(base+"firebase-firestore.js")]);
+    fb.A = authM; fb.F = fsM;
+    fb.app = appM.initializeApp(window.KSHO_FIREBASE);
+    fb.auth = authM.getAuth(fb.app);
+    fb.db = fsM.getFirestore(fb.app);
+  }catch(e){
+    showLogin("Couldn't load the sign-in. Check your internet connection and reload the page.");
+    return;
+  }
+  fb.A.onAuthStateChanged(fb.auth, user => { if(user) startCloud(user); else { stopCloud(); showLogin(); } });
+}
+function showLogin(err){
+  $("#loginView").hidden = false;
+  $("#loginErr").hidden = !err; $("#loginErr").textContent = err || "";
+  $("#loginBtn").disabled = false; $("#loginBtn").textContent = "Sign in";
+  setTimeout(() => { const f = $("#loginEmail"); f && !f.value && f.focus(); }, 50);
+}
+function stopCloud(){ fb.unsubs.forEach(u => { try{ u(); }catch(e){} }); fb.unsubs = []; fb.user = null; state.orders = new Map(); if(state.mode === "cloud") state.mode = null; $("#signOutBtn").hidden = true; render(); }
+function startCloud(user){
+  if(fb.user && fb.user.uid === user.uid) return;
+  fb.user = user; fb.firstSnap = false; state.mode = "cloud";
+  $("#loginView").hidden = true; $("#signOutBtn").hidden = false; $("#cloudAlert").hidden = true;
+  const F = fb.F;
+  fb.unsubs.push(F.onSnapshot(F.collection(fb.db, ORDERS_COL), snap => {
+    const m = new Map(snap.docs.map(d => [d.id, { ...d.data() }]));
+    if(realOrders){ realOrders = m; } else { state.orders = m; render(); }
+    if(!fb.firstSnap){ fb.firstSnap = true; offerMove(); }
+  }, cloudError));
+  fb.unsubs.push(F.onSnapshot(F.doc(fb.db, SETTINGS_COL, SETTINGS_DOC), snap => {
+    fb.settingsExists = snap.exists();
+    if(snap.exists()){ const d = snap.data(); state.settings = { ...state.settings, ...d, templates: Array.isArray(d.templates) && d.templates.length ? d.templates.map(t=>({...t})) : DEFAULT_TEMPLATES }; renderTemplates(); }
+  }, cloudError));
+  render(); renderTemplates();
+}
+/* Orders saved in this browser before sync was switched on */
+function offerMove(){
+  const saved = lsLoad();
+  const n = saved && Array.isArray(saved.orders) ? saved.orders.length : 0;
+  let dismissed = false; try{ dismissed = sessionStorage.getItem("ksho-move-later") === "1"; }catch(e){}
+  $("#moveBanner").hidden = !n || dismissed;
+  $("#moveText").textContent = `This browser has ${n} order${n===1?"":"s"} saved from before sync was switched on. Move ${n===1?"it":"them"} to your account so ${n===1?"it shows":"they show"} on every browser.`;
+}
+async function moveLocalToCloud(){
+  const saved = lsLoad(); if(!saved) return;
+  const btn = $("#moveYes"); btn.disabled = true;
+  const list = (saved.orders || []).filter(o => o && o.id && !state.orders.has(o.id)).map(o => ({ ...o }));
+  const taken = new Set([...state.orders.values()].map(o => o.orderNo).filter(Boolean));
+  list.forEach(o => { if(o.orderNo && taken.has(o.orderNo)) delete o.orderNo; else if(o.orderNo) taken.add(o.orderNo); });
+  if(!fb.settingsExists && saved.settings){ state.settings = { ...state.settings, ...saved.settings }; await saveSettings(); }
+  assignNumbers(list);
+  const r = await saveMany(list, (d,t) => { btn.textContent = `Moving ${d} of ${t}…`; });
+  if(!r.failed){ try{ localStorage.removeItem(LS_KEY); }catch(e){} $("#moveBanner").hidden = true; }
+  btn.disabled = false; btn.textContent = "Move them to my account";
+  render(); renderTemplates();
+  const skipped = (saved.orders||[]).length - list.length;
+  toast(r.failed ? `Moved ${r.ok}; ${r.failed} didn't move — try again` : `Moved ${r.ok} order${r.ok===1?"":"s"} to your account${skipped?` (${skipped} were already there)`:""}`);
+}
+
 async function saveOrder(o){
   o.updatedAt = new Date().toISOString();
   state.orders.set(o.id, o);
-  if(state.mode === "db"){
+  if(state.mode === "cloud"){
+    try{ await fb.F.setDoc(fb.F.doc(fb.db, ORDERS_COL, o.id), plain(o)); }
+    catch(e){ cloudError(e); toast("Couldn't save that change"); throw e; }
+  } else if(state.mode === "db"){
     try{ await ordersCol.doc(o.id).set(JSON.parse(JSON.stringify(o))); }
     catch(e){ toast(e && e.code==="quota_exceeded" ? "Storage is full — delete old orders to add more" : "Couldn't save that change — check your connection and try again"); throw e; }
   } else lsSave();
 }
 async function saveMany(list, onProgress){
+  if(state.mode === "cloud"){
+    let ok = 0, failed = 0;
+    for(let i = 0; i < list.length; i += 400){
+      const chunk = list.slice(i, i+400), b = fb.F.writeBatch(fb.db);
+      chunk.forEach(o => { o.updatedAt = new Date().toISOString(); b.set(fb.F.doc(fb.db, ORDERS_COL, o.id), plain(o)); });
+      try{ await b.commit(); chunk.forEach(o => state.orders.set(o.id, o)); ok += chunk.length; }
+      catch(e){ failed += chunk.length; cloudError(e); }
+      onProgress && onProgress(ok+failed, list.length);
+    }
+    return { ok, failed };
+  }
   if(state.mode !== "db"){ list.forEach(o=>{ o.updatedAt=new Date().toISOString(); state.orders.set(o.id,o); }); lsSave(); return { ok:list.length, failed:0 }; }
   let i = 0, ok = 0, failed = 0;
   async function worker(){
@@ -572,6 +718,7 @@ async function saveMany(list, onProgress){
   return { ok, failed };
 }
 async function saveSettings(){
+  if(state.mode === "cloud"){ try{ await fb.F.setDoc(fb.F.doc(fb.db, SETTINGS_COL, SETTINGS_DOC), plain(state.settings)); return true; }catch(e){ cloudError(e); toast("Couldn't save — try again"); return false; } }
   if(state.mode === "db"){ try{ await settingsDoc.set(JSON.parse(JSON.stringify(state.settings))); return true; }catch(e){ toast("Couldn't save templates — try again"); return false; } }
   if(state.mode === "local"){ lsSave(); return true; }
   return true;
@@ -579,6 +726,7 @@ async function saveSettings(){
 
 async function boot(){
   render();
+  if(window.KSHO_FIREBASE){ return bootFirebase(); }
   try{
     if(typeof claude === "undefined" || !claude.use) throw new Error("no runtime");
     db = await claude.use("db");
@@ -638,7 +786,8 @@ const baseOrders = () => [...state.orders.values()].filter(o => (o.currency||BAS
 function render(){
   const has = state.orders.size > 0;
   $("#storeChip").dataset.mode = state.mode || "";
-  $("#storeChip").textContent = state.mode === "db" ? "Saved to your account" : state.mode === "local" ? "Saved in this browser only" : state.mode === "example" ? "Example data" : "Connecting…";
+  $("#storeChip").dataset.mode = state.mode === "cloud" ? "db" : (state.mode || "");
+  $("#storeChip").textContent = state.mode === "cloud" ? "Synced to your account" : state.mode === "db" ? "Saved to your account" : state.mode === "local" ? "Saved in this browser only" : state.mode === "example" ? "Example data" : "Connecting…";
   $("#exampleBanner").hidden = state.mode !== "example";
   $("#emptyState").hidden = has || state.mode === null;
   ["earnings","orders","emails"].forEach(t => {
@@ -647,9 +796,11 @@ function render(){
   });
   const toPack = [...state.orders.values()].filter(o => (o.status||"topack") === "topack").length;
   $("#topackBadge").textContent = toPack ? toPack : "";
-  $("#dataNote").textContent = state.mode === "db"
+  $("#dataNote").textContent = state.mode === "cloud"
+    ? `${state.orders.size} orders saved to your K.SHO Firebase account. Sign in on any browser or device to see them.`
+    : state.mode === "db"
     ? `${state.orders.size} orders saved privately to your Claude account. Only you can see them, on any device you sign in on.`
-    : state.mode === "local" ? `${state.orders.size} orders saved in this browser only. They don't sync to other devices, and clearing your browser data deletes them, so use Download orders CSV now and then as a backup.`
+    : state.mode === "local" ? `${state.orders.size} orders saved in this browser only.`
     : "Example orders aren't saved.";
   if(has){ renderEarnings(); renderOrders(); }
   if(state.openId) renderSheet();
@@ -1188,6 +1339,7 @@ function nextOrderNo(){
 }
 function assignNumbers(list){
   let n = nextOrderNo();
+  list.forEach(o => { if(o.orderNo && o.orderNo >= n) n = o.orderNo + 1; });
   list.filter(o => !o.orderNo).sort((a,b) => a.created.localeCompare(b.created)).forEach(o => { o.orderNo = n++; });
 }
 async function numberExisting(){
@@ -1206,6 +1358,7 @@ function renderNextNo(){
   $("#nextNoNote").innerHTML = `Next order number: <b style="color:var(--cream)">${esc(prefix + n)}</b>.` + (highest ? ` It carries on from your highest existing order, so changing the first number only matters if you set it higher.` : "") + ` Changing "Starts with" updates every order's number.`;
 }
 async function deleteOrder(id){
+  if(state.mode === "cloud"){ try{ await fb.F.deleteDoc(fb.F.doc(fb.db, ORDERS_COL, id)); }catch(e){ cloudError(e); toast("Couldn't delete — try again"); return; } }
   if(state.mode === "db"){ try{ await ordersCol.doc(id).delete(); }catch(e){ toast("Couldn't delete — try again"); return; } }
   state.orders.delete(id); lsSave();
 }
@@ -1272,6 +1425,23 @@ async function createManual(){
   toast(`Order ${ref(o)} created`);
 }
 $("#newOrderBtn").addEventListener("click", openNewOrder);
+$("#loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("#loginEmail").value.trim(), pass = $("#loginPass").value;
+  if(!email || !pass){ showLogin("Enter your email and password."); return; }
+  $("#loginBtn").disabled = true; $("#loginBtn").textContent = "Signing in…"; $("#loginErr").hidden = true;
+  try{ await fb.A.signInWithEmailAndPassword(fb.auth, email, pass); $("#loginPass").value = ""; }
+  catch(err){
+    const c = err && err.code || "";
+    showLogin(/invalid-credential|wrong-password|user-not-found|invalid-email/.test(c) ? "That email and password don't match. Use the login for your admin dashboard."
+      : /too-many-requests/.test(c) ? "Too many attempts. Wait a few minutes, then try again."
+      : /network/.test(c) ? "Can't connect. Check your internet connection and try again."
+      : "Couldn't sign in. Try again.");
+  }
+});
+$("#signOutBtn").addEventListener("click", async () => { closeSheet(); try{ await fb.A.signOut(fb.auth); }catch(e){} });
+$("#moveYes").addEventListener("click", moveLocalToCloud);
+$("#moveNo").addEventListener("click", () => { $("#moveBanner").hidden = true; try{ sessionStorage.setItem("ksho-move-later","1"); }catch(e){} });
 $("#modalCard").addEventListener("input", e => { if(e.target.id === "nQty") syncNewOrderAmount(); });
 $("#modalCard").addEventListener("change", e => { if(e.target.id === "nItem") syncNewOrderAmount(); });
 document.addEventListener("click", e => { if(e.target.closest('[data-action="number"]')) numberExisting(); });
@@ -1288,6 +1458,11 @@ $("#clearArea").addEventListener("click", e => {
 });
 async function clearAll(){
   if(state.mode === "example"){ exitExample(); }
+  else if(state.mode === "cloud"){
+    const ids = [...state.orders.keys()];
+    for(let i = 0; i < ids.length; i += 400){ const b = fb.F.writeBatch(fb.db); ids.slice(i,i+400).forEach(id => b.delete(fb.F.doc(fb.db, ORDERS_COL, id))); try{ await b.commit(); }catch(e){ cloudError(e); } }
+    state.orders.clear();
+  }
   else if(state.mode === "db"){ const ids=[...state.orders.keys()]; for(const id of ids){ try{ await ordersCol.doc(id).delete(); }catch(e){} } state.orders.clear(); }
   else { state.orders.clear(); lsSave(); }
   $("#clearArea").innerHTML = `<button class="btn danger small" type="button" id="clearBtn2">Delete all orders</button>`;

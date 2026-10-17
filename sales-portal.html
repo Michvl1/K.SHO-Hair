@@ -161,6 +161,7 @@ tbody tr:last-child td{ border-bottom:none; }
 td.r, th.r{ text-align:right; }
 .cust b{ color:var(--cream); font-weight:500; display:block; }
 .cust small{ color:var(--muted); }
+.cust b.noname{ color:var(--muted); font-style:italic; }
 .pill{ display:inline-flex; align-items:center; gap:.35rem; border-radius:999px; padding:.12rem .65rem; font-size:.8rem; font-weight:500; border:1px solid currentColor; white-space:nowrap; }
 .pill::before{ content:""; width:6px; height:6px; border-radius:50%; background:currentColor; }
 .s-topack{ color:var(--amber); } .s-dispatched{ color:var(--lilac); } .s-delivered{ color:var(--teal); } .s-onhold{ color:var(--rose); } .s-refunded{ color:var(--muted); }
@@ -190,7 +191,9 @@ td.r, th.r{ text-align:right; }
 .section h3{ font-size:1.2rem; }
 .field{ display:flex; flex-direction:column; gap:.3rem; min-width:0; }
 .field label{ font-size:.8rem; color:var(--muted); letter-spacing:.06em; }
+.field-head{ display:flex; justify-content:space-between; align-items:baseline; gap:.6rem; }
 .input, select.input, textarea.input{ background:rgba(40,23,42,.7); border:1px solid var(--line-strong); border-radius:12px; padding:.55rem .75rem; color:var(--cream); width:100%; min-width:0; }
+.input::placeholder{ color:var(--muted); opacity:.8; }
 textarea.input{ resize:vertical; min-height:7rem; line-height:1.5; }
 .row{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; }
 @media (max-width:420px){ .row{ grid-template-columns:1fr; } }
@@ -550,6 +553,11 @@ const fmtRef = n => (state.settings.orderPrefix == null ? "KS-" : state.settings
 const ref = o => o.orderNo ? fmtRef(o.orderNo) : "No number yet";
 const firstName = o => { const n = (o.name||"").trim().split(/\s+/)[0] || ""; return n ? n.charAt(0).toUpperCase()+n.slice(1).toLowerCase() : "there"; };
 const addressText = a => a ? [a.line1,a.line2,a.city,a.state,a.postal,a.country].filter(Boolean).join("\n") : "";
+/* Items: one item per line */
+const itemLines = s => String(s||"").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+const itemInline = (s, sep=" + ") => itemLines(s).join(sep);
+const itemHTML = s => itemLines(s).map(esc).join("<br>");
+const itemSentence = s => { const l = itemLines(s); return l.length <= 1 ? (l[0]||"") : l.slice(0,-1).join(", ") + " and " + l[l.length-1]; };
 let toastTimer;
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600); }
 async function copy(text, label){
@@ -598,7 +606,7 @@ const state = {
   tab: "earnings",
   openId: null,
   pending: null,           // import preview
-  draft: { tplId:"received", subject:"", body:"", opened:false },
+  draft: { tplId:"received", subject:"", body:"", opened:false, dirty:false },
 };
 let db = null, uid = null, ordersCol = null, settingsDoc = null, downloads = null;
 let realOrders = null;     // stash of real orders while examples are showing
@@ -783,6 +791,12 @@ function totals(list){
 const baseOrders = () => [...state.orders.values()].filter(o => (o.currency||BASE_CURRENCY) === BASE_CURRENCY);
 
 /* ================= Rendering ================= */
+/* True while the cursor is in a text box on the order sheet. Rebuilding the
+   sheet then would move the cursor and scramble what's being typed. */
+function typingInSheet(){
+  const a = document.activeElement;
+  return !!(a && $("#sheet").contains(a) && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && !["button","checkbox","radio"].includes(a.type))));
+}
 function render(){
   const has = state.orders.size > 0;
   $("#storeChip").dataset.mode = state.mode || "";
@@ -803,7 +817,7 @@ function render(){
     : state.mode === "local" ? `${state.orders.size} orders saved in this browser only.`
     : "Example orders aren't saved.";
   if(has){ renderEarnings(); renderOrders(); }
-  if(state.openId) renderSheet();
+  if(state.openId && !typingInSheet()) renderSheet();
 }
 
 function renderEarnings(){
@@ -830,7 +844,7 @@ function renderEarnings(){
   $("#currencyNote").hidden = !other.length;
   $("#currencyNote").textContent = other.length ? `${other.length} order${other.length>1?"s are":" is"} in another currency without a converted GBP amount, so ${other.length>1?"they're":"it's"} left out of these totals. Include Stripe's "Converted amount" column in your export to count ${other.length>1?"them":"it"}.` : "";
   renderChart();
-  renderBars("#byItem", list, o => o.item || "Item not recorded", o => o.amount, true);
+  renderBars("#byItem", list, o => itemInline(o.item) || "Item not recorded", o => o.amount, true);
   renderBars("#byColour", list, o => o.colour || "Colour not recorded", () => 1, false);
 }
 
@@ -839,7 +853,7 @@ function renderBars(sel, list, keyFn, valFn, money){
   list.forEach(o => { const k = keyFn(o); m.set(k, (m.get(k)||0) + valFn(o)); });
   const rows = [...m.entries()].sort((a,b) => b[1]-a[1]).slice(0,6);
   const max = rows.length ? rows[0][1] : 1;
-  $(sel).innerHTML = rows.length ? rows.map(([k,v]) => `<div class="bar-row"><span class="name">${esc(k)}</span><span class="num">${money ? fmtMoney(v) : v + " order"+(v===1?"":"s")}</span><div class="track"><span style="width:${(v/max*100).toFixed(1)}%"></span></div></div>`).join("")
+  $(sel).innerHTML = rows.length ? rows.map(([k,v]) => `<div class="bar-row"><span class="name" title="${esc(k)}">${esc(k)}</span><span class="num">${money ? fmtMoney(v) : v + " order"+(v===1?"":"s")}</span><div class="track"><span style="width:${(v/max*100).toFixed(1)}%"></span></div></div>`).join("")
     : `<p class="note">No orders in this period.</p>`;
 }
 
@@ -885,15 +899,15 @@ function renderOrders(){
   const pill = o => { const s=o.status||"topack"; return `<span class="pill s-${s}">${statusLabel(s)}</span>`; };
   $("#orderRows").innerHTML = list.length ? list.map(o => `<tr data-id="${esc(o.id)}" tabindex="0">
       <td class="num" style="white-space:nowrap">${fmtShort(o.created)}<br><small class="muted">${ref(o)}</small></td>
-      <td class="cust"><b>${esc(o.name||"No name")}</b><small>${esc(o.email||"No email")}</small></td>
-      <td>${esc(o.item||"—")}${o.colour?`<br><small class="muted">Colour ${esc(o.colour)}</small>`:""}</td>
+      <td class="cust">${o.name?`<b>${esc(o.name)}</b>`:`<b class="noname">Add a name</b>`}<small>${esc(o.email||"No email")}</small></td>
+      <td>${o.item?itemHTML(o.item):"—"}${o.colour?`<br><small class="muted">Colour ${esc(o.colour)}</small>`:""}</td>
       <td class="r num">${fmtMoney(o.amount,o.currency)}</td>
       <td>${pill(o)}</td>
       <td class="lastmail">${last(o)}</td></tr>`).join("")
     : `<tr><td colspan="6" class="muted" style="padding:1.4rem;cursor:default">No orders match. Try another filter.</td></tr>`;
   $("#orderCards").innerHTML = list.map(o => `<button class="ocard" type="button" data-id="${esc(o.id)}">
-      <b>${esc(o.name||"No name")}</b><span class="num">${fmtMoney(o.amount,o.currency)}</span>
-      <small class="muted">${fmtShort(o.created)} · ${esc(o.item||ref(o))}</small>${pill(o)}</button>`).join("") || `<p class="note">No orders match. Try another filter.</p>`;
+      <b>${esc(o.name||"Add a name")}</b><span class="num">${fmtMoney(o.amount,o.currency)}</span>
+      <small class="muted">${fmtShort(o.created)} · ${esc(o.item?itemInline(o.item):ref(o))}</small>${pill(o)}</button>`).join("") || `<p class="note">No orders match. Try another filter.</p>`;
   $("#orderCount").textContent = `Showing ${list.length} of ${state.orders.size} orders`;
   const un = [...state.orders.values()].filter(o => !o.orderNo).length;
   $("#numberBanner").hidden = !un;
@@ -906,7 +920,7 @@ function fillTemplate(text, o){
   const link = o.tracking ? (COURIERS[courier]||COURIERS.Other)(o.tracking) : "";
   const vals = {
     first_name: firstName(o), name: o.name || "", order_ref: ref(o),
-    item: o.item || "French Curl hair", colour: o.colour || "", in_colour: o.colour ? ` in colour ${o.colour}` : "",
+    item: itemSentence(o.item) || "French Curl hair", colour: o.colour || "", in_colour: o.colour ? ` in colour ${o.colour}` : "",
     total: fmtMoney(o.amount, o.currency), courier, tracking_number: o.tracking || "[add tracking number]",
     tracking_link: link || (o.tracking ? "" : "[add tracking number]"), signoff: state.settings.signoff || "K.SHO Hair",
   };
@@ -923,7 +937,7 @@ function suggestTemplate(o){
 }
 function loadDraft(o, tplId){
   const t = templates().find(x=>x.id===tplId) || templates()[0];
-  state.draft = { tplId: t.id, heading: fillTemplate(t.heading || DEFAULT_HEADINGS[t.id] || "Your K.SHO Hair order", o), subject: fillTemplate(t.subject, o), body: fillTemplate(t.body, o), opened:false };
+  state.draft = { tplId: t.id, heading: fillTemplate(t.heading || DEFAULT_HEADINGS[t.id] || "Your K.SHO Hair order", o), subject: fillTemplate(t.subject, o), body: fillTemplate(t.body, o), opened:false, dirty:false };
 }
 const branded = () => (state.settings.emailStyle || "branded") === "branded";
 
@@ -955,10 +969,11 @@ function emailHTML(o, d){
     }
     if(hadTrack && !placed){ out += trackBox; placed = true; }
   });
-  const row = (k,v) => v ? `<tr><td style="padding:10px 0;border-bottom:1px solid ${EM.rule};font-family:${EM_SANS};font-size:14px;line-height:20px;color:${EM.muted};">${k}</td><td align="right" style="padding:10px 0;border-bottom:1px solid ${EM.rule};font-family:${EM_SANS};font-size:14px;line-height:20px;color:${EM.ink};font-weight:bold;">${esc(v)}</td></tr>` : "";
+  const row = (k,v) => v ? `<tr><td style="padding:10px 0;border-bottom:1px solid ${EM.rule};font-family:${EM_SANS};font-size:14px;line-height:20px;color:${EM.muted};vertical-align:top;">${k}</td><td align="right" style="padding:10px 0 10px 16px;border-bottom:1px solid ${EM.rule};font-family:${EM_SANS};font-size:14px;line-height:20px;color:${EM.ink};font-weight:bold;">${esc(v).replace(/\n/g,"<br>")}</td></tr>` : "";
+  const items = itemLines(o.item);
   const summary = `<div style="font-family:${EM_SANS};font-size:11px;line-height:16px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;color:${EM.link};margin:26px 0 4px;">Your order</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${EM.rule};">
-      ${row("Order", ref(o))}${row("Item", o.item)}${row("Colour", o.colour)}${row("Total", fmtMoney(o.amount, o.currency))}
+      ${row("Order", ref(o))}${row(items.length > 1 ? "Items" : "Item", items.join("\n"))}${row("Colour", o.colour)}${row("Total", fmtMoney(o.amount, o.currency))}
     </table>`;
   const site = (state.settings.website||"").trim().replace(/^https?:\/\//,"").replace(/\/$/,"");
   const ig = (state.settings.instagram||"").trim().replace(/^@/,"");
@@ -1012,6 +1027,7 @@ function openSheet(id){
   const o = state.orders.get(id); if(!o) return;
   state.openId = id; state.delConfirm = false; loadDraft(o, suggestTemplate(o));
   renderSheet();
+  $("#sheet").scrollTop = 0;
   $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden","false"); $("#scrim").classList.add("open");
   setTimeout(()=>{ const x=$("#sheet .x"); x&&x.focus(); },50);
 }
@@ -1025,37 +1041,43 @@ function renderSheet(){
   const addr = addressText(o.address);
   const tpl = templates().find(t=>t.id===state.draft.tplId);
   const missingTracking = /\[add tracking number\]/.test(state.draft.body+state.draft.subject);
-  const active = document.activeElement && document.activeElement.id;
-  $("#sheet").innerHTML = `
-    <div class="sheet-head"><div><p class="eyebrow">Order ${ref(o)} · ${fmtDate(o.created)}${o.orderNo?` <button class="linkbtn" type="button" data-copy="ref" style="letter-spacing:0;text-transform:none;margin-left:.3rem">Copy</button>`:""}</p><h2>${esc(o.name||"No name")}</h2></div><button class="x" type="button" data-close aria-label="Close order">×</button></div>
+  /* Remember where the cursor is so rebuilding the sheet doesn't move it */
+  const sheet = $("#sheet"), scroll = sheet.scrollTop;
+  const ae = document.activeElement;
+  const keep = ae && ae.id && sheet.contains(ae)
+    ? { id: ae.id, text: ae.tagName === "TEXTAREA" || ae.tagName === "INPUT", value: ae.value, s: ae.selectionStart, e: ae.selectionEnd, dir: ae.selectionDirection }
+    : null;
+  sheet.innerHTML = `
+    <div class="sheet-head"><div><p class="eyebrow">Order ${ref(o)} · ${fmtDate(o.created)}${o.orderNo?` <button class="linkbtn" type="button" data-copy="ref" style="letter-spacing:0;text-transform:none;margin-left:.3rem">Copy</button>`:""}</p><h2>${o.name?esc(o.name):`<span class="muted" style="font-style:italic">No name yet</span>`}</h2></div><button class="x" type="button" data-close aria-label="Close order">×</button></div>
     <dl class="facts">
-      <dt>Item</dt><dd>${esc(o.item||"Not recorded")}${o.qty?` × ${esc(o.qty)}`:""}</dd>
+      <dt>Item${itemLines(o.item).length>1?"s":""}</dt><dd>${o.item?itemHTML(o.item):"Not recorded"}${o.qty?` × ${esc(o.qty)}`:""}</dd>
       <dt>Paid</dt><dd class="num">${fmtMoney(o.amount,o.currency)} <span class="muted">· fee ${fmtMoney(o.fee,o.currency)} · net ${fmtMoney(o.net,o.currency)}</span></dd>
       ${o.manual ? `<dt>Payment</dt><dd>Paid by ${esc((o.paidVia||"other").toLowerCase())} <span class="muted">· added by hand</span></dd>`
         : `<dt>Stripe</dt><dd>${esc(o.stripeStatus||"Paid")}${o.refunded?` · ${fmtMoney(o.refunded,o.currency)} refunded`:""} <span class="muted">· ${esc(o.stripeId)}</span></dd>`}
     </dl>
     <div class="section">
       <h3>Customer</h3>
-      <div class="copyline"><span>${esc(o.email||(o.manual?"No email added yet":"No email in the export"))}</span>${o.email?`<button class="linkbtn" type="button" data-copy="email">Copy email</button>`:""}</div>
+      <div class="row">
+        <div class="field"><label for="fName">Customer name</label><input class="input" id="fName" data-field="name" type="text" autocomplete="off" spellcheck="false" value="${esc(o.name||"")}" placeholder="Add the customer's name"></div>
+        <div class="field"><div class="field-head"><label for="fEmail">Customer email</label>${o.email?`<button class="linkbtn" type="button" data-copy="email">Copy</button>`:""}</div><input class="input" id="fEmail" data-field="email" type="email" autocomplete="off" spellcheck="false" value="${esc(o.email||"")}" placeholder="name@example.com"></div>
+      </div>
       ${o.phone?`<div class="copyline"><span>${esc(o.phone)}</span><button class="linkbtn" type="button" data-copy="phone">Copy</button></div>`:""}
       <div class="copyline"><span>${addr?esc(o.name?o.name+"\n"+addr:addr):`<span class="muted">No shipping address in the export</span>`}</span>${addr?`<button class="linkbtn" type="button" data-copy="address">Copy address</button>`:""}</div>
     </div>
     <div class="section">
       <h3>Order status</h3>
       <div class="seg" role="group" aria-label="Order status">${STATUSES.map(x=>`<button type="button" class="s-${x.id}" data-status="${x.id}" aria-pressed="${s===x.id}">${x.label}</button>`).join("")}</div>
+      <div class="field"><label for="fItem">Items (one per line)</label><textarea class="input" id="fItem" data-field="item" rows="3" style="min-height:5rem" spellcheck="false" placeholder='French Curl 16" · full head (10 packs)&#10;French Curl 22" · 2 packs'>${esc(o.item||"")}</textarea></div>
       <div class="row">
-        ${o.manual ? `<div class="field"><label for="fEmail">Customer email</label><input class="input" id="fEmail" data-field="email" type="email" value="${esc(o.email||"")}"></div>
-        <div class="field"><label for="fName">Customer name</label><input class="input" id="fName" data-field="name" type="text" value="${esc(o.name||"")}"></div>` : ""}
-        <div class="field"><label for="fItem">Item</label><input class="input" id="fItem" data-field="item" value="${esc(o.item||"")}" placeholder='e.g. French Curl 16" · full head'></div>
-        <div class="field"><label for="fColour">Colour</label><input class="input" id="fColour" data-field="colour" value="${esc(o.colour||"")}" placeholder="e.g. 1B"></div>
+        <div class="field"><label for="fColour">Colour</label><input class="input" id="fColour" data-field="colour" autocomplete="off" value="${esc(o.colour||"")}" placeholder="e.g. 1B"></div>
         <div class="field"><label for="fCourier">Courier</label><select class="input" id="fCourier" data-field="courier">${Object.keys(COURIERS).map(c=>`<option ${ (o.courier||"Royal Mail")===c?"selected":""}>${c}</option>`).join("")}</select></div>
-        <div class="field"><label for="fTracking">Tracking number</label><input class="input" id="fTracking" data-field="tracking" value="${esc(o.tracking||"")}" placeholder="e.g. AB123456789GB"></div>
+        <div class="field"><label for="fTracking">Tracking number</label><input class="input" id="fTracking" data-field="tracking" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(o.tracking||"")}" placeholder="e.g. AB123456789GB"></div>
       </div>
       <div class="field"><label for="fNotes">Notes (only you see these)</label><textarea class="input" id="fNotes" data-field="notes" style="min-height:4rem" placeholder="Anything to remember about this order">${esc(o.notes||"")}</textarea></div>
     </div>
     <div class="section">
       <h3>Email the customer</h3>
-      ${o.email ? "" : `<p class="error">${o.manual ? "Add the customer's email under Order status above, then pick a template." : "This order has no customer email. Add the Customer email column to your Stripe export, then upload it again."}</p>`}
+      ${o.email ? "" : `<p class="error">Add the customer's email under Customer above, then pick a template.</p>`}
       <div class="field"><label for="fTpl">Template</label><select class="input" id="fTpl">${templates().map(t=>`<option value="${esc(t.id)}" ${t.id===state.draft.tplId?"selected":""}>${esc(t.name)}</option>`).join("")}</select></div>
       <div class="field"><label for="fSubject">Subject</label><input class="input" id="fSubject" value="${esc(state.draft.subject)}"></div>
       ${branded() ? `<div class="field"><label for="fHeading">Heading</label><input class="input" id="fHeading" value="${esc(state.draft.heading)}"></div>` : ""}
@@ -1077,7 +1099,15 @@ function renderSheet(){
     ${o.manual ? `<div class="section">${state.delConfirm
       ? `<div class="confirm" style="border-color:var(--rose)"><span>Delete order ${esc(ref(o))}? This can't be undone.</span><span style="display:flex;gap:.5rem"><button class="btn danger small" type="button" id="delOrderYes">Delete order</button><button class="btn ghost small" type="button" id="delOrderNo">Keep it</button></span></div>`
       : `<button class="btn danger small" type="button" id="delOrder" style="align-self:flex-start">Delete this order</button>`}</div>` : ""}`;
-  if(active && $("#"+active)) { const el = $("#"+active); el.focus(); }
+  sheet.scrollTop = scroll;
+  if(keep){
+    const el = document.getElementById(keep.id);
+    if(el){
+      if(keep.text && el.value !== keep.value) el.value = keep.value;
+      el.focus({ preventScroll:true });
+      if(keep.text && keep.s != null){ try{ el.setSelectionRange(keep.s, keep.e, keep.dir || "none"); }catch(e){} }
+    }
+  }
 }
 
 /* ================= Import ================= */
@@ -1112,8 +1142,8 @@ function preview(all, map){
       <div class="stat"><b>${existing}</b><span>already here, will update</span></div>
       <div class="stat"><b>${skippedTotal}</b><span>skipped (failed, refunds rows or blank)</span></div>
     </div>
-    ${dates.length ? `<p class="note">Payments from ${fmtDate(dates[0])} to ${fmtDate(dates[dates.length-1])}. Fees, emails and addresses are read when the export includes them.</p>` : ""}
-    ${!map.email ? `<p class="error" style="color:var(--amber)">No customer email column found, so you won't be able to email these customers until you re-export with it.</p>` : ""}
+    ${dates.length ? `<p class="note">Payments from ${fmtDate(dates[0])} to ${fmtDate(dates[dates.length-1])}. Fees, emails and addresses are read when the export includes them. Names, emails and items you've edited are kept.</p>` : ""}
+    ${!map.email ? `<p class="error" style="color:var(--amber)">No customer email column found, so you won't be able to email these customers until you add their emails or re-export with that column.</p>` : ""}
     <label class="check"><input type="checkbox" id="oldDelivered" checked> Mark orders older than 14 days as Delivered (their status can still be changed)</label>
     ${examples ? `<p class="note">The example orders will be cleared and replaced with your real ones.</p>` : ""}
     <details class="map" ${missing.length?"open":""}><summary>Columns used</summary>
@@ -1128,7 +1158,11 @@ async function doImport(){
   const cutoff = Date.now() - 14*864e5;
   const list = res.orders.map(n => {
     const ex = state.orders.get(n.id);
-    const merged = ex ? { ...ex, ...n, item: ex.itemEdited ? ex.item : (n.item || ex.item), colour: ex.colourEdited ? ex.colour : (n.colour || ex.colour), name: n.name || ex.name, email: n.email || ex.email,
+    const merged = ex ? { ...ex, ...n,
+                          item: ex.itemEdited ? ex.item : (n.item || ex.item),
+                          colour: ex.colourEdited ? ex.colour : (n.colour || ex.colour),
+                          name: ex.nameEdited ? ex.name : (n.name || ex.name),
+                          email: ex.emailEdited ? ex.email : (n.email || ex.email),
                           address: Object.values(n.address).some(Boolean) ? n.address : ex.address }
                       : { ...n, status: (markOld && new Date(n.created).getTime() < cutoff) ? "delivered" : "topack", emails:[], importedAt:new Date().toISOString() };
     if(n.stripeStatus === "Refunded") merged.status = "refunded";
@@ -1291,22 +1325,30 @@ $("#sheet").addEventListener("click", async e => {
   if(e.target.id === "delOrderNo"){ state.delConfirm = false; renderSheet(); }
   if(e.target.id === "delOrderYes"){ const r = ref(o); await deleteOrder(o.id); closeSheet(); render(); toast(`Order ${r} deleted`); }
 });
+const EDIT_FLAGS = { item:"itemEdited", colour:"colourEdited", name:"nameEdited", email:"emailEdited" };
 $("#sheet").addEventListener("input", e => {
   const o = state.orders.get(state.openId); if(!o) return;
-  if(e.target.id === "fSubject"){ state.draft.subject = e.target.value; updateGmailHref(o); return; }
-  if(e.target.id === "fHeading"){ state.draft.heading = e.target.value; updatePreview(o); return; }
-  if(e.target.id === "fBody"){ state.draft.body = e.target.value; updateGmailHref(o); updatePreview(o); return; }
+  if(e.target.id === "fSubject"){ state.draft.subject = e.target.value; state.draft.dirty = true; updateGmailHref(o); return; }
+  if(e.target.id === "fHeading"){ state.draft.heading = e.target.value; state.draft.dirty = true; updatePreview(o); return; }
+  if(e.target.id === "fBody"){ state.draft.body = e.target.value; state.draft.dirty = true; updateGmailHref(o); updatePreview(o); return; }
   const f = e.target.dataset.field;
   if(f && f !== "courier"){
-    o[f] = e.target.value; if(f==="item") o.itemEdited = true; if(f==="colour") o.colourEdited = true;
-    clearTimeout(fieldTimer); fieldTimer = setTimeout(() => { saveOrder({...o}).catch(()=>{}); renderAfterChange(); }, 700);
+    o[f] = e.target.value; if(EDIT_FLAGS[f]) o[EDIT_FLAGS[f]] = true;
+    clearTimeout(fieldTimer); fieldTimer = setTimeout(() => { const cur = state.orders.get(o.id) || o; cur[f] = o[f]; if(EDIT_FLAGS[f]) cur[EDIT_FLAGS[f]] = true; saveOrder({...cur}).catch(()=>{}); renderAfterChange(); }, 700);
   }
 });
 $("#sheet").addEventListener("change", e => {
   const o = state.orders.get(state.openId); if(!o) return;
   if(e.target.id === "fTpl"){ loadDraft(o, e.target.value); renderSheet(); return; }
   if(e.target.dataset.field === "courier"){ o.courier = e.target.value; saveOrder({...o}).catch(()=>{}); return; }
-  if(e.target.id === "fTracking" || e.target.id === "fEmail" || e.target.id === "fName"){ clearTimeout(fieldTimer); saveOrder({...o}).catch(()=>{}); loadDraft(o, state.draft.tplId); renderSheet(); renderAfterChange(); }
+  const f = e.target.dataset.field;
+  if(f && ["tracking","email","name","item","colour"].includes(f)){
+    o[f] = e.target.value; if(EDIT_FLAGS[f]) o[EDIT_FLAGS[f]] = true;
+    clearTimeout(fieldTimer); saveOrder({...o}).catch(()=>{});
+    if(!state.draft.dirty) loadDraft(o, state.draft.tplId);
+    setTimeout(() => { if(!typingInSheet()) renderSheet(); }, 0);
+    renderAfterChange();
+  }
 });
 function updateGmailHref(o){ const a = $("#gmailBtn"); if(a && o.email) a.href = gmailUrl(o); }
 function renderAfterChange(){ if(state.orders.size){ renderOrders(); renderEarnings(); } const toPack=[...state.orders.values()].filter(o=>(o.status||"topack")==="topack").length; $("#topackBadge").textContent = toPack||""; }
@@ -1378,13 +1420,13 @@ function openNewOrder(){
   openModal(`
     <p class="eyebrow">New order</p>
     <h2>Order <span style="color:var(--pink)">${esc(fmtRef(nextOrderNo()))}</span></h2>
-    <p class="note">For orders taken outside Stripe, like Instagram DMs, bank transfers or cash. It gets the next order number and counts towards your earnings.</p>
+    <p class="note">For orders taken outside Stripe, like Instagram DMs, bank transfers or cash. It gets the next order number and counts towards your earnings. You can add more items on the order afterwards.</p>
     <div class="row">
       <div class="field"><label for="nName">Customer name</label><input class="input" id="nName" type="text" autocomplete="off"></div>
       <div class="field"><label for="nEmail">Email</label><input class="input" id="nEmail" type="email" autocomplete="off"></div>
       <div class="field"><label for="nItem">Item</label><select class="input" id="nItem">${opts.map(o=>`<option value="${o.key}" ${o.len===16&&!o.per?"selected":""}>${esc(o.label)}</option>`).join("")}<option value="other">Something else</option></select></div>
       <div class="field" id="nQtyWrap" hidden><label for="nQty">How many packs</label><input class="input" id="nQty" type="number" min="1" step="1" value="1"></div>
-      <div class="field" id="nOtherWrap" hidden><label for="nOther">Describe the item</label><input class="input" id="nOther" type="text"></div>
+      <div class="field" id="nOtherWrap" hidden><label for="nOther">Describe the item(s)</label><textarea class="input" id="nOther" rows="2" style="min-height:3.5rem" placeholder="One item per line"></textarea></div>
       <div class="field"><label for="nColour">Colour</label><input class="input" id="nColour" type="text" list="colourList" placeholder="e.g. 1B"><datalist id="colourList">${COLOUR_NAMES.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></div>
       <div class="field"><label for="nAmount">Amount paid (£)</label><input class="input" id="nAmount" type="number" min="0" step="0.01" value="44.99"></div>
       <div class="field"><label for="nPaid">Paid by</label><select class="input" id="nPaid"><option>Bank transfer</option><option>Cash</option><option>Card in person</option><option>PayPal</option><option>Other</option></select></div>
@@ -1407,7 +1449,7 @@ async function createManual(){
   const name = $("#nName").value.trim(), amount = parseFloat($("#nAmount").value);
   const opt = itemOptions().find(o => o.key === $("#nItem").value);
   const q = Math.max(1, parseInt($("#nQty").value,10) || 1);
-  const item = opt ? (opt.per ? `French Curl ${opt.len}" · ${q} pack${q>1?"s":""}` : opt.label) : $("#nOther").value.trim();
+  const item = opt ? (opt.per ? `French Curl ${opt.len}" · ${q} pack${q>1?"s":""}` : opt.label) : itemLines($("#nOther").value).join("\n");
   if(!name){ err.textContent = "Add the customer's name."; err.hidden = false; $("#nName").focus(); return; }
   if(!(amount >= 0) || isNaN(amount)){ err.textContent = "Add the amount they paid, for example 44.99."; err.hidden = false; $("#nAmount").focus(); return; }
   if(!item){ err.textContent = "Describe the item they bought."; err.hidden = false; $("#nOther").focus(); return; }
@@ -1418,7 +1460,7 @@ async function createManual(){
     created, amount:+amount.toFixed(2), fee:0, refunded:0, net:+amount.toFixed(2), currency:"gbp", stripeStatus:"Paid",
     email: $("#nEmail").value.trim(), name, phone:"", item, colour: $("#nColour").value.trim(), qty:"",
     address:{ line1: lines.join("\n"), line2:"", city:"", state:"", postal:"", country:"" },
-    status:"topack", emails:[], itemEdited:true, colourEdited:true, importedAt:new Date().toISOString() };
+    status:"topack", emails:[], itemEdited:true, colourEdited:true, nameEdited:true, emailEdited:true, importedAt:new Date().toISOString() };
   const btn = $("#createOrder"); btn.disabled = true;
   try{ await saveOrder(o); }catch(e){ btn.disabled = false; return; }
   closeModal(); state.tab = "orders"; render(); openSheet(o.id);
@@ -1470,7 +1512,7 @@ async function clearAll(){
 }
 $("#exportBtn").addEventListener("click", async () => {
   const cols = ["Order ref","Date","Customer","Email","Phone","Item","Colour","Total","Fee","Refunded","Net","Currency","Status","Courier","Tracking","Address","Notes","Emails sent","Stripe ID"];
-  const rows = filteredOrders().map(o => [ref(o), o.created.slice(0,10), o.name, o.email, o.phone, o.item, o.colour, o.amount, o.fee, o.refunded, o.net, (o.currency||"").toUpperCase(), statusLabel(o.status||"topack"), o.courier||"", o.tracking||"", addressText(o.address).replace(/\n/g,", "), o.notes||"", (o.emails||[]).map(e=>e.template+" "+e.at.slice(0,10)).join("; "), o.stripeId]);
+  const rows = filteredOrders().map(o => [ref(o), o.created.slice(0,10), o.name, o.email, o.phone, itemInline(o.item, "; "), o.colour, o.amount, o.fee, o.refunded, o.net, (o.currency||"").toUpperCase(), statusLabel(o.status||"topack"), o.courier||"", o.tracking||"", addressText(o.address).replace(/\n/g,", "), o.notes||"", (o.emails||[]).map(e=>e.template+" "+e.at.slice(0,10)).join("; "), o.stripeId]);
   const csv = Papa.unparse([cols, ...rows]);
   if(!downloads){
     const a = document.createElement("a");

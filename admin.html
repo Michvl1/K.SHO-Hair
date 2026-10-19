@@ -610,6 +610,7 @@
           </div>
           <div class="head-actions">
             <button class="btn btn-ghost btn-sm" id="refresh-bk-btn">↻ Refresh</button>
+            <button class="btn btn-ghost btn-sm" id="export-emails-btn" title="Download every client email as a spreadsheet">⬇ Export emails</button>
             <button class="btn btn-primary btn-sm" id="add-bk-btn">+ Add booking</button>
           </div>
         </div>
@@ -2413,6 +2414,40 @@ async function markCancelled(r){
   }catch(e){ toast('Email sent, but couldn\'t update the status: '+e.message,true); }
 }
 $('#refresh-bk-btn').addEventListener('click', loadBookings);
+
+/* =========================================================
+   EXPORT CLIENT EMAILS
+   Downloads a CSV (Email, Name, Bookings, Last booked) with one
+   row per client — duplicates removed — ready to import into
+   Mailchimp, MailerLite etc. Also copies the plain list of
+   emails to your clipboard.
+   ========================================================= */
+$('#export-emails-btn').addEventListener('click', async ()=>{
+  const clients=new Map();
+  bookings.forEach(r=>{
+    const email=String(bk(r,'email','client_email')).trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    const created=bkCreatedMs(r);
+    const c=clients.get(email)||{email,name:'',count:0,last:0};
+    c.count++;
+    if(created>=c.last || !c.name){ c.last=Math.max(c.last,created); c.name=String(bk(r,'name','client_name')); }
+    clients.set(email,c);
+  });
+  if(!clients.size){ toast('No client emails found yet',true); return; }
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const list=[...clients.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  const csv='\ufeff'+[['Email','Name','Bookings','Last booked'].map(q).join(',')]
+    .concat(list.map(c=>[c.email,c.name,c.count,c.last?new Date(c.last).toLocaleDateString('en-GB'):''].map(q).join(',')))
+    .join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`ksho-client-emails-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  let copied=false;
+  try{ await navigator.clipboard.writeText(list.map(c=>c.email).join('\n')); copied=true; }catch(_){}
+  toast(`${list.length} client email${list.length===1?'':'s'} exported${copied?' and copied':''}`);
+});
 
 /* =========================================================
    ADD / EDIT BOOKING (for clients who book via DMs)

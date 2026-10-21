@@ -278,6 +278,7 @@
   .cal-day.available:hover { background: rgba(196,137,154,0.15); }
   .cal-day.selected { background: var(--rose); color: #fff; font-weight: 600; }
   .cal-day.today { border: 1.5px solid var(--rose); color: var(--rose); font-weight: 600; }
+  .cal-day.selected.today { color: #fff; }
   .cal-day.disabled { color: rgba(0,0,0,0.2); cursor: not-allowed; }
   .cal-day.empty { cursor: default; }
   .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem; }
@@ -285,6 +286,12 @@
   .time-slot:hover { border-color: var(--rose); color: var(--rose); }
   .time-slot.selected { background: var(--rose); color: #fff; border-color: var(--rose); }
   .time-slot.booked { opacity: 0.35; cursor: not-allowed; }
+  .time-slot.booked:hover { border-color: rgba(196,137,154,0.25); color: var(--charcoal); }
+  .time-slot.premium { border-style: dashed; }
+  .time-slot .slot-fee { display: block; font-size: 0.66rem; font-weight: 600; opacity: 0.8; margin-top: 0.1rem; }
+  .slot-dur { font-size: 0.8rem; color: var(--muted); margin-top: 1rem; line-height: 1.5; }
+  .slot-note { display: none; margin-top: 0.9rem; background: rgba(124,174,158,0.1); border: 1px solid rgba(124,174,158,0.35); color: #4f7a6c; border-radius: 0.8rem; padding: 0.75rem 1rem; font-size: 0.82rem; line-height: 1.55; }
+  .slot-note.warn { background: rgba(196,137,154,0.1); border-color: rgba(196,137,154,0.45); color: var(--rose-dark); }
   .no-date-msg { text-align: center; color: var(--muted); font-size: 0.85rem; padding: 1rem; font-style: italic; }
 
   .payment-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
@@ -297,9 +304,11 @@
   .card-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.8rem; }
 
   .order-summary { background: var(--ivory); border-radius: 1rem; padding: 1.1rem; margin-bottom: 1.2rem; }
-  .summary-row { display: flex; justify-content: space-between; font-size: 0.86rem; padding: 0.35rem 0; color: var(--muted); }
+  .summary-row { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.86rem; padding: 0.35rem 0; color: var(--muted); }
+  .summary-row span:last-child { text-align: right; }
   .summary-row.total { font-weight: 700; color: var(--plum); font-size: 0.95rem; border-top: 1px solid rgba(196,137,154,0.2); margin-top: 0.4rem; padding-top: 0.6rem; }
   .summary-row.paying { color: var(--rose); font-weight: 600; }
+  .summary-row.extra { color: var(--rose-dark); }
 
   .form-nav { display: flex; gap: 1rem; margin-top: 1.2rem; }
   .btn-back { background: transparent; border: 1.5px solid rgba(196,137,154,0.3); color: var(--muted); padding: 0.75rem 1.4rem; border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
@@ -654,13 +663,14 @@
           <div class="policy-icon">🗓️</div>
           <div class="policy-text">
             <h4>Out-Of-Hours Appointments</h4>
+            <p>My working hours are <strong class="js-hours">9:00am – 6:00pm</strong>. If your appointment is expected to run past <span class="js-close">6:00pm</span>, an <strong>after-hours charge of <span class="js-late-fee">£30</span></strong> is added — you'll see this before you book.</p>
             <p>Need an appointment outside of my regular hours? Out-of-hours appointments are available by request. Please send me a DM to enquire and book.</p>
           <h4>Early Morning Appointments</h4>
           <p>Premium appointments are available before 9:00am:</p>
-          <p><strong>7:00am — £20 additional fee</strong></p>
-          <p><strong>8:00am — £20 additional fee</strong></p>
+          <p><strong>7:00am — <span class="js-early-fee">£20</span> additional fee</strong></p>
+          <p><strong>8:00am — <span class="js-early-fee">£20</span> additional fee</strong></p>
           <h4>Evening Appointments</h4>
-          <p>Appointments at <strong>6:00pm</strong> or later are available for an additional <strong>£30 fee.</strong> Please note that evening appointments are limited to services that take <strong>3–4 hours.</strong></p>
+          <p>Appointments at <strong>6:00pm</strong> or later are available for an additional <strong><span class="js-late-fee">£30</span> fee.</strong> Please note that evening appointments are limited to services that take <strong>3–4 hours.</strong></p>
           </div>
         </div>
       
@@ -749,7 +759,7 @@
       <!-- Step 2: Date & Time -->
       <div class="form-step" id="step-2">
         <div class="step-title">Pick your date &amp; time</div>
-        <div class="step-sub">Available slots shown below — Sundays are unavailable</div>
+        <div class="step-sub">Only times that fit your style around my other appointments are shown</div>
         <div class="calendar">
           <div class="cal-header">
             <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
@@ -761,6 +771,7 @@
         <div id="time-slots-container">
           <div class="no-date-msg">Select a date above to see available times</div>
         </div>
+        <div class="form-error" id="time-error">Please choose a date and time to continue.</div>
         <div class="form-nav">
           <button class="btn-back" onclick="goToStep(1)">← Back</button>
           <button class="btn-next" onclick="goToStep(3)">Your details →</button>
@@ -812,6 +823,7 @@
           <div class="summary-row"><span>Add-ons</span><span id="sum-addons">None</span></div>
           <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
           <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
+          <div class="summary-row extra" id="sum-extras-row" style="display:none"><span>Time-slot charges</span><span id="sum-extras">—</span></div>
           <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
           <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">—</span></div>
         </div>
@@ -1076,6 +1088,15 @@
           .catch(err=> console.warn('Booking reference record not saved:', err))
       : Promise.resolve();
     return Promise.all([savePrivate, saveRefOnly]);
+  };
+
+  /* ── BUSY TIMES ──
+     The admin dashboard keeps a public "busy" collection in sync with PAID
+     bookings. Each doc holds only { date:'YYYY-MM-DD', start, end } in minutes
+     after midnight — no names or contact details. */
+  window.kshoLoadBusy = async (fromKey, toKey) => {
+    const s = await getDocs(query(collection(db, 'busy'), where('date', '>=', fromKey), where('date', '<=', toKey)));
+    return s.docs.map(d => d.data());
   };
 
   window.kshoSaveReview = (review)=>
@@ -1529,6 +1550,7 @@ let calYear, calMonth;
 let selectedDate = null;
 let selectedTime = null;
 let selectedDateY = null, selectedDateM = null, selectedDateD = null; // numeric parts of the picked date, for re-validation
+let selectedSlot = null; // { start, end, fees:[{kind,label,amount}], ... } for the picked time
 
 const addonState = { length: null, colourMix: null, freestyle: null, curl: {}, miracleKnotsHair: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
 
@@ -1979,12 +2001,24 @@ function keepBookingInView() {
 function goToStep(n) {
   // Can't move past step 1 until the live price list has loaded and a style is picked
   if (n > 1 && (!SERVICES.length || !SERVICES[selectedCat] || !selectedSize.name)) return;
+  // Can't move past step 2 without a date and a time that fits
+  const timeErr = document.getElementById('time-error');
+  if (timeErr) timeErr.classList.remove('show');
+  if (n > 2 && (!selectedDate || !selectedTime || !selectedSlot)) {
+    if (document.getElementById('step-2').classList.contains('active') && timeErr) timeErr.classList.add('show');
+    return;
+  }
   document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.step-dot').forEach((d, i) => {
     d.classList.remove('active', 'done');
     if (i < n - 1) d.classList.add('done');
     else if (i === n - 1) d.classList.add('active');
   });
+  if (n === 2) {
+    // The style may have changed since the calendar was drawn, so re-check what fits
+    renderCal();
+    if (selectedDate) renderTimes();
+  }
   if (n === 4) updatePaySummary();
   document.getElementById('step-' + n).classList.add('active');
   keepBookingInView();
@@ -1997,22 +2031,197 @@ function selectPayment(el, mode) {
   updatePaySummary();
 }
 
+function slotFees() { return (selectedSlot && selectedSlot.fees) || []; }
+function slotFeeTotal() { return slotFees().reduce((a, f) => a + (Number(f.amount) || 0), 0); }
+
 function updatePaySummary() {
   const basePrice  = selectedSize.price || 0;
   const addonCost  = getAddonTotal();
-  const totalPrice = basePrice + addonCost;
+  const fees       = slotFees();
+  const totalPrice = basePrice + addonCost + slotFeeTotal();
   const fee        = getBookingFee();
 
   document.getElementById('sum-service').textContent = SERVICES[selectedCat] ? SERVICES[selectedCat].cat : '—';
   document.getElementById('sum-size').textContent    = selectedSize.name || '—';
   document.getElementById('sum-addons').textContent  = getAddonSummaryText();
   document.getElementById('sum-date').textContent    = selectedDate || '—';
-  document.getElementById('sum-time').textContent    = selectedTime || '—';
+  document.getElementById('sum-time').textContent    = selectedTime
+    ? selectedTime + (selectedSlot ? ' (finishes ~' + fmtTime(selectedSlot.end) + ')' : '')
+    : '—';
+  const extrasRow = document.getElementById('sum-extras-row');
+  if (extrasRow) {
+    extrasRow.style.display = fees.length ? 'flex' : 'none';
+    document.getElementById('sum-extras').textContent = fees.map(f => f.label + ' +£' + f.amount).join(', ');
+  }
   document.getElementById('sum-total').textContent   = totalPrice ? '£' + totalPrice : '—';
   document.getElementById('full-amount').textContent = totalPrice ? '£' + totalPrice : '—';
   document.getElementById('sum-paying').textContent  = payMode === 'deposit'
     ? (fee != null ? '£' + fee + ' deposit' : 'Deposit')
     : (totalPrice ? '£' + totalPrice : '—');
+}
+
+/* ============================================================
+   SCHEDULING — multiple clients per day
+   ------------------------------------------------------------
+   • Working day, gap between clients and the early / after-hours
+     fees come from admin → Settings → Working day (defaults below).
+   • Each style's length comes from the "Duration" of the chosen
+     size in admin (e.g. "~4h 30min").
+   • Times already taken come from the public "busy" collection,
+     which the admin keeps in sync with PAID bookings only.
+   • A start time is offered if the appointment (plus the gap
+     after it) doesn't overlap any paid booking (plus its gap).
+   • Starts before opening = early fee. Starts at/after closing =
+     evening fee (only for shorter styles). Running past closing =
+     after-hours fee, shown to the client before they book.
+   ============================================================ */
+const DEFAULT_DURATION_MINS = 60;   // used when a size has no duration set in admin
+const busyByDay = {};               // 'YYYY-MM-DD' -> [{start,end}] (minutes after midnight)
+const busyMonthPromise = {};        // 'YYYY-MM' -> loading promise
+const busyMonthState = {};          // 'YYYY-MM' -> 'loading' | 'ready'
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function dayKey(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
+
+/* "9:00am" / "9am" / "12:30 pm" / "18:00" -> minutes after midnight */
+function parseTimeMins(t) {
+  const m = String(t == null ? '' : t).trim().toLowerCase().match(/^(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?$/);
+  if (!m) return null;
+  let h = +m[1]; const min = +(m[2] || 0); const ap = m[3];
+  if (ap === 'pm' && h < 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  if (h > 23 || min > 59) return null;
+  return h * 60 + min;
+}
+/* minutes after midnight -> "5:30pm" */
+function fmtTime(mins) {
+  mins = ((Math.round(mins) % 1440) + 1440) % 1440;
+  let h = Math.floor(mins / 60); const m = mins % 60;
+  const ap = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return h + ':' + pad2(m) + ap;
+}
+/* "~7h 30min" / "~6 hours" / "~45 min" -> minutes */
+function parseDurationMins(s) {
+  s = String(s || '').toLowerCase();
+  const h = s.match(/(\d+(?:\.\d+)?)\s*h/);
+  const m = s.match(/(\d+)\s*m/);
+  const total = (h ? Math.round(parseFloat(h[1]) * 60) : 0) + (m ? parseInt(m[1], 10) : 0);
+  return total > 0 ? total : null;
+}
+function fmtDuration(mins) {
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return [h ? h + (h === 1 ? ' hour' : ' hours') : '', m ? m + ' min' : ''].filter(Boolean).join(' ');
+}
+
+function scheduleConfig() {
+  const s = (window.KSHO && window.KSHO.settings) || {};
+  const num = (v, d) => { if (v === '' || v == null) return d; const n = Number(v); return isFinite(n) ? n : d; };
+  const t = (v, d) => { const x = parseTimeMins(v); return x == null ? d : x; };
+  return {
+    open:         t(s.workStart, 9 * 60),       // 9:00am
+    close:        t(s.workEnd, 18 * 60),        // 6:00pm
+    latestFinish: t(s.latestFinish, 22 * 60),   // 10:00pm — nothing may run later than this
+    earliest:     7 * 60,                       // earliest premium start (7:00am)
+    buffer:       num(s.bufferMins, 30),        // gap after each appointment
+    earlyFee:     num(s.earlyFee, 20),
+    lateFee:      num(s.afterHoursFee, 30),
+    eveningMax:   num(s.eveningMaxHours, 4) * 60
+  };
+}
+
+function selectedDurationMins() {
+  const svc = SERVICES[selectedCat];
+  const sz = svc && (svc.sizes || []).find(z => z.name === selectedSize.name);
+  return parseDurationMins(sz && sz.detail) || DEFAULT_DURATION_MINS;
+}
+
+/* Fetch the paid/blocked times for a whole month (once, unless forced) */
+function loadBusyMonth(y, m, force) {
+  const mk = y + '-' + pad2(m + 1);
+  if (!force && busyMonthPromise[mk]) return busyMonthPromise[mk];
+  if (!busyMonthState[mk]) busyMonthState[mk] = 'loading';
+  const p = (async () => {
+    if (typeof window.kshoLoadBusy !== 'function') return;
+    try {
+      const rows = await window.kshoLoadBusy(mk + '-01', mk + '-31');
+      Object.keys(busyByDay).forEach(k => { if (k.indexOf(mk) === 0) delete busyByDay[k]; });
+      (rows || []).forEach(r => {
+        const s = Number(r.start), e = Number(r.end);
+        if (!r.date || !isFinite(s) || !isFinite(e)) return;
+        (busyByDay[r.date] = busyByDay[r.date] || []).push({ start: s, end: e });
+      });
+    } catch (e) {
+      // If this can't be read (e.g. Firestore rules not updated yet) we keep
+      // whatever we had, so booking still works rather than breaking.
+      console.warn('Could not load booked times:', e);
+    }
+  })().then(() => { busyMonthState[mk] = 'ready'; });
+  busyMonthPromise[mk] = p;
+  return p;
+}
+
+/* Can an appointment of `dur` minutes start at `t` on this day? */
+function evaluateSlot(t, dur, busy, cfg, nowMins) {
+  const end = t + dur;
+  const res = { start: t, end, label: fmtTime(t), ok: true, fees: [], why: '', short: '' };
+  const fail = (why, short) => { res.ok = false; res.why = why; res.short = short; return res; };
+
+  if (nowMins != null && t <= nowMins) return fail('This time has passed', 'Passed');
+  if (t < cfg.earliest) return fail('Too early', 'Unavailable');
+
+  if (t >= cfg.close) {
+    if (t > cfg.close + 60) return fail('Too late to start', 'Unavailable');
+    if (dur > cfg.eveningMax) return fail('Evening appointments are for styles up to ' + fmtDuration(cfg.eveningMax), 'Too long');
+    res.fees.push({ kind: 'evening', label: 'Evening appointment', amount: cfg.lateFee });
+  } else {
+    if (t < cfg.open) res.fees.push({ kind: 'early', label: 'Early start', amount: cfg.earlyFee });
+    if (end > cfg.close) { res.fees.push({ kind: 'overrun', label: 'After-hours finish', amount: cfg.lateFee }); res.overrun = true; }
+  }
+  if (end > cfg.latestFinish) return fail('This style would finish after ' + fmtTime(cfg.latestFinish), 'Too long');
+
+  const clash = busy.some(b => t < b.end + cfg.buffer && b.start < end + cfg.buffer);
+  if (clash) return fail('Already booked', 'Booked');
+  return res;
+}
+
+/* All start times to show for a day, each marked available or not */
+function slotOptions(key, dur) {
+  const cfg  = scheduleConfig();
+  const busy = busyByDay[key] || [];
+  const now  = new Date();
+  const nowMins = key === dayKey(now.getFullYear(), now.getMonth(), now.getDate())
+    ? now.getHours() * 60 + now.getMinutes() : null;
+
+  // Regular start times (admin → Settings) + early premium starts + the 6pm evening start
+  const fixed = new Set();
+  TIMES.forEach(x => { const m = parseTimeMins(x); if (m != null) fixed.add(m); });
+  for (let t = cfg.earliest; t < cfg.open; t += 60) fixed.add(t);
+  fixed.add(cfg.close);
+
+  // Also offer "straight after" each paid booking (end + gap), e.g. 5:30pm
+  const extra = new Set();
+  busy.forEach(b => {
+    const t = Math.ceil((b.end + cfg.buffer) / 15) * 15;
+    if (!fixed.has(t)) extra.add(t);
+  });
+
+  return [...fixed].map(t => ({ t, fixed: true }))
+    .concat([...extra].map(t => ({ t, fixed: false })))
+    .sort((a, b) => a.t - b.t)
+    .map(o => Object.assign({ fixed: o.fixed }, evaluateSlot(o.t, dur, busy, cfg, nowMins)))
+    .filter(o => o.ok || o.fixed);
+}
+
+function dayHasRoom(key, dur) { return slotOptions(key, dur).some(o => o.ok); }
+
+/* Keep the policy text in sync with admin → Settings */
+function applyScheduleText() {
+  const cfg = scheduleConfig();
+  document.querySelectorAll('.js-hours').forEach(el => { el.textContent = fmtTime(cfg.open) + ' – ' + fmtTime(cfg.close); });
+  document.querySelectorAll('.js-close').forEach(el => { el.textContent = fmtTime(cfg.close); });
+  document.querySelectorAll('.js-late-fee').forEach(el => { el.textContent = '£' + cfg.lateFee; });
+  document.querySelectorAll('.js-early-fee').forEach(el => { el.textContent = '£' + cfg.earlyFee; });
 }
 
 /* ============================================================
@@ -2055,6 +2264,15 @@ async function revalidateBeforeBooking() {
     if (window.kshoDayBlocked && window.kshoDayBlocked(selectedDateY, selectedDateM, selectedDateD)) {
       return { ok: false, reason: 'date' };
     }
+
+    // --- Is the chosen time still free (someone may have paid for it since)? ---
+    if (selectedTime) {
+      await loadBusyMonth(selectedDateY, selectedDateM, true);
+      const key = dayKey(selectedDateY, selectedDateM, selectedDateD);
+      const live = slotOptions(key, selectedDurationMins()).find(o => o.label === selectedTime);
+      if (!live || !live.ok) return { ok: false, reason: 'slot' };
+      selectedSlot = live; // pick up any fee change
+    }
   }
 
   return { ok: true };
@@ -2080,7 +2298,7 @@ function rebuildServicesFromFirestore() {
 
 /* Reset & re-render the Step-2 calendar from the freshly-fetched availability */
 function refreshCalendarFromFirestore() {
-  selectedDate = null; selectedTime = null;
+  selectedDate = null; selectedTime = null; selectedSlot = null;
   selectedDateY = selectedDateM = selectedDateD = null;
   renderCal();
   const container = document.getElementById('time-slots-container');
@@ -2102,7 +2320,7 @@ async function confirmBooking() {
   const agreed    = document.getElementById('agree-tc').checked;
 
   if (!SERVICES[selectedCat] || !selectedSize.name) { showErr('Please choose a style and size first.'); goToStep(1); return; }
-  if (!selectedDate || !selectedTime) { showErr('Please choose a date and time first.'); goToStep(2); return; }
+  if (!selectedDate || !selectedTime || !selectedSlot) { showErr('Please choose a date and time first.'); goToStep(2); return; }
   if (!first || !last) { alert('Please enter your first and last name.'); goToStep(3); return; }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert('Please enter a valid email address.'); goToStep(3); return; }
   if (phone.replace(/\D/g, '').length < 7) { alert('Please enter a valid phone number so I can reach you.'); goToStep(3); return; }
@@ -2110,7 +2328,7 @@ async function confirmBooking() {
 
   const originalLabel = btn.textContent;
 
-  // ── Stale-tab guard: verify the style, price & date against LIVE Firestore data ──
+  // ── Stale-tab guard: verify the style, price, date & time against LIVE Firestore data ──
   btn.disabled = true;
   btn.textContent = 'Checking availability…';
   const freshness = await revalidateBeforeBooking();
@@ -2126,6 +2344,11 @@ async function confirmBooking() {
       };
       showErr(msgs[freshness.reason]);
       goToStep(1);
+    } else if (freshness.reason === 'slot') {
+      selectedTime = null; selectedSlot = null;
+      goToStep(2); // re-draws the calendar and times with the latest bookings
+      const tErr = document.getElementById('time-error');
+      if (tErr) { tErr.textContent = 'Sorry — that time has just been booked by someone else. I’ve refreshed the times, please pick another.'; tErr.classList.add('show'); }
     } else {
       refreshCalendarFromFirestore();
       showErr(freshness.reason === 'past'
@@ -2137,8 +2360,15 @@ async function confirmBooking() {
   }
 
   const basePrice = selectedSize.price || 0;
-  const total     = basePrice + getAddonTotal();
+  const fees      = slotFees();
+  const feeTotal  = slotFeeTotal();
+  const total     = basePrice + getAddonTotal() + feeTotal;
   const fee       = getBookingFee();
+  const durMins   = selectedDurationMins();
+  const startMins = selectedSlot.start;
+  const endMins   = selectedSlot.end;
+  const timing    = selectedTime + ' – approx. ' + fmtTime(endMins) + ' (' + fmtDuration(durMins) + ')';
+  const feesText  = fees.length ? fees.map(f => f.label + ' +£' + f.amount).join(', ') : 'None';
   const payChoice = payMode === 'deposit'
     ? (fee != null
         ? '£' + fee + ' deposit now, remainder (£' + Math.max(0, total - fee) + ') on the day'
@@ -2155,7 +2385,8 @@ async function confirmBooking() {
     'Size: ' + (selectedSize.name || '—') + '\n' +
     'Add-ons: ' + getAddonSummaryText() + '\n' +
     'Date: ' + selectedDate + '\n' +
-    'Time: ' + selectedTime + '\n' +
+    'Time: ' + timing + '\n' +
+    'Time-slot charges: ' + feesText + '\n' +
     'Total on the day: £' + total + '\n' +
     'Payment preference: ' + payChoice + '\n\n' +
     'Client: ' + first + ' ' + last + '\n' +
@@ -2163,7 +2394,8 @@ async function confirmBooking() {
     'Phone: ' + phone + '\n' +
     'Client type: ' + returning + '\n' +
     'Notes: ' + (notes || '—') + '\n\n' +
-    'ACTION: reply to this client with a payment link to confirm their slot.';
+    'ACTION: reply to this client with a payment link to confirm their slot. ' +
+    'The time only becomes blocked on the website once you mark the booking as paid in your dashboard.';
 
   try {
     if (!WEB3FORMS_ACCESS_KEY || WEB3FORMS_ACCESS_KEY.indexOf('PASTE') === 0) {
@@ -2175,14 +2407,15 @@ async function confirmBooking() {
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
         access_key: WEB3FORMS_ACCESS_KEY,
-        subject: 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last,
+        subject: 'New booking ' + currentOrderRef + ' — ' + first + ' ' + last + (fees.length ? ' (' + fees.map(f => f.label).join(', ') + ')' : ''),
         from_name: 'K.SHO Hair Website',
         order_ref: currentOrderRef,
         service: SERVICES[selectedCat].cat,
         size: selectedSize.name || '',
         addons: getAddonSummaryText(),
         date: selectedDate,
-        time: selectedTime,
+        time: timing,
+        time_slot_charges: feesText,
         total: '£' + total,
         payment_preference: payChoice,
         client_name: first + ' ' + last,
@@ -2202,7 +2435,10 @@ async function confirmBooking() {
       size: selectedSize.name || '', addons: getAddonSummaryText(),
       date: selectedDate, time: selectedTime, total: total,
       name: first + ' ' + last, email, phone, notes: notes || '—',
-      payMode: payMode
+      payMode: payMode,
+      dateKey: dayKey(selectedDateY, selectedDateM, selectedDateD),
+      startMins: startMins, endMins: endMins, durationMins: durMins,
+      extraFees: fees, extraFeesTotal: feeTotal, afterHours: !!selectedSlot.overrun
     });
     showSuccess();
   } catch (err) {
@@ -2222,7 +2458,7 @@ function showSuccess() {
 
 const DAYS   = ['Mo','Tu','We','Th','Fr','Sa','Su'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const TIMES  = ['9:00am','10:00am','11:00am','12:00pm','1:00pm','2:00pm','3:00pm','4:00pm'];
+const TIMES  = ['9:00am','10:00am','11:00am','12:00pm','1:00pm','2:00pm','3:00pm','4:00pm','5:00pm'];
 
 function initCal() {
   const now = new Date();
@@ -2239,6 +2475,13 @@ function changeMonth(d) {
 }
 
 function renderCal() {
+  const mk = calYear + '-' + pad2(calMonth + 1);
+  const monthReady = busyMonthState[mk] === 'ready';
+  if (!busyMonthPromise[mk]) {
+    const y = calYear, m = calMonth;
+    loadBusyMonth(y, m).then(() => { if (y === calYear && m === calMonth) renderCal(); });
+  }
+
   document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
@@ -2262,19 +2505,33 @@ function renderCal() {
 
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date(); today.setHours(0,0,0,0);
+  const dur = selectedDurationMins();
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dt   = new Date(calYear, calMonth, d);
     const el   = document.createElement('div');
     const past = dt < today;
-    const avail = !past && !window.kshoDayBlocked(calYear, calMonth, d);
+    const open = !past && !window.kshoDayBlocked(calYear, calMonth, d);
+    const room = open && (!monthReady || dayHasRoom(dayKey(calYear, calMonth, d), dur));
+    const avail = room;
     el.className = 'cal-day ' + (avail ? 'available' : 'disabled');
-    if (!past && !avail) el.title = 'Unavailable';
+    if (!past && !open) el.title = 'Unavailable';
+    else if (open && !room) el.title = 'Fully booked for this style';
     const isToday = dt.toDateString() === today.toDateString();
     if (isToday && avail) el.classList.add('today');
+    if (avail && selectedDateY === calYear && selectedDateM === calMonth && selectedDateD === d) el.classList.add('selected');
     el.textContent = d;
     if (avail) el.onclick = () => pickDate(d, el);
     grid.appendChild(el);
+  }
+
+  // If the picked day has filled up for this style, clear it
+  if (monthReady && selectedDateY === calYear && selectedDateM === calMonth &&
+      !dayHasRoom(dayKey(selectedDateY, selectedDateM, selectedDateD), dur)) {
+    selectedDate = null; selectedTime = null; selectedSlot = null;
+    selectedDateY = selectedDateM = selectedDateD = null;
+    const container = document.getElementById('time-slots-container');
+    if (container) container.innerHTML = '<div class="no-date-msg">Select a date above to see available times</div>';
   }
 }
 
@@ -2284,30 +2541,102 @@ function pickDate(d, el) {
   selectedDate = d + ' ' + MONTHS[calMonth] + ' ' + calYear;
   selectedDateY = calYear; selectedDateM = calMonth; selectedDateD = d; // remember numeric parts for re-validation
   selectedTime = null;
+  selectedSlot = null;
+  const tErr = document.getElementById('time-error');
+  if (tErr) tErr.classList.remove('show');
   renderTimes();
 }
 
 function renderTimes() {
   const container = document.getElementById('time-slots-container');
   container.innerHTML = '';
-  if (!selectedDate) {
+  if (!selectedDate || selectedDateY == null) {
     container.innerHTML = '<div class="no-date-msg">Select a date above to see available times</div>';
     return;
   }
+  const mk = selectedDateY + '-' + pad2(selectedDateM + 1);
+  if (busyMonthState[mk] !== 'ready') {
+    container.innerHTML = '<div class="no-date-msg">Checking available times…</div>';
+    loadBusyMonth(selectedDateY, selectedDateM).then(renderTimes);
+    return;
+  }
+
+  const key  = dayKey(selectedDateY, selectedDateM, selectedDateD);
+  const dur  = selectedDurationMins();
+  const opts = slotOptions(key, dur);
+
+  // Keep the chosen time only if it still fits (e.g. after changing style)
+  const still = selectedTime && opts.find(o => o.ok && o.label === selectedTime);
+  if (still) selectedSlot = still; else { selectedTime = null; selectedSlot = null; }
+
+  const info = document.createElement('div');
+  info.className = 'slot-dur';
+  info.innerHTML = 'Your style takes about <strong>' + escapeHtml(fmtDuration(dur)) + '</strong> — the times below already allow for that.';
+  container.appendChild(info);
+
+  if (!opts.some(o => o.ok)) {
+    const msg = document.createElement('div');
+    msg.className = 'no-date-msg';
+    msg.textContent = 'No times left on this day for this style — please try another day, or a shorter style.';
+    container.appendChild(msg);
+    return;
+  }
+
   const wrap = document.createElement('div');
   wrap.className = 'time-slots';
-  TIMES.forEach(t => {
+  opts.forEach(o => {
     const el = document.createElement('div');
-    el.className = 'time-slot';
-    el.textContent = t;
-    el.onclick = () => {
-      document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedTime = t;
-    };
+    const feeTotal = o.fees.reduce((a, f) => a + f.amount, 0);
+    el.className = 'time-slot' + (o.ok && o.fees.length ? ' premium' : '') + (o.ok ? '' : ' booked') + (o.ok && o.label === selectedTime ? ' selected' : '');
+    el.innerHTML = escapeHtml(o.label) +
+      (o.ok && feeTotal ? '<span class="slot-fee">+£' + feeTotal + '</span>' : '') +
+      (!o.ok ? '<span class="slot-fee">' + escapeHtml(o.short) + '</span>' : '');
+    if (!o.ok) {
+      el.title = o.why;
+    } else {
+      if (o.fees.length) el.title = o.fees.map(f => f.label + ' +£' + f.amount).join(', ');
+      el.onclick = () => {
+        document.querySelectorAll('.time-slot').forEach(x => x.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedTime = o.label;
+        selectedSlot = o;
+        const tErr = document.getElementById('time-error');
+        if (tErr) tErr.classList.remove('show');
+        renderSlotNote();
+      };
+    }
     wrap.appendChild(el);
   });
   container.appendChild(wrap);
+
+  const note = document.createElement('div');
+  note.className = 'slot-note';
+  note.id = 'slot-note';
+  container.appendChild(note);
+  renderSlotNote();
+}
+
+/* Explains the finish time and any extra charge for the chosen time */
+function renderSlotNote() {
+  const el = document.getElementById('slot-note');
+  if (!el) return;
+  if (!selectedSlot) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const cfg = scheduleConfig();
+  const s = selectedSlot;
+  const lines = ['Estimated finish: around <strong>' + fmtTime(s.end) + '</strong>.'];
+  s.fees.forEach(f => {
+    if (f.kind === 'overrun') {
+      lines.push('⚠️ This appointment is expected to run past my working hours (' + fmtTime(cfg.open) + ' – ' + fmtTime(cfg.close) +
+        '), so an <strong>after-hours charge of £' + f.amount + '</strong> will be added to your total.');
+    } else if (f.kind === 'evening') {
+      lines.push('🌙 Evening appointment — an <strong>additional £' + f.amount + '</strong> will be added to your total.');
+    } else if (f.kind === 'early') {
+      lines.push('🌅 Early-morning appointment — an <strong>additional £' + f.amount + '</strong> will be added to your total.');
+    }
+  });
+  el.className = 'slot-note' + (s.fees.length ? ' warn' : '');
+  el.style.display = 'block';
+  el.innerHTML = lines.join('<br>');
 }
 
 /* ---- Init ----
@@ -2370,6 +2699,7 @@ function applyDynamicSettings(){
   const fee = getBookingFee();
   document.querySelectorAll('.js-fee').forEach(el => { el.textContent = fee != null ? '£' + fee + ' ' : ''; });
   document.querySelectorAll('.js-fee-amt').forEach(el => { el.textContent = fee != null ? '£' + fee : '—'; });
+  applyScheduleText();
 }
 if (window.__kshoReady) kshoBoot();
 else window.addEventListener('ksho:ready', kshoBoot);

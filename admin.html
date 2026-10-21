@@ -139,6 +139,8 @@
   .pill{display:inline-flex;align-items:center;gap:.3rem;background:var(--ivory);border:1px solid var(--line);
     border-radius:100px;padding:.2rem .65rem;font-size:.74rem;color:var(--muted);white-space:nowrap}
   .pill.warn{background:var(--danger-tint);border-color:rgba(192,57,43,.2);color:var(--danger)}
+  .pill.ok{background:var(--success-tint);border-color:rgba(94,154,130,.3);color:var(--success-dark)}
+  .pill.fee{background:var(--rose-tint);border-color:rgba(196,137,154,.35);color:var(--rose-dark)}
   .toggle{display:inline-flex;align-items:center;gap:.45rem;font-size:.84rem;color:var(--charcoal);cursor:pointer}
   .toggle input{width:17px;height:17px;accent-color:var(--rose)}
   .saved-flag{font-size:.8rem;color:var(--success);font-weight:600;opacity:0;transition:opacity .2s}
@@ -146,6 +148,7 @@
   .card-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--line);align-items:center}
   .card-actions .spacer{flex:1}
   .order-ctrl{display:flex;gap:.3rem}
+  .field-hint{font-size:.78rem;color:var(--muted);margin-top:.35rem;line-height:1.4}
 
   /* list tools (search inside a list) */
   .list-tools{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
@@ -254,6 +257,7 @@
 
   .email-warn{font-size:.8rem;color:var(--muted);background:#fff;border:1px dashed var(--line-2);
     border-radius:var(--r-sm);padding:.6rem .85rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:flex-start}
+  .email-warn.bad{color:var(--danger);border-color:rgba(192,57,43,.35);background:var(--danger-tint)}
 
   .bk-card{--accent:var(--line-2);background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:1.1rem 1.2rem 1rem 1.35rem;
     margin-bottom:.85rem;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
@@ -606,7 +610,7 @@
         <div class="page-head">
           <div>
             <h2>Bookings</h2>
-            <p>Requests from your website plus any you've added for DM bookings.</p>
+            <p>Requests from your website plus any you've added for DM bookings. A booking's time is blocked on your website once you mark it as paid.</p>
           </div>
           <div class="head-actions">
             <button class="btn btn-ghost btn-sm" id="refresh-bk-btn">↻ Refresh</button>
@@ -761,7 +765,7 @@
         <div class="page-head">
           <div>
             <h2>Services &amp; prices</h2>
-            <p>Open a service to edit its sizes, prices and add-ons. Changes go live on your booking form when you save.</p>
+            <p>Open a service to edit its sizes, prices and add-ons. The <b>Duration</b> of each size decides which start times your website offers, so keep it accurate (e.g. "~4h 30min").</p>
           </div>
           <div class="head-actions">
             <button class="btn btn-ghost btn-sm" id="dedupe-btn">Remove duplicates</button>
@@ -828,7 +832,7 @@
         <div class="page-head">
           <div>
             <h2>Settings</h2>
-            <p>Your booking fee and the appointment times offered on your calendar.</p>
+            <p>Your booking fee, working day and the appointment times offered on your calendar.</p>
           </div>
           <div class="head-actions">
             <button class="btn btn-primary btn-sm fab-save" id="save-settings-btn">Save settings</button>
@@ -978,8 +982,15 @@ const DEFAULT_CONTENT = {
 };
 const DEFAULT_SETTINGS = {
   bookingFee:15,
-  times:"9:00am, 10:00am, 11:00am, 12:00pm, 1:00pm, 2:00pm, 3:00pm, 4:00pm",
-  releaseNote:"Appointments are released on the 15th of each month at 12:00pm."
+  times:"9:00am, 10:00am, 11:00am, 12:00pm, 1:00pm, 2:00pm, 3:00pm, 4:00pm, 5:00pm",
+  releaseNote:"Appointments are released on the 15th of each month at 12:00pm.",
+  workStart:"9:00am",
+  workEnd:"6:00pm",
+  latestFinish:"10:00pm",
+  bufferMins:30,
+  earlyFee:20,
+  afterHoursFee:30,
+  eveningMaxHours:4
 };
 const DEFAULT_ADDONS = {
   length: [
@@ -1046,6 +1057,32 @@ function toast(msg, isErr=false){
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
 function lockScroll(on){ document.body.classList.toggle('lock', !!on); }
+
+/* ===== Time helpers (shared with the website's scheduling) ===== */
+/* "9:00am" / "9am" / "12:30 pm" / "18:00" -> minutes after midnight */
+function parseTimeMins(t){
+  const m=String(t??'').trim().toLowerCase().match(/^(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?$/);
+  if(!m) return null;
+  let h=+m[1]; const min=+(m[2]||0); const ap=m[3];
+  if(ap==='pm' && h<12) h+=12;
+  if(ap==='am' && h===12) h=0;
+  if(h>23||min>59) return null;
+  return h*60+min;
+}
+/* minutes after midnight -> "5:30pm" */
+function fmtTime(mins){
+  mins=((Math.round(mins)%1440)+1440)%1440;
+  let h=Math.floor(mins/60); const m=mins%60; const ap=h>=12?'pm':'am';
+  h=h%12||12; return h+':'+pad2(m)+ap;
+}
+/* "~7h 30min" / "~6 hours" / "~45 min" -> minutes */
+function parseDurationMins(s){
+  s=String(s||'').toLowerCase();
+  const h=s.match(/(\d+(?:\.\d+)?)\s*h/);
+  const m=s.match(/(\d+)\s*m/);
+  const total=(h?Math.round(parseFloat(h[1])*60):0)+(m?parseInt(m[1],10):0);
+  return total>0?total:null;
+}
 
 /* ===== AUTH ===== */
 $('#login-btn').addEventListener('click', doLogin);
@@ -1132,7 +1169,12 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ===== LOAD EVERYTHING ===== */
-function loadAll(){ loadServices(); loadAddons(); loadPortfolio(); loadContent(); loadSettings(); loadBookings(); loadReviews(); loadAvailability(); }
+let servicesLoaded=null, settingsLoaded=null;
+function loadAll(){
+  servicesLoaded = loadServices();
+  settingsLoaded = loadSettings();
+  loadAddons(); loadPortfolio(); loadContent(); loadBookings(); loadReviews(); loadAvailability();
+}
 
 async function fetchOrdered(name){
   try{
@@ -1178,7 +1220,9 @@ function svcMeta(svc){
 }
 function svcFlags(svc){
   const n=(svc.addonGroups||[]).length;
+  const noDur=(svc.sizes||[]).some(s=>!parseDurationMins(s.detail));
   return (svc.hidden?'<span class="pill warn">Hidden from site</span>':'')+
+    (noDur?'<span class="pill warn" title="Sizes without a duration are treated as 1 hour when working out free times">Missing duration</span>':'')+
     `<span class="pill">${n} add-on group${n===1?'':'s'}</span>`;
 }
 function serviceCard(svc,i){
@@ -1212,7 +1256,7 @@ function serviceCard(svc,i){
         </div>
       </div>
       <div class="sizes-head">
-        <div>Size name</div><div class="h-detail">Duration</div><div>Price</div><div></div>
+        <div>Size name</div><div class="h-detail">Duration (used for scheduling)</div><div>Price</div><div></div>
       </div>
       <div class="sizes-wrap"></div>
       <button class="btn btn-ghost btn-sm add-size" style="margin-top:.2rem">+ Add size</button>
@@ -1729,6 +1773,8 @@ $('#save-content-btn').addEventListener('click', async ()=>{
    SETTINGS
    ========================================================= */
 let settings={};
+const setVal=(k)=> (settings[k]===undefined || settings[k]===null || settings[k]==='') ? DEFAULT_SETTINGS[k] : settings[k];
+function bufferMins(){ const n=Number(setVal('bufferMins')); return isFinite(n)?n:30; }
 function renderTimePreview(){
   const v=$('#set-times')?.value||'';
   const chips=v.split(',').map(t=>t.trim()).filter(Boolean);
@@ -1748,10 +1794,34 @@ async function loadSettings(){
         <p style="font-size:.8rem;color:var(--muted);margin-top:.4rem">Used as the deposit in payment emails. The balance on the day is the total minus this.</p></div>
     </div>
     <div class="card">
+      <h3>Working day</h3>
+      <p class="card-hint">Your website uses these to decide which start times fit each style around bookings you've marked as paid.</p>
+      <div class="grid-2">
+        <div class="field"><label for="set-open">Start of working day</label>
+          <input class="inp" id="set-open" value="${esc(setVal('workStart'))}" placeholder="9:00am"/></div>
+        <div class="field"><label for="set-close">End of working day</label>
+          <input class="inp" id="set-close" value="${esc(setVal('workEnd'))}" placeholder="6:00pm"/>
+          <p class="field-hint">Appointments expected to run past this get the after-hours fee.</p></div>
+        <div class="field"><label for="set-buffer">Gap between clients (minutes)</label>
+          <input class="inp" id="set-buffer" type="number" inputmode="numeric" min="0" step="5" value="${esc(setVal('bufferMins'))}"/></div>
+        <div class="field"><label for="set-latest">Latest finish time</label>
+          <input class="inp" id="set-latest" value="${esc(setVal('latestFinish'))}" placeholder="10:00pm"/>
+          <p class="field-hint">No appointment can be booked online if it would end later than this.</p></div>
+        <div class="field"><label for="set-early">Early start fee (7am &amp; 8am)</label>
+          <div class="price-wrap"><input class="inp" id="set-early" type="number" inputmode="numeric" min="0" value="${esc(setVal('earlyFee'))}"/></div></div>
+        <div class="field"><label for="set-late">After-hours / evening fee</label>
+          <div class="price-wrap"><input class="inp" id="set-late" type="number" inputmode="numeric" min="0" value="${esc(setVal('afterHoursFee'))}"/></div>
+          <p class="field-hint">Charged for a 6pm start, or when a style runs past the end of your day.</p></div>
+        <div class="field" style="margin-bottom:0"><label for="set-evemax">Longest style allowed at 6pm (hours)</label>
+          <input class="inp" id="set-evemax" type="number" inputmode="decimal" min="0" step="0.5" value="${esc(setVal('eveningMaxHours'))}"/></div>
+      </div>
+    </div>
+    <div class="card">
       <h3>Calendar</h3>
       <div class="field"><label for="set-times">Available time slots <span style="font-weight:400;color:var(--muted)">(comma separated)</span></label>
         <input class="inp" id="set-times" value="${esc(settings.times||'')}" placeholder="9:00am, 10:00am, 11:00am"/>
-        <div class="time-preview" id="time-preview"></div></div>
+        <div class="time-preview" id="time-preview"></div>
+        <p class="field-hint">Your usual start times. Your website also adds 7am, 8am and 6pm (with their fees), plus "straight after" times when another client finishes. Include 5:00pm if you'd like to offer late-afternoon slots for short styles.</p></div>
       <div class="field" style="margin-bottom:0"><label for="set-release">Appointment release note</label>
         <textarea class="inp" id="set-release" rows="2">${esc(settings.releaseNote||'')}</textarea></div>
     </div>`;
@@ -1759,10 +1829,23 @@ async function loadSettings(){
   renderTimePreview();
 }
 $('#save-settings-btn').addEventListener('click', async ()=>{
+  const num=(id,d)=>{ const v=$(id).value.trim(); if(v==='') return d; const n=parseFloat(v); return isFinite(n)?n:d; };
+  const timeFields=[['#set-open','Start of working day'],['#set-close','End of working day'],['#set-latest','Latest finish time']];
+  for(const [id,label] of timeFields){
+    if(parseTimeMins($(id).value)==null){ toast(`${label}: use a time like 9:00am`,true); $(id).focus(); return; }
+  }
+  if(parseTimeMins($('#set-close').value) <= parseTimeMins($('#set-open').value)){ toast('End of day must be after the start',true); return; }
   const data={
     bookingFee: parseInt($('#set-fee').value,10)||0,
     releaseNote: $('#set-release').value.trim(),
-    times: $('#set-times').value.trim()
+    times: $('#set-times').value.trim(),
+    workStart: $('#set-open').value.trim(),
+    workEnd: $('#set-close').value.trim(),
+    latestFinish: $('#set-latest').value.trim(),
+    bufferMins: num('#set-buffer',30),
+    earlyFee: num('#set-early',20),
+    afterHoursFee: num('#set-late',30),
+    eveningMaxHours: num('#set-evemax',4)
   };
   const btn=$('#save-settings-btn'); btn.disabled=true;
   try{ await setDoc(doc(db,'settings','main'),data,{merge:true}); settings={...settings,...data}; toast('Settings saved'); }
@@ -1789,6 +1872,93 @@ async function loadBookings(){
   bookings=rows;
   initBkFilters();
   renderBookings();
+  reconcileBusy();
+}
+
+/* =========================================================
+   WEBSITE CALENDAR SYNC  ("busy" collection)
+   - Only bookings marked as PAID (deposit paid / paid in full /
+     confirmed / completed) block time on your website.
+   - Each blocked booking writes a tiny public record:
+       busy/{bookingId} = { date:'YYYY-MM-DD', start, end }
+     (minutes after midnight — no names, emails or phone numbers).
+   - Cancelling, refunding, deleting or moving a booking back to
+     new/unpaid frees the time again.
+   - Every time bookings load, the whole list is re-checked so
+     anything missed gets fixed automatically.
+   ========================================================= */
+const HOLD = ['deposit paid','paid in full','confirmed','completed'];
+const DEFAULT_DURATION_MINS = 60;
+let busySyncError = null;
+
+function holdsSlot(r){ return HOLD.includes((r.status||'new').toLowerCase()); }
+function dateKeyOf(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function lookupDuration(service,size){
+  const sv=String(service||'').trim().toLowerCase(), sz=String(size||'').trim().toLowerCase();
+  const s=services.find(x=>(x.cat||'').trim().toLowerCase()===sv);
+  const z=s&&(s.sizes||[]).find(x=>(x.name||'').trim().toLowerCase()===sz);
+  return z?parseDurationMins(z.detail):null;
+}
+/* Works out the date, start and end of a booking (or null if there isn't enough info) */
+function bkTiming(r){
+  const d=apptOf(r); if(!d) return null;
+  let start=parseTimeMins(bk(r,'time'));
+  if(start==null && r.startMins!=null && r.startMins!=='' && isFinite(+r.startMins)) start=+r.startMins;
+  if(start==null) return null;
+  let dur = (+r.durationMins>0) ? +r.durationMins : lookupDuration(bk(r,'service'), bk(r,'size'));
+  if(!dur) dur=DEFAULT_DURATION_MINS;
+  return { date:dateKeyOf(d), start, end:start+dur, dur };
+}
+async function syncBusy(r){
+  try{
+    const t = holdsSlot(r) ? bkTiming(r) : null;
+    if(t) await setDoc(doc(db,'busy',r.id), {date:t.date, start:t.start, end:t.end});
+    else  await deleteDoc(doc(db,'busy',r.id));
+  }catch(e){
+    console.warn('Calendar sync failed', e);
+    toast('Saved, but your website calendar didn\'t update: '+e.message, true);
+  }
+}
+async function reconcileBusy(){
+  try{
+    if(servicesLoaded) await servicesLoaded;
+    const todayKey=dateKeyOf(new Date());
+    const snap=await getDocs(collection(db,'busy'));
+    const have=new Map(); snap.forEach(d=>have.set(d.id,d.data()));
+    const want=new Map();
+    bookings.forEach(r=>{
+      if(!holdsSlot(r)) return;
+      const t=bkTiming(r);
+      if(t && t.date>=todayKey) want.set(r.id,{date:t.date,start:t.start,end:t.end});
+    });
+    const jobs=[];
+    want.forEach((v,id)=>{
+      const h=have.get(id);
+      if(!h || h.date!==v.date || h.start!==v.start || h.end!==v.end) jobs.push(setDoc(doc(db,'busy',id),v));
+    });
+    have.forEach((_,id)=>{ if(!want.has(id)) jobs.push(deleteDoc(doc(db,'busy',id))); });
+    await Promise.all(jobs);
+    if(busySyncError){ busySyncError=null; renderBookings(); }
+  }catch(e){
+    console.warn('Calendar sync failed', e);
+    const first=!busySyncError;
+    busySyncError=e.message||String(e);
+    if(first) renderBookings();
+  }
+}
+/* Other paid bookings that overlap this one (including the gap between clients) */
+function findClashes(r){
+  const t=bkTiming(r); if(!t) return [];
+  const buf=bufferMins();
+  return bookings
+    .filter(o=>o.id!==r.id && holdsSlot(o))
+    .map(o=>({o,t:bkTiming(o)}))
+    .filter(x=>x.t && x.t.date===t.date && t.start < x.t.end+buf && x.t.start < t.end+buf);
+}
+function clashMsg(name, cl, question){
+  return `Heads up — ${name}'s appointment overlaps with another paid booking:\n\n`+
+    cl.map(x=>`• ${bk(x.o,'name','client_name')||'Another client'}: ${fmtTime(x.t.start)} – ${fmtTime(x.t.end)}`).join('\n')+
+    `\n\n(This includes your ${bufferMins()}-minute gap between clients.)\n\n${question}`;
 }
 
 /* ---- Filter / search / sort state ---- */
@@ -2042,6 +2212,7 @@ function renderBookings(){
         if(a.t==null && b.t==null) return bkCreatedMs(b.r)-bkCreatedMs(a.r);
         if(a.t==null) return 1;
         if(b.t==null) return -1;
+        if(a.t===b.t) return ((bkTiming(a.r)?.start??0)-(bkTiming(b.r)?.start??0))*dir;
         return (a.t-b.t)*dir;
       }).map(x=>x.r);
   }
@@ -2061,6 +2232,12 @@ function renderBookings(){
   }
 
   box.innerHTML='';
+  if(busySyncError){
+    const warn=document.createElement('div'); warn.className='email-warn bad';
+    warn.innerHTML='<span>⚠️</span><span>Your website calendar couldn\'t be updated, so it may not know which times are taken. '+
+      'Check the Firestore rules allow the <b>busy</b> collection. ('+esc(busySyncError)+')</span>';
+    box.appendChild(warn);
+  }
   if(!EMAILJS_ON){
     const warn=document.createElement('div'); warn.className='email-warn';
     warn.innerHTML='<span>✉️</span><span>Automatic emailing isn\'t set up yet, so the send buttons open a ready-made draft in your email app. Add EmailJS keys at the top of admin.html to send in one click.</span>';
@@ -2086,8 +2263,10 @@ function bookingCard(r, lead){
   const link   = r.paymentLink || '';
   const dateTxt = bk(r,'date'), timeTxt = bk(r,'time');
   const rel = relLabel(daysFromToday(apptOf(r)));
+  const tm  = bkTiming(r);
   const fmt=ts=>{ try{ const d=ts?.toDate?ts.toDate():new Date(ts); return d.toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}); }catch(_){ return ''; } };
   const addons = (r.addons&&r.addons!=='None') ? r.addons : '';
+  const fees = Array.isArray(r.extraFees) ? r.extraFees : [];
 
   const c=document.createElement('article');
   c.className='bk-card'+(lead?' lead':''); c.dataset.id=r.id; c.dataset.s=status;
@@ -2109,7 +2288,7 @@ function bookingCard(r, lead){
     <div class="bk-when">
       ${ICON_CAL}
       <span class="when-txt">${dateTxt?hl(dateTxt):'<span style="color:var(--muted);font-weight:500">No date set</span>'}</span>
-      ${timeTxt?`<span class="when-time">at ${hl(timeTxt)}</span>`:''}
+      ${timeTxt?`<span class="when-time">at ${hl(timeTxt)}${tm?` – ends ~${fmtTime(tm.end)}`:''}</span>`:''}
       ${rel?`<span class="when-rel ${rel.c}">${rel.t}</span>`:''}
     </div>
 
@@ -2126,6 +2305,8 @@ function bookingCard(r, lead){
       <label class="hair-flag${r.hairOrdered?' on':''}">
         <input type="checkbox" class="bk-hair" ${r.hairOrdered?'checked':''}/> 🧴 Hair ordered
       </label>
+      ${holdsSlot(r)&&tm?'<span class="pill ok" title="This time is blocked on your website">🔒 Time blocked on site</span>':''}
+      ${fees.map(f=>`<span class="pill fee">⏰ ${esc(f.label)} +£${esc(f.amount)}</span>`).join('')}
       ${r.manual?'<span class="pill">Added from DMs</span>':''}
       ${r.payMode==='full'?'<span class="pill">Paying in full</span>':''}
       ${r.createdAt?`<span class="bk-received">Received ${fmt(r.createdAt)}</span>`:''}
@@ -2155,14 +2336,24 @@ function bookingCard(r, lead){
   $('.bk-edit',c).addEventListener('click', ()=> openBkModal(r));
 
   $('.bk-status',c).addEventListener('change', async e=>{
-    const v=e.target.value; e.target.dataset.s=v;
+    const v=e.target.value;
+    const prev=(r.status||'new').toLowerCase();
+    if(HOLD.includes(v) && !HOLD.includes(prev)){
+      const cl=findClashes(r);
+      if(cl.length && !confirm(clashMsg(name, cl, `Mark as "${v}" anyway?`))){
+        e.target.value=prev; e.target.dataset.s=prev; return;
+      }
+    }
+    e.target.dataset.s=v;
     try{
       await setDoc(doc(db,'bookings',r.id),{status:v},{merge:true});
       r.status=v; c.dataset.s=v;
+      await syncBusy(r);
       renderBkQuick();
-      toast('Status set to “'+v+'”');
+      toast('Status set to “'+v+'”'+(HOLD.includes(v)&&!HOLD.includes(prev)?' — time blocked on your site':''));
+      if(HOLD.includes(v)!==HOLD.includes(prev)) renderBookings();
     }
-    catch(err){ toast('Couldn\'t update status: '+err.message,true); }
+    catch(err){ toast('Couldn\'t update status: '+err.message,true); e.target.value=prev; e.target.dataset.s=prev; }
   });
 
   $('.bk-hair',c).addEventListener('change', async e=>{
@@ -2214,6 +2405,7 @@ function bookingCard(r, lead){
     if(!confirm(`Delete the booking for ${name}? This can't be undone.`)) return;
     try{
       await deleteDoc(doc(db,'bookings',r.id));
+      deleteDoc(doc(db,'busy',r.id)).catch(()=>{});
       bookings=bookings.filter(b=>b.id!==r.id);
       renderBookings();
       toast('Booking deleted');
@@ -2392,10 +2584,13 @@ async function bumpStatusAfterConfirm(r){
     try{
       await setDoc(doc(db,'bookings',r.id),{status:'confirmed'},{merge:true});
       const orig=bookings.find(b=>b.id===r.id); if(orig) orig.status='confirmed';
+      await syncBusy(orig||{...r,status:'confirmed'});
       const card=$(`.bk-card[data-id="${r.id}"]`);
       const sel=card&&$('.bk-status',card);
       if(sel){ sel.value='confirmed'; sel.dataset.s='confirmed'; card.dataset.s='confirmed'; }
       renderBkQuick();
+      const cl=orig?findClashes(orig):[];
+      if(cl.length) alert(clashMsg(bk(orig,'name','client_name')||'This client', cl, 'You may want to move one of these bookings.'));
     }catch(e){}
   }
 }
@@ -2407,6 +2602,7 @@ async function markCancelled(r){
   try{
     await setDoc(doc(db,'bookings',r.id),{status:'cancelled'},{merge:true});
     const orig=bookings.find(b=>b.id===r.id); if(orig) orig.status='cancelled';
+    await syncBusy(orig||{...r,status:'cancelled'});
     const card=$(`.bk-card[data-id="${r.id}"]`);
     const sel=card&&$('.bk-status',card);
     if(sel){ sel.value='cancelled'; sel.dataset.s='cancelled'; card.dataset.s='cancelled'; }
@@ -2478,6 +2674,9 @@ function openBkModal(r){
   const curStatus=isEdit?(r.status||'new').toLowerCase():'new';
   const pd=isEdit?apptOf(r):null;
   const pickVal=pd?`${pd.getFullYear()}-${pad2(pd.getMonth()+1)}-${pad2(pd.getDate())}`:'';
+  const initDur = isEdit
+    ? ((+r.durationMins>0) ? +r.durationMins : lookupDuration(bk(r,'service'),bk(r,'size')))
+    : null;
 
   const bg=document.createElement('div');
   bg.className='modal-bg'; bg.id='bk-modal';
@@ -2517,6 +2716,9 @@ function openBkModal(r){
             <datalist id="bm-svc-list">${svcOpts}</datalist></div>
           <div class="field"><label for="bm-size">Size</label><input class="inp" id="bm-size" value="${esc(isEdit?bk(r,'size'):'')}" placeholder="e.g. Smedium"/></div>
         </div>
+        <div class="field"><label for="bm-dur">Length (hours)</label>
+          <input class="inp" id="bm-dur" type="number" inputmode="decimal" min="0" step="0.25" value="${initDur?+(initDur/60).toFixed(2):''}" placeholder="Filled in from the service — e.g. 4.5" style="max-width:220px"/>
+          <p class="field-hint">Used to block the right amount of time on your website once this booking is paid.</p></div>
         <div class="field"><label for="bm-addons">Add-ons</label><input class="inp" id="bm-addons" value="${esc(isEdit&&r.addons&&r.addons!=='None'?r.addons:'')}" placeholder="e.g. Bum length, Deep Wave"/></div>
         <div class="field"><label for="bm-notes">Notes</label><input class="inp" id="bm-notes" value="${esc(isEdit&&r.notes&&r.notes!=='—'?r.notes:'')}" placeholder="Anything to remember"/></div>
 
@@ -2556,6 +2758,17 @@ function openBkModal(r){
     const d=new Date(e.target.value+'T12:00:00');
     $('#bm-date',bg).value=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   });
+  // Fill the length from the service + size unless it's been typed in by hand
+  const durInp=$('#bm-dur',bg);
+  let durTouched = isEdit && +r.durationMins>0;
+  durInp.addEventListener('input', ()=>{ durTouched = durInp.value.trim()!==''; });
+  const autoDur=()=>{
+    if(durTouched) return;
+    const m=lookupDuration($('#bm-service',bg).value,$('#bm-size',bg).value);
+    durInp.value = m ? +(m/60).toFixed(2) : '';
+  };
+  $('#bm-service',bg).addEventListener('change', autoDur);
+  $('#bm-size',bg).addEventListener('input', autoDur);
   $('#bm-save',bg).addEventListener('click', saveBkModal);
   if(window.matchMedia('(min-width:821px)').matches) $('#bm-name',bg).focus();
 }
@@ -2566,21 +2779,36 @@ async function saveBkModal(){
   const name=g('bm-name').trim();
   if(!name){ toast('Client name is required',true); $('#bm-name')?.focus(); return; }
   const totalRaw=g('bm-total').trim();
+  const service=g('bm-service').trim(), size=g('bm-size').trim();
+  const time=g('bm-time').trim(), date=g('bm-date').trim();
+  const durH=parseFloat(g('bm-dur'));
+  const durationMins = durH>0 ? Math.round(durH*60) : (lookupDuration(service,size)||'');
+  const startMins = parseTimeMins(time);
+  const apptDate = parseApptDate(date);
   const data={
     name,
     email:  g('bm-email').trim(),
     phone:  g('bm-phone').trim(),
-    service:g('bm-service').trim(),
-    size:   g('bm-size').trim(),
+    service,
+    size,
     addons: g('bm-addons').trim()||'None',
-    date:   g('bm-date').trim(),
-    time:   g('bm-time').trim(),
+    date,
+    time,
     total:  totalRaw===''?'':(parseFloat(totalRaw)||0),
     notes:  g('bm-notes').trim(),
     status: g('bm-status')||'new',
     payMode: g('bm-paymode')||'deposit',
-    hairOrdered: !!$('#bm-hair')?.checked
+    hairOrdered: !!$('#bm-hair')?.checked,
+    durationMins,
+    startMins: startMins==null ? '' : startMins,
+    dateKey: apptDate ? dateKeyOf(apptDate) : ''
   };
+  if(time && startMins==null){ toast('Time: use a format like 10:00am',true); $('#bm-time')?.focus(); return; }
+  if(HOLD.includes(data.status)){
+    const probe={...(bkEditing||{}), ...data, id: bkEditing ? bkEditing.id : '__new__'};
+    const cl=findClashes(probe);
+    if(cl.length && !confirm(clashMsg(name, cl, 'Save anyway?'))) return;
+  }
   const btn=$('#bm-save'); const wasEdit=!!bkEditing;
   btn.disabled=true; btn.textContent='Saving…';
   try{
@@ -2595,7 +2823,7 @@ async function saveBkModal(){
       toast('Booking added — ref '+ref);
     }
     closeBkModal();
-    loadBookings();
+    loadBookings(); // also re-syncs your website calendar
   }catch(e){
     toast('Save failed: '+e.message,true);
     btn.disabled=false; btn.textContent=wasEdit?'Save changes':'Add booking';

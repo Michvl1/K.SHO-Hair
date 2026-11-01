@@ -281,6 +281,10 @@
   .cal-day.selected.today { color: #fff; }
   .cal-day.disabled { color: rgba(0,0,0,0.2); cursor: not-allowed; }
   .cal-day.empty { cursor: default; }
+  .cal-day .cal-sur { display: block; font-size: 0.56rem; font-weight: 700; line-height: 1; color: var(--rose-dark); margin-top: 2px; }
+  .cal-day.selected .cal-sur { color: #fff; }
+  .cal-day.surcharge:not(.selected) { background: rgba(196,137,154,0.1); }
+  .date-sur-note { margin-top: 0.8rem; background: rgba(196,137,154,0.1); border: 1px solid rgba(196,137,154,0.45); color: var(--rose-dark); border-radius: 0.8rem; padding: 0.7rem 1rem; font-size: 0.82rem; line-height: 1.5; }
   .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 1rem; }
   .time-slot { text-align: center; padding: 0.5rem; border-radius: 0.6rem; border: 1.5px solid rgba(196,137,154,0.25); font-size: 0.8rem; cursor: pointer; color: var(--charcoal); background: var(--ivory); font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
   .time-slot:hover { border-color: var(--rose); color: var(--rose); }
@@ -823,7 +827,9 @@
           <div class="summary-row"><span>Add-ons</span><span id="sum-addons">None</span></div>
           <div class="summary-row"><span>Date</span><span id="sum-date">—</span></div>
           <div class="summary-row"><span>Time</span><span id="sum-time">—</span></div>
+          <div class="summary-row" id="sum-base-row"><span>Style &amp; add-ons</span><span id="sum-base">—</span></div>
           <div class="summary-row extra" id="sum-extras-row" style="display:none"><span>Time-slot charges</span><span id="sum-extras">—</span></div>
+          <div class="summary-row extra" id="sum-datesur-row" style="display:none"><span id="sum-datesur-label">Peak date charge</span><span id="sum-datesur">—</span></div>
           <div class="summary-row total"><span>Total on the day</span><span id="sum-total">—</span></div>
           <div class="summary-row paying"><span>Deposit to secure</span><span id="sum-paying">—</span></div>
         </div>
@@ -1551,6 +1557,7 @@ let selectedDate = null;
 let selectedTime = null;
 let selectedDateY = null, selectedDateM = null, selectedDateD = null; // numeric parts of the picked date, for re-validation
 let selectedSlot = null; // { start, end, fees:[{kind,label,amount}], ... } for the picked time
+let quotedDateSurcharge = null; // date charge shown to the customer on the confirm step
 
 const addonState = { length: null, colourMix: null, freestyle: null, curl: {}, miracleKnotsHair: null, fulaniUpgrade: null, frenchCurlHair: null, colour: null };
 
@@ -2034,11 +2041,29 @@ function selectPayment(el, mode) {
 function slotFees() { return (selectedSlot && selectedSlot.fees) || []; }
 function slotFeeTotal() { return slotFees().reduce((a, f) => a + (Number(f.amount) || 0), 0); }
 
+/* ── DATE PRICE ADJUSTMENTS ──
+   Set in admin → Availability → Price adjustments, stored in Firestore
+   settings/availability.surcharges as { 'YYYY-MM-DD': { amount, label } }.
+   Only the date the client picks matters; other dates use the normal price. */
+function dateSurchargeFor(y, m, d) {
+  const a = window.KSHO && window.KSHO.availability;
+  const s = a && a.surcharges && a.surcharges[dayKey(y, m, d)];
+  if (!s) return null;
+  const amount = Number(typeof s === 'object' ? s.amount : s);
+  if (!isFinite(amount) || amount <= 0) return null;
+  return { amount: amount, label: (typeof s === 'object' && s.label) ? String(s.label) : '' };
+}
+function selectedDateSurcharge() {
+  return selectedDateY == null ? null : dateSurchargeFor(selectedDateY, selectedDateM, selectedDateD);
+}
+function dateSurchargeTotal() { const s = selectedDateSurcharge(); return s ? s.amount : 0; }
+function dateSurchargeText(s) { return (s.label || 'Peak date charge') + ' +£' + s.amount; }
+
 function updatePaySummary() {
   const basePrice  = selectedSize.price || 0;
   const addonCost  = getAddonTotal();
   const fees       = slotFees();
-  const totalPrice = basePrice + addonCost + slotFeeTotal();
+  const totalPrice = basePrice + addonCost + slotFeeTotal() + dateSurchargeTotal();
   const fee        = getBookingFee();
 
   document.getElementById('sum-service').textContent = SERVICES[selectedCat] ? SERVICES[selectedCat].cat : '—';
@@ -2053,6 +2078,16 @@ function updatePaySummary() {
     extrasRow.style.display = fees.length ? 'flex' : 'none';
     document.getElementById('sum-extras').textContent = fees.map(f => f.label + ' +£' + f.amount).join(', ');
   }
+  const sur = selectedDateSurcharge();
+  quotedDateSurcharge = sur ? sur.amount : 0;
+  const surRow = document.getElementById('sum-datesur-row');
+  if (surRow) {
+    surRow.style.display = sur ? 'flex' : 'none';
+    document.getElementById('sum-datesur-label').textContent = sur && sur.label ? sur.label + ' (date charge)' : 'Peak date charge';
+    document.getElementById('sum-datesur').textContent = sur ? '+£' + sur.amount : '—';
+  }
+  const baseEl = document.getElementById('sum-base');
+  if (baseEl) baseEl.textContent = (basePrice + addonCost) ? '£' + (basePrice + addonCost) : '—';
   document.getElementById('sum-total').textContent   = totalPrice ? '£' + totalPrice : '—';
   document.getElementById('full-amount').textContent = totalPrice ? '£' + totalPrice : '—';
   document.getElementById('sum-paying').textContent  = payMode === 'deposit'
@@ -2264,6 +2299,10 @@ async function revalidateBeforeBooking() {
     if (window.kshoDayBlocked && window.kshoDayBlocked(selectedDateY, selectedDateM, selectedDateD)) {
       return { ok: false, reason: 'date' };
     }
+    // --- Has the extra charge for this date changed since the total was shown? ---
+    if (quotedDateSurcharge != null && dateSurchargeTotal() !== quotedDateSurcharge) {
+      return { ok: false, reason: 'surcharge' };
+    }
 
     // --- Is the chosen time still free (someone may have paid for it since)? ---
     if (selectedTime) {
@@ -2344,6 +2383,9 @@ async function confirmBooking() {
       };
       showErr(msgs[freshness.reason]);
       goToStep(1);
+    } else if (freshness.reason === 'surcharge') {
+      updatePaySummary(); // shows the new total and records it as quoted
+      showErr('The price for this date has just been updated. Please check your new total above, then press Send Order again.');
     } else if (freshness.reason === 'slot') {
       selectedTime = null; selectedSlot = null;
       goToStep(2); // re-draws the calendar and times with the latest bookings
@@ -2359,17 +2401,19 @@ async function confirmBooking() {
     return;
   }
 
-  const basePrice = selectedSize.price || 0;
-  const fees      = slotFees();
-  const feeTotal  = slotFeeTotal();
-  const total     = basePrice + getAddonTotal() + feeTotal;
-  const fee       = getBookingFee();
-  const durMins   = selectedDurationMins();
-  const startMins = selectedSlot.start;
-  const endMins   = selectedSlot.end;
-  const timing    = selectedTime + ' – approx. ' + fmtTime(endMins) + ' (' + fmtDuration(durMins) + ')';
-  const feesText  = fees.length ? fees.map(f => f.label + ' +£' + f.amount).join(', ') : 'None';
-  const payChoice = payMode === 'deposit'
+  const basePrice  = selectedSize.price || 0;
+  const fees       = slotFees();
+  const feeTotal   = slotFeeTotal();
+  const dateSur    = selectedDateSurcharge();
+  const dateSurAmt = dateSur ? dateSur.amount : 0;
+  const total      = basePrice + getAddonTotal() + feeTotal + dateSurAmt;
+  const fee        = getBookingFee();
+  const durMins    = selectedDurationMins();
+  const startMins  = selectedSlot.start;
+  const endMins    = selectedSlot.end;
+  const timing     = selectedTime + ' – approx. ' + fmtTime(endMins) + ' (' + fmtDuration(durMins) + ')';
+  const feesText   = fees.length ? fees.map(f => f.label + ' +£' + f.amount).join(', ') : 'None';
+  const payChoice  = payMode === 'deposit'
     ? (fee != null
         ? '£' + fee + ' deposit now, remainder (£' + Math.max(0, total - fee) + ') on the day'
         : 'Deposit now, remainder on the day')
@@ -2387,6 +2431,7 @@ async function confirmBooking() {
     'Date: ' + selectedDate + '\n' +
     'Time: ' + timing + '\n' +
     'Time-slot charges: ' + feesText + '\n' +
+    'Date surcharge: ' + (dateSur ? dateSurchargeText(dateSur) : 'None') + '\n' +
     'Total on the day: £' + total + '\n' +
     'Payment preference: ' + payChoice + '\n\n' +
     'Client: ' + first + ' ' + last + '\n' +
@@ -2416,6 +2461,7 @@ async function confirmBooking() {
         date: selectedDate,
         time: timing,
         time_slot_charges: feesText,
+        date_surcharge: dateSur ? dateSurchargeText(dateSur) : 'None',
         total: '£' + total,
         payment_preference: payChoice,
         client_name: first + ' ' + last,
@@ -2438,7 +2484,8 @@ async function confirmBooking() {
       payMode: payMode,
       dateKey: dayKey(selectedDateY, selectedDateM, selectedDateD),
       startMins: startMins, endMins: endMins, durationMins: durMins,
-      extraFees: fees, extraFeesTotal: feeTotal, afterHours: !!selectedSlot.overrun
+      extraFees: fees, extraFeesTotal: feeTotal, afterHours: !!selectedSlot.overrun,
+      dateSurcharge: dateSurAmt, dateSurchargeLabel: dateSur ? (dateSur.label || 'Peak date charge') : ''
     });
     showSuccess();
   } catch (err) {
@@ -2521,6 +2568,15 @@ function renderCal() {
     if (isToday && avail) el.classList.add('today');
     if (avail && selectedDateY === calYear && selectedDateM === calMonth && selectedDateD === d) el.classList.add('selected');
     el.textContent = d;
+    const daySur = avail ? dateSurchargeFor(calYear, calMonth, d) : null;
+    if (daySur) {
+      el.classList.add('surcharge');
+      el.title = dateSurchargeText(daySur);
+      const tag = document.createElement('span');
+      tag.className = 'cal-sur';
+      tag.textContent = '+£' + daySur.amount;
+      el.appendChild(tag);
+    }
     if (avail) el.onclick = () => pickDate(d, el);
     grid.appendChild(el);
   }
@@ -2573,6 +2629,15 @@ function renderTimes() {
   info.className = 'slot-dur';
   info.innerHTML = 'Your style takes about <strong>' + escapeHtml(fmtDuration(dur)) + '</strong> — the times below already allow for that.';
   container.appendChild(info);
+
+  const daySur = selectedDateSurcharge();
+  if (daySur) {
+    const sn = document.createElement('div');
+    sn.className = 'date-sur-note';
+    sn.innerHTML = '📆 ' + (daySur.label ? '<strong>' + escapeHtml(daySur.label) + '</strong>: t' : 'T') +
+      'his is a peak date, so an <strong>extra £' + escapeHtml(daySur.amount) + '</strong> is added to your total.';
+    container.appendChild(sn);
+  }
 
   if (!opts.some(o => o.ok)) {
     const msg = document.createElement('div');

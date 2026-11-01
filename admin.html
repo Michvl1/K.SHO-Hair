@@ -382,6 +382,33 @@
   .sur-item .a{font-family:'Playfair Display',serif;font-weight:700;color:var(--gold)}
   @media (max-width:500px){ .sur-form{grid-template-columns:1fr} }
 
+  /* ---------- PRIORITY BOOKING ---------- */
+  .pr-status{display:flex;align-items:center;gap:1rem}
+  .pr-dot{width:14px;height:14px;border-radius:50%;background:var(--line-2);flex-shrink:0}
+  .pr-status.live .pr-dot{background:var(--success);box-shadow:0 0 0 5px var(--success-tint)}
+  .pr-status.ended .pr-dot{background:var(--gold)}
+  .pr-status-txt{flex:1;min-width:0}
+  .pr-status-txt b{display:block;color:var(--plum);font-size:1.05rem}
+  .pr-status-txt span{font-size:.84rem;color:var(--muted)}
+  .switch{position:relative;width:52px;height:30px;flex-shrink:0;cursor:pointer}
+  .switch input{opacity:0;width:0;height:0;position:absolute}
+  .switch span{position:absolute;inset:0;background:var(--line-2);border-radius:100px;transition:.2s}
+  .switch span::before{content:'';position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+  .switch input:checked+span{background:var(--success)}
+  .switch input:checked+span::before{transform:translateX(22px)}
+  .switch input:focus-visible+span{outline:2px solid var(--rose);outline-offset:2px}
+  .pr-pass-row{display:flex;gap:.5rem}
+  .pr-pass-row .inp{flex:1;min-width:0;font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;text-transform:uppercase}
+  .pr-quick{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.9rem}
+  .pr-scope{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+  .pr-scope label{border:1.5px solid var(--line);border-radius:var(--r-sm);padding:.75rem .85rem;cursor:pointer;background:var(--ivory)}
+  .pr-scope label:has(input:checked){border-color:var(--rose);background:var(--rose-tint)}
+  .pr-scope b{font-size:.88rem;color:var(--plum)}
+  .pr-scope small{display:block;font-size:.78rem;color:var(--muted);margin-top:.2rem}
+  .pr-scope input{accent-color:var(--rose);margin-right:.35rem}
+  #pr-share{font-size:.88rem;background:var(--ivory-2)}
+  @media (max-width:600px){ .pr-scope{grid-template-columns:1fr} }
+
   /* ---------- REVIEWS ---------- */
   .rv-summary{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;margin-bottom:1rem;padding:1rem 1.2rem}
   .rv-avg{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--plum);line-height:1}
@@ -603,6 +630,7 @@
       <div class="nav-group">Your business</div>
       <button class="navbtn active" data-page="bookings"><span class="ico">📅</span><span class="lbl">Bookings</span><span class="nav-badge" id="nav-badge-bk"></span></button>
       <button class="navbtn" data-page="availability"><span class="ico">🗓️</span><span class="lbl">Availability</span></button>
+      <button class="navbtn" data-page="priority"><span class="ico">🔐</span><span class="lbl">Priority booking</span><span class="nav-badge" id="nav-badge-pr" style="background:var(--success)"></span></button>
       <button class="navbtn" data-page="reviews"><span class="ico">⭐</span><span class="lbl">Reviews</span><span class="nav-badge" id="nav-badge-rv" style="background:var(--muted)"></span></button>
 
       <div class="nav-group">Your shop</div>
@@ -756,6 +784,20 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- PRIORITY BOOKING -->
+      <section class="page" id="page-priority">
+        <div class="page-head">
+          <div>
+            <h2>Priority booking</h2>
+            <p>Lock booking with a password so only the clients you email can book first. Turn it off, or set an end time, to open booking to everyone.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn btn-primary btn-sm fab-save" id="save-priority-btn">Save priority booking</button>
+          </div>
+        </div>
+        <div id="priority-form" style="max-width:640px"><div class="loading">Loading…</div></div>
       </section>
 
       <!-- REVIEWS -->
@@ -1219,7 +1261,7 @@ let servicesLoaded=null, settingsLoaded=null;
 function loadAll(){
   servicesLoaded = loadServices();
   settingsLoaded = loadSettings();
-  loadAddons(); loadPortfolio(); loadContent(); loadBookings(); loadReviews(); loadAvailability();
+  loadAddons(); loadPortfolio(); loadContent(); loadBookings(); loadReviews(); loadAvailability(); loadPriority();
 }
 
 async function fetchOrdered(name){
@@ -2354,6 +2396,7 @@ function bookingCard(r, lead){
       ${holdsSlot(r)&&tm?'<span class="pill ok" title="This time is blocked on your website">🔒 Time blocked on site</span>':''}
       ${fees.map(f=>`<span class="pill fee">⏰ ${esc(f.label)} +£${esc(f.amount)}</span>`).join('')}
       ${(+r.dateSurcharge>0)?`<span class="pill fee" title="Extra charge for this date, already included in the total">📆 ${esc(r.dateSurchargeLabel||'Date charge')} +£${esc(r.dateSurcharge)}</span>`:''}
+      ${r.priorityBooking?'<span class="pill ok" title="Booked while priority booking was on">🔐 Priority booking</span>':''}
       ${r.manual?'<span class="pill">Added from DMs</span>':''}
       ${r.payMode==='full'?'<span class="pill">Paying in full</span>':''}
       ${r.createdAt?`<span class="bk-received">Received ${fmt(r.createdAt)}</span>`:''}
@@ -3251,6 +3294,217 @@ $('#sur-remove').addEventListener('click',()=>{
   renderSurSel(); renderAvailCal(); renderSurList();
 });
 $('#sur-clear').addEventListener('click',()=>{ surPicked.clear(); renderSurSel(); renderAvailCal(); });
+
+/* =========================================================
+   PRIORITY BOOKING
+   Stored in settings/priority =
+     { enabled, codeHash, endsAt (ms or ''), scope:'booking'|'site', message, updatedAt }
+   - Only a scrambled (SHA-256) copy of the password is saved, never the
+     password itself. The website scrambles what a visitor types the same
+     way and compares, so the real password isn't visible in your data.
+   - The plain password is remembered on THIS device only (so you can see
+     and copy it again here). On another device, type it again to change it.
+   - When endsAt passes, the website opens to everyone by itself.
+   ========================================================= */
+const PRIORITY_SALT = 'ksho-priority:';
+const PR_CODE_KEY = 'kshoPriorityCode';
+let priority = {};
+let priorityTick = null;
+
+const normCode = c => String(c||'').trim().toUpperCase();
+async function sha256Hex(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function rememberedCode(hash){
+  try{ const o=JSON.parse(localStorage.getItem(PR_CODE_KEY)||'null'); return (o && o.hash===hash) ? o.code : ''; }catch(_){ return ''; }
+}
+function rememberCode(hash, code){ try{ localStorage.setItem(PR_CODE_KEY, JSON.stringify({hash, code})); }catch(_){} }
+function genPriorityCode(){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s=''; const rnd=new Uint32Array(5); crypto.getRandomValues(rnd);
+  rnd.forEach(n=> s+=chars[n%chars.length]);
+  return 'KSHO-'+s;
+}
+function toLocalInput(ms){
+  if(!ms) return '';
+  const d=new Date(+ms);
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function fmtWhen(ms){
+  const d=new Date(+ms), now=new Date();
+  const t=fmtTime(d.getHours()*60+d.getMinutes());
+  if(d.toDateString()===now.toDateString()) return t+' today';
+  const tm=new Date(now); tm.setDate(now.getDate()+1);
+  if(d.toDateString()===tm.toDateString()) return t+' tomorrow';
+  return t+' on '+d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+}
+function priorityState(p){
+  p=p||priority;
+  if(!p.enabled || !p.codeHash) return 'off';
+  const end=+p.endsAt||0;
+  return (end && Date.now()>=end) ? 'ended' : 'live';
+}
+
+async function loadPriority(){
+  const box=$('#priority-form');
+  try{
+    const snap=await getDocs(collection(db,'settings'));
+    let found=null; snap.forEach(d=>{ if(d.id==='priority') found=d.data(); });
+    priority = found || {};
+  }catch(e){ box.innerHTML='<div class="empty">Couldn\'t load priority booking. '+esc(e.message)+'</div>'; return; }
+  renderPriority();
+}
+
+function renderPriority(){
+  const box=$('#priority-form');
+  const code=rememberedCode(priority.codeHash);
+  const scope=priority.scope==='site'?'site':'booking';
+  box.innerHTML=`
+    <div class="card">
+      <div class="pr-status" id="pr-status">
+        <span class="pr-dot"></span>
+        <div class="pr-status-txt"><b id="pr-state-title"></b><span id="pr-state-sub"></span></div>
+        <label class="switch" title="Turn priority booking on or off"><input type="checkbox" id="pr-on" aria-label="Priority booking on"/><span></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Password</h3>
+      <div class="pr-pass-row">
+        <input class="inp" id="pr-code" value="${esc(code)}" placeholder="${priority.codeHash&&!code?'Password set — type a new one to change it':'e.g. KSHO-XMAS'}" autocomplete="off" spellcheck="false" aria-label="Priority password"/>
+        <button class="btn btn-ghost btn-sm" id="pr-gen">Generate</button>
+      </div>
+      <p class="field-hint">Not case-sensitive. Changing the password locks out anyone who unlocked with the old one.${priority.codeHash&&!code?' The current password was set on another device, so it isn\'t shown here.':''}</p>
+    </div>
+
+    <div class="card">
+      <h3>How long</h3>
+      <div class="pr-quick">
+        <button class="wd-chip pr-hrs" data-h="1">1 hour</button>
+        <button class="wd-chip pr-hrs" data-h="2">2 hours</button>
+        <button class="wd-chip pr-hrs" data-h="4">4 hours</button>
+        <button class="wd-chip pr-hrs" data-h="6">6 hours</button>
+        <button class="wd-chip pr-hrs" data-h="24">24 hours</button>
+        <button class="wd-chip pr-hrs" data-h="0">No end time</button>
+      </div>
+      <div class="field" style="margin-bottom:0"><label for="pr-end">Opens to everyone at</label>
+        <input class="inp" id="pr-end" type="datetime-local" value="${toLocalInput(priority.endsAt)}" style="max-width:260px"/>
+        <p class="field-hint">When this time passes, your website unlocks by itself. Leave it empty to stay locked until you switch it off.</p></div>
+    </div>
+
+    <div class="card">
+      <h3>What to lock</h3>
+      <div class="pr-scope">
+        <label><input type="radio" name="pr-scope" value="booking" ${scope==='booking'?'checked':''}/><b>Booking form only</b>
+          <small>Everyone can browse your site, but only clients with the password can book. Recommended.</small></label>
+        <label><input type="radio" name="pr-scope" value="site" ${scope==='site'?'checked':''}/><b>Whole website</b>
+          <small>Visitors see a password screen before anything else.</small></label>
+      </div>
+      <div class="field" style="margin-bottom:0"><label for="pr-msg">Message shown to visitors <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <textarea class="inp" id="pr-msg" rows="2" placeholder="Booking is open to priority clients first. Enter the password from your email to continue.">${esc(priority.message||'')}</textarea></div>
+    </div>
+
+    <div class="card">
+      <h3>Send to your priority clients</h3>
+      <p class="card-hint">Paste this into your email to priority clients. It updates as you change the password and end time.</p>
+      <textarea class="inp" id="pr-share" rows="5" readonly></textarea>
+      <div class="card-actions" style="margin-top:.8rem;padding-top:.8rem">
+        <button class="btn btn-ghost btn-sm" id="pr-copy">Copy message</button>
+      </div>
+    </div>`;
+
+  $('#pr-on').checked = !!priority.enabled && priorityState()!=='ended';
+  $('#pr-on').addEventListener('change', async e=>{
+    const ok = await savePriority();
+    if(!ok) e.target.checked=!e.target.checked;
+  });
+  $('#pr-gen').addEventListener('click', ()=>{ $('#pr-code').value=genPriorityCode(); updateShare(); });
+  $('#pr-code').addEventListener('input', updateShare);
+  $('#pr-end').addEventListener('change', ()=>{ updateShare(); updatePriorityStatus(); });
+  $$('.pr-hrs').forEach(b=> b.addEventListener('click', ()=>{
+    const h=+b.dataset.h;
+    if(!h){ $('#pr-end').value=''; }
+    else{
+      const t=new Date(Date.now()+h*3600e3);
+      t.setMinutes(Math.ceil(t.getMinutes()/5)*5, 0, 0);
+      $('#pr-end').value=toLocalInput(t.getTime());
+    }
+    updateShare(); updatePriorityStatus();
+  }));
+  $('#pr-copy').addEventListener('click', async ()=>{
+    const txt=$('#pr-share').value;
+    if(!normCode($('#pr-code').value)){ toast('Set a password first',true); return; }
+    try{ await navigator.clipboard.writeText(txt); toast('Message copied'); }
+    catch(_){ $('#pr-share').select(); toast('Select the text and copy it',true); }
+  });
+  updateShare();
+  updatePriorityStatus();
+  clearInterval(priorityTick);
+  priorityTick=setInterval(updatePriorityStatus, 30000);
+}
+
+function endFromForm(){ const v=$('#pr-end')?.value; return v ? new Date(v).getTime() : ''; }
+
+function updateShare(){
+  const el=$('#pr-share'); if(!el) return;
+  const code=normCode($('#pr-code').value);
+  const end=endFromForm();
+  el.value = code
+    ? `Hi lovely! You're on my priority list, so you get first pick of my appointments 💕\n\n`+
+      `Book here: ${LINKS.site}\nPriority password: ${code}\n\n`+
+      (end ? `The password works until ${fmtWhen(end)}, then booking opens to everyone. `:'')+
+      `Slots go fast, so book early!\n\nKeziah x\n${BIZ.name}`
+    : 'Set a password above to create your message.';
+}
+
+function updatePriorityStatus(){
+  const wrap=$('#pr-status'); if(!wrap) return;
+  const st=priorityState();
+  wrap.classList.toggle('live', st==='live');
+  wrap.classList.toggle('ended', st==='ended');
+  const end=+priority.endsAt||0;
+  $('#pr-state-title').textContent = st==='live' ? 'Priority booking is ON' : st==='ended' ? 'Priority booking has ended' : 'Priority booking is off';
+  $('#pr-state-sub').textContent = st==='live'
+    ? (end ? `Only clients with the password can ${priority.scope==='site'?'see your website':'book'}. Opens to everyone at ${fmtWhen(end)}.` : `Only clients with the password can ${priority.scope==='site'?'see your website':'book'}, until you switch it off.`)
+    : st==='ended' ? 'Your website opened to everyone at the end time. Switch on again to start a new priority window.'
+    : 'Everyone can book as normal.';
+  if(st==='ended' && $('#pr-on').checked) $('#pr-on').checked=false;
+  $('#nav-badge-pr').textContent = st==='live' ? 'ON' : '';
+}
+
+async function savePriority(){
+  const on=$('#pr-on').checked;
+  const code=normCode($('#pr-code').value);
+  let codeHash=priority.codeHash||'';
+  if(code){
+    if(code.length<4){ toast('Use a password with at least 4 characters',true); $('#pr-code').focus(); return false; }
+    try{ codeHash=await sha256Hex(PRIORITY_SALT+code); }
+    catch(e){ toast('Couldn\'t secure the password in this browser. Open the dashboard over https.',true); return false; }
+  }
+  if(on && !codeHash){ toast('Set a password first',true); $('#pr-code').focus(); return false; }
+  const endsAt=endFromForm();
+  if(on && endsAt && endsAt<=Date.now()){ toast('The end time is in the past. Pick a later time or clear it.',true); $('#pr-end').focus(); return false; }
+  const data={
+    enabled: on,
+    codeHash,
+    endsAt,
+    scope: ($('input[name="pr-scope"]:checked')||{}).value==='site' ? 'site' : 'booking',
+    message: $('#pr-msg').value.trim(),
+    updatedAt: Date.now()
+  };
+  const btn=$('#save-priority-btn'); btn.disabled=true;
+  try{
+    await setDoc(doc(db,'settings','priority'), data, {merge:false});
+    priority=data;
+    if(code) rememberCode(codeHash, code);
+    updatePriorityStatus();
+    toast(on ? (endsAt ? `Priority booking ON until ${fmtWhen(endsAt)}` : 'Priority booking ON') : 'Priority booking off. Everyone can book.');
+    return true;
+  }catch(e){ toast('Save failed: '+e.message,true); return false; }
+  finally{ btn.disabled=false; }
+}
+$('#save-priority-btn').addEventListener('click', ()=> savePriority());
 </script>
 
 </body>

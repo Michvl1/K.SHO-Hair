@@ -362,6 +362,26 @@
   .ac-legend i.closed{background:rgba(192,57,43,.4)}
   .ac-legend i.recur{background:repeating-linear-gradient(45deg,rgba(122,110,126,.3),rgba(122,110,126,.3) 3px,transparent 3px,transparent 6px);border:1px solid var(--line)}
 
+  /* ---------- DATE PRICE ADJUSTMENTS ---------- */
+  .avail-mode{display:inline-flex;background:var(--ivory);border:1px solid var(--line);border-radius:100px;padding:3px;margin-bottom:1.1rem;flex-wrap:wrap}
+  .avail-mode button{border:none;background:none;border-radius:100px;padding:.45rem 1rem;font-size:.84rem;font-weight:600;color:var(--muted)}
+  .avail-mode button.on{background:var(--plum);color:var(--champagne)}
+  .ac-day{flex-direction:column;gap:1px;line-height:1.05}
+  .ac-day .sur-amt{display:inline-block;font-size:.6rem;font-weight:700;color:var(--gold)}
+  .ac-day.sur{box-shadow:inset 0 0 0 2px rgba(201,154,69,.6)}
+  .ac-day.picked{background:var(--gold)!important;color:#fff!important;border-color:var(--gold)!important}
+  .ac-day.picked .sur-amt{color:#fff}
+  .ac-legend i.sur{background:#fff;box-shadow:inset 0 0 0 2px rgba(201,154,69,.85)}
+  .sur-panel{margin-top:1.2rem;border-top:1px solid var(--line);padding-top:1.1rem}
+  .sur-sel{font-size:.86rem;color:var(--plum);font-weight:600;margin-bottom:.7rem}
+  .sur-form{display:grid;grid-template-columns:130px 1fr;gap:.7rem}
+  .sur-list{display:flex;flex-direction:column;gap:.45rem;margin-top:.35rem}
+  .sur-item{display:flex;align-items:center;gap:.6rem;background:var(--ivory);border:1px solid var(--line);border-radius:var(--r-sm);padding:.55rem .7rem}
+  .sur-item .d{flex:1;min-width:0;font-size:.88rem;font-weight:600;color:var(--plum)}
+  .sur-item .d small{display:block;font-weight:500;color:var(--muted);font-size:.76rem}
+  .sur-item .a{font-family:'Playfair Display',serif;font-weight:700;color:var(--gold)}
+  @media (max-width:500px){ .sur-form{grid-template-columns:1fr} }
+
   /* ---------- REVIEWS ---------- */
   .rv-summary{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;margin-bottom:1rem;padding:1rem 1.2rem}
   .rv-avg{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--plum);line-height:1}
@@ -685,12 +705,16 @@
         <div class="page-head">
           <div>
             <h2>Availability</h2>
-            <p>Tap a day to switch it between open and closed. Closed days show no time slots on your booking form. Changes save automatically.</p>
+            <p>Switch days open or closed, or add an extra charge to busy dates such as Christmas. Changes save automatically.</p>
           </div>
         </div>
 
         <div class="card" style="max-width:580px">
-          <div class="avail-recurring">
+          <div class="avail-mode" role="tablist" aria-label="Calendar mode">
+            <button class="on" data-mode="open">Open / closed days</button>
+            <button data-mode="price">Price adjustments</button>
+          </div>
+          <div class="avail-recurring" id="avail-recurring">
             <span class="label">Closed every…</span>
             <div class="wd-chips" id="wd-chips"></div>
             <p style="font-size:.8rem;color:var(--muted);margin-top:.55rem">Pick the weekdays you're always closed. You can still open a single one of those days by tapping it below.</p>
@@ -707,6 +731,28 @@
               <span><i class="dot open"></i>Open</span>
               <span><i class="dot closed"></i>Closed</span>
               <span><i class="dot recur"></i>Weekly closure</span>
+              <span><i class="dot sur"></i>Extra charge</span>
+            </div>
+          </div>
+
+          <div class="sur-panel" id="sur-panel" hidden>
+            <p class="card-hint" style="margin:0 0 .8rem">Tap one or more dates above, enter the extra charge, then press <b>Apply</b>. Charges only apply to <b>new</b> bookings. Existing bookings keep the price they were booked at.</p>
+            <div class="sur-sel" id="sur-sel">No dates selected</div>
+            <div class="sur-form">
+              <div><span class="label">Extra charge</span>
+                <div class="price-wrap"><input class="inp" id="sur-amt" type="number" inputmode="decimal" min="0" step="1" placeholder="20"/></div></div>
+              <div><span class="label">Reason <span style="font-weight:400;color:var(--muted)">(optional, shown to clients)</span></span>
+                <input class="inp" id="sur-label" placeholder="e.g. Christmas peak"/></div>
+            </div>
+            <div class="card-actions" style="margin-top:.9rem">
+              <button class="btn btn-primary btn-sm" id="sur-apply">Apply to selected</button>
+              <button class="btn btn-danger btn-sm" id="sur-remove">Remove from selected</button>
+              <span class="spacer"></span>
+              <button class="linkbtn" id="sur-clear">Clear selection</button>
+            </div>
+            <div style="margin-top:1.3rem">
+              <span class="label">Upcoming price adjustments</span>
+              <div class="sur-list" id="sur-list"></div>
             </div>
           </div>
         </div>
@@ -2307,6 +2353,7 @@ function bookingCard(r, lead){
       </label>
       ${holdsSlot(r)&&tm?'<span class="pill ok" title="This time is blocked on your website">🔒 Time blocked on site</span>':''}
       ${fees.map(f=>`<span class="pill fee">⏰ ${esc(f.label)} +£${esc(f.amount)}</span>`).join('')}
+      ${(+r.dateSurcharge>0)?`<span class="pill fee" title="Extra charge for this date, already included in the total">📆 ${esc(r.dateSurchargeLabel||'Date charge')} +£${esc(r.dateSurcharge)}</span>`:''}
       ${r.manual?'<span class="pill">Added from DMs</span>':''}
       ${r.payMode==='full'?'<span class="pill">Paying in full</span>':''}
       ${r.createdAt?`<span class="bk-received">Received ${fmt(r.createdAt)}</span>`:''}
@@ -2725,7 +2772,8 @@ function openBkModal(r){
         <div class="modal-section">Payment &amp; status</div>
         <div class="grid-2">
           <div class="field"><label for="bm-total">Total</label>
-            <div class="price-wrap"><input class="inp" id="bm-total" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(isEdit&&r.total!=null&&r.total!==''?r.total:'')}" placeholder="e.g. 145"/></div></div>
+            <div class="price-wrap"><input class="inp" id="bm-total" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(isEdit&&r.total!=null&&r.total!==''?r.total:'')}" placeholder="e.g. 145"/></div>
+            <p class="field-hint" id="bm-sur-hint" style="color:var(--rose-dark)"></p></div>
           <div class="field"><label for="bm-paymode">Payment plan</label>
             <select class="inp" id="bm-paymode">
               <option value="deposit" ${(!isEdit || r.payMode!=='full')?'selected':''}>Deposit now, balance on the day</option>
@@ -2757,7 +2805,17 @@ function openBkModal(r){
     if(!e.target.value) return;
     const d=new Date(e.target.value+'T12:00:00');
     $('#bm-date',bg).value=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    updateSurHint();
   });
+  // Reminder only (new bookings): shows if the chosen date has a price adjustment. Never changes the total.
+  function updateSurHint(){
+    const hint=$('#bm-sur-hint',bg); if(!hint || isEdit) return;
+    const pd2=parseApptDate($('#bm-date',bg).value);
+    const amt=pd2 ? surAmount(dateKeyOf(pd2)) : 0;
+    hint.textContent = amt ? `This date has a +£${amt} price adjustment. Include it in the total if it applies.` : '';
+  }
+  $('#bm-date',bg).addEventListener('input', updateSurHint);
+  updateSurHint();
   // Fill the length from the service + size unless it's been typed in by hand
   const durInp=$('#bm-dur',bg);
   let durTouched = isEdit && +r.durationMins>0;
@@ -2965,13 +3023,17 @@ $('#add-review-btn').addEventListener('click', openRvModal);
 /* =========================================================
    AVAILABILITY
    Data model:  settings/availability =
-     { closedWeekdays:[0..6], blockedDates:["YYYY-MM-DD"], openDates:["YYYY-MM-DD"] }
+     { closedWeekdays:[0..6], blockedDates:["YYYY-MM-DD"], openDates:["YYYY-MM-DD"],
+       surcharges:{ "YYYY-MM-DD": { amount, label } } }
    - closedWeekdays: weekdays you're always closed (0=Sun … 6=Sat)
    - blockedDates:   specific days switched OFF
    - openDates:      specific days switched ON (overrides a weekly closure)
+   - surcharges:     extra charge added to NEW bookings on that date
    ========================================================= */
 const WD_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-let avail = { closedWeekdays:[0], blockedDates:[], openDates:[] };
+let avail = { closedWeekdays:[0], blockedDates:[], openDates:[], surcharges:{} };
+let availMode = 'open';          // 'open' = open/close days, 'price' = price adjustments
+const surPicked = new Set();     // dates ("YYYY-MM-DD") selected for a price adjustment
 let acYear, acMonth, acSaveTimer;
 
 const dkey = (y,m,d)=> y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
@@ -2982,12 +3044,14 @@ async function loadAvailability(){
     avail = {
       closedWeekdays: Array.isArray(data?.closedWeekdays) ? data.closedWeekdays : [0],
       blockedDates:   Array.isArray(data?.blockedDates)   ? data.blockedDates   : [],
-      openDates:      Array.isArray(data?.openDates)      ? data.openDates      : []
+      openDates:      Array.isArray(data?.openDates)      ? data.openDates      : [],
+      surcharges:     (data?.surcharges && typeof data.surcharges==='object') ? data.surcharges : {}
     };
   }catch(e){ /* defaults */ }
   const now=new Date(); acYear=now.getFullYear(); acMonth=now.getMonth();
   renderWeekdayChips();
   renderAvailCal();
+  renderSurList();
 }
 async function loadAvailDoc(){
   let out=null;
@@ -2995,10 +3059,10 @@ async function loadAvailDoc(){
   snap.forEach(d=>{ if(d.id==='availability') out=d.data(); });
   return out;
 }
-function saveAvailability(){
+function saveAvailability(msg){
   clearTimeout(acSaveTimer);
   acSaveTimer=setTimeout(async ()=>{
-    try{ await setDoc(doc(db,'settings','availability'), avail, {merge:false}); toast('Availability saved'); }
+    try{ await setDoc(doc(db,'settings','availability'), avail, {merge:false}); toast(msg||'Availability saved'); }
     catch(e){ toast('Save failed: '+e.message,true); }
   },350);
 }
@@ -3057,9 +3121,19 @@ function renderAvailCal(){
     const state=dayState(acYear,acMonth,d);   // open | closed | recur
     el.className='ac-day '+state;
     if(dt.toDateString()===new Date().toDateString()) el.classList.add('today');
-    el.title = state==='open' ? 'Open — tap to close' : 'Closed — tap to open';
-    el.setAttribute('aria-label', `${d} ${MONTHS[acMonth]}: ${state==='open'?'open':'closed'}`);
-    el.addEventListener('click',()=> toggleAvailDay(acYear,acMonth,d));
+    const key=dkey(acYear,acMonth,d);
+    const sur=surAmount(key);
+    if(sur){ el.classList.add('sur'); el.innerHTML=`${d}<span class="sur-amt">+£${esc(sur)}</span>`; }
+    if(availMode==='price'){
+      if(surPicked.has(key)) el.classList.add('picked');
+      el.title=(sur?`Extra charge +£${sur}. `:'')+(surPicked.has(key)?'Selected — tap to deselect':'Tap to select');
+      el.setAttribute('aria-pressed', String(surPicked.has(key)));
+      el.addEventListener('click',()=> toggleSurPick(key));
+    }else{
+      el.title=(state==='open' ? 'Open — tap to close' : 'Closed — tap to open')+(sur?` · extra charge +£${sur}`:'');
+      el.addEventListener('click',()=> toggleAvailDay(acYear,acMonth,d));
+    }
+    el.setAttribute('aria-label', `${d} ${MONTHS[acMonth]}: ${state==='open'?'open':'closed'}${sur?`, extra charge £${sur}`:''}`);
     grid.appendChild(el);
   }
 }
@@ -3085,6 +3159,98 @@ function toggleAvailDay(y,m,d){
   saveAvailability();
   renderAvailCal();
 }
+
+/* =========================================================
+   DATE PRICE ADJUSTMENTS
+   Stored in settings/availability as
+     surcharges: { "YYYY-MM-DD": { amount: 20, label: "Christmas" } }
+   The website adds the amount to a NEW booking's total when that
+   date is picked. Existing bookings keep their saved total.
+   ========================================================= */
+function surAmount(key){
+  const s=avail.surcharges?.[key]; if(!s) return 0;
+  const n=Number(typeof s==='object'?s.amount:s);
+  return isFinite(n)&&n>0 ? n : 0;
+}
+function surLabel(key){ const s=avail.surcharges?.[key]; return (s&&typeof s==='object'&&s.label)||''; }
+function fmtKey(key){
+  const [y,m,d]=key.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+}
+function setAvailMode(mode){
+  availMode=mode;
+  $$('.avail-mode button').forEach(b=> b.classList.toggle('on', b.dataset.mode===mode));
+  $('#avail-recurring').hidden = mode==='price';
+  $('#sur-panel').hidden = mode!=='price';
+  if(mode!=='price') surPicked.clear();
+  renderSurSel(); renderAvailCal(); renderSurList();
+}
+$$('.avail-mode button').forEach(b=> b.addEventListener('click',()=> setAvailMode(b.dataset.mode)));
+
+function toggleSurPick(key){
+  if(surPicked.has(key)) surPicked.delete(key); else surPicked.add(key);
+  // Picking a single date that already has a charge pre-fills it for editing
+  if(surPicked.size===1){
+    const only=[...surPicked][0];
+    if(surAmount(only)){ $('#sur-amt').value=surAmount(only); $('#sur-label').value=surLabel(only); }
+  }
+  renderSurSel(); renderAvailCal();
+}
+function renderSurSel(){
+  const el=$('#sur-sel'); if(!el) return;
+  const keys=[...surPicked].sort();
+  el.textContent = !keys.length ? 'No dates selected'
+    : keys.length===1 ? fmtKey(keys[0])+' selected'
+    : `${keys.length} dates selected`;
+}
+function renderSurList(){
+  const wrap=$('#sur-list'); if(!wrap) return;
+  const todayKey=dateKeyOf(new Date());
+  const keys=Object.keys(avail.surcharges||{}).filter(k=>k>=todayKey && surAmount(k)).sort();
+  if(!keys.length){ wrap.innerHTML='<p class="field-hint" style="margin:0">No price adjustments yet.</p>'; return; }
+  wrap.innerHTML='';
+  keys.forEach(k=>{
+    const row=document.createElement('div'); row.className='sur-item';
+    row.innerHTML=`
+      <span class="d">${esc(fmtKey(k))}${surLabel(k)?`<small>${esc(surLabel(k))}</small>`:''}</span>
+      <span class="a">+£${esc(surAmount(k))}</span>
+      <button class="icon-btn sur-edit" title="Edit" aria-label="Edit charge for ${esc(fmtKey(k))}">✎</button>
+      <button class="icon-btn rm sur-del" title="Remove" aria-label="Remove charge for ${esc(fmtKey(k))}">✕</button>`;
+    $('.sur-edit',row).addEventListener('click',()=>{
+      surPicked.clear(); surPicked.add(k);
+      const [y,m]=k.split('-').map(Number); acYear=y; acMonth=m-1;
+      $('#sur-amt').value=surAmount(k); $('#sur-label').value=surLabel(k);
+      renderSurSel(); renderAvailCal(); $('#sur-amt').focus();
+    });
+    $('.sur-del',row).addEventListener('click',()=>{
+      if(!confirm(`Remove the +£${surAmount(k)} charge from ${fmtKey(k)}?`)) return;
+      delete avail.surcharges[k]; surPicked.delete(k);
+      saveAvailability('Charge removed');
+      renderSurSel(); renderAvailCal(); renderSurList();
+    });
+    wrap.appendChild(row);
+  });
+}
+$('#sur-apply').addEventListener('click',()=>{
+  if(!surPicked.size){ toast('Tap at least one date first',true); return; }
+  const amt=Math.round(parseFloat($('#sur-amt').value)*100)/100;
+  if(!(amt>0)){ toast('Enter an extra charge above £0',true); $('#sur-amt').focus(); return; }
+  const label=$('#sur-label').value.trim();
+  avail.surcharges=avail.surcharges||{};
+  surPicked.forEach(k=>{ avail.surcharges[k]={amount:amt, label}; });
+  const n=surPicked.size; surPicked.clear();
+  saveAvailability(`+£${amt} saved on ${n} date${n===1?'':'s'}`);
+  renderSurSel(); renderAvailCal(); renderSurList();
+});
+$('#sur-remove').addEventListener('click',()=>{
+  const keys=[...surPicked].filter(k=>surAmount(k));
+  if(!keys.length){ toast('None of the selected dates have a charge',true); return; }
+  keys.forEach(k=> delete avail.surcharges[k]);
+  surPicked.clear();
+  saveAvailability(`Charge removed from ${keys.length} date${keys.length===1?'':'s'}`);
+  renderSurSel(); renderAvailCal(); renderSurList();
+});
+$('#sur-clear').addEventListener('click',()=>{ surPicked.clear(); renderSurSel(); renderAvailCal(); });
 </script>
 
 </body>

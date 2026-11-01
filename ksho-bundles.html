@@ -158,6 +158,8 @@ footer .logo{ font-size:1.4rem; }
 .opt b{ font-weight:600; }
 .opt[aria-pressed="true"]{ background:var(--pink); border-color:var(--pink); color:var(--pink-ink); }
 .opt[aria-pressed="true"] small{ color:inherit; opacity:.8; }
+#packs{ grid-template-columns:repeat(3,1fr); }
+@media (max-width:560px){ #packs{ grid-template-columns:1fr; } }
 .price-big{ font-family:var(--display); font-size:2.2rem; color:var(--cream); line-height:1; }
 .price-big small{ font-family:var(--body); font-size:.95rem; color:var(--muted); margin-left:.4rem; }
 .colours{ display:flex; flex-wrap:wrap; gap:.55rem; }
@@ -191,7 +193,7 @@ footer .logo{ font-size:1.4rem; }
       <div>
         <p class="eyebrow">French Curl hair · Medway, Kent</p>
         <h1>The Hair <em>Your</em> Braids Deserve</h1>
-        <p class="lead">French Curl braiding hair — the same quality hair I use in my chair. A full head is 10 packs, from £37.99, in 10 colours.</p>
+        <p class="lead">French Curl braiding hair — the same quality hair I use in my chair. A full head is 10 packs, from £37.99, in 10 colours. Or mix two colours in one bundle.</p>
         <div class="actions">
           <a class="btn" href="#shop">Shop French Curl</a>
           <a class="btn ghost" href="#how">How it works</a>
@@ -225,13 +227,13 @@ footer .logo{ font-size:1.4rem; }
           <div>
             <span class="field-label">Colours <span id="colName" style="color:var(--pink);font-weight:400"></span></span>
             <div class="colours" id="colours" role="group" aria-label="Preview a colour"></div>
-            <p class="hint">Tap a colour to preview it. You'll choose your colour at checkout. Colours on screen are a guide.</p>
+            <p class="hint" id="colHint">Tap a colour to preview it. You'll choose your colour at checkout. Colours on screen are a guide.</p>
           </div>
           <div>
             <div class="price-big" id="price"></div>
           </div>
           <div id="buyBtn"></div>
-          <p class="secure"><span aria-hidden="true">🔒</span><span>Secure checkout by Stripe. You'll choose your colour and delivery, and can change the quantity on the next page.</span></p>
+          <p class="secure"><span aria-hidden="true">🔒</span><span id="secureNote">Secure checkout by Stripe. You'll choose your colour and delivery, and can change the quantity on the next page.</span></p>
         </div>
       </div>
     </div>
@@ -241,7 +243,7 @@ footer .logo{ font-size:1.4rem; }
     <div class="wrap">
       <div class="sec-head"><div><p class="eyebrow">Ordering</p><h2>How it <em>works</em></h2></div></div>
       <div class="steps">
-        <div class="step"><h3>Choose your length</h3><p>Pick a full head of 10 packs, or single packs if you need extra.</p></div>
+        <div class="step"><h3>Choose your length</h3><p>Pick a full head of 10 packs, a mixed bundle of two colours, or single packs if you need extra.</p></div>
         <div class="step"><h3>Pay securely</h3><p>Choose your colour and pay by card, Apple Pay or Google Pay through Stripe.</p></div>
         <div class="step"><h3>Tracked delivery</h3><p>Your hair is posted by tracked delivery. We ship across the UK and internationally.</p></div>
         <div class="step"><h3>Get your confirmation</h3><p>You'll receive an email receipt straight away, and I'll be in touch when it's on its way.</p></div>
@@ -257,6 +259,7 @@ footer .logo{ font-size:1.4rem; }
         <details><summary>What is French Curl hair?</summary><p>A soft, defined curly texture with a bouncy pattern. It gives a natural, voluminous look and can be styled in different ways depending on your preference.</p></details>
         <details><summary>Which length should I choose?</summary><p>12" is bob length, 16" is bra-strap length, 22" is lower-back length and 24" is bum length.</p></details>
         <details><summary>How many packs do I need?</summary><p>A full head takes 8–10 packs, though it depends on your desired length, fullness and installation. For a fuller look you may need a few extra, which you can buy as single packs. If you're booked in with me, I'll confirm what you need before you order.</p></details>
+        <details><summary>How do mixed bundles work?</summary><p>Choose 2 colours and at least 4 packs of each, so a minimum of 8 packs. At checkout you'll pick your two colours and tell me how many packs of each you'd like.</p></details>
         <details><summary>Does the hair come ready to install?</summary><p>Yes. Once the packaging is removed, gently brush the hair from the bottom upwards. Apply an oil serum or oil sheen spray to refresh and define the curls before installation.</p></details>
         <details><summary>How long does French Curl hair last?</summary><p>French Curl hair is made from synthetic fibre and can't be reused, so treat it carefully throughout the time you wear it for the best results.</p></details>
 
@@ -336,20 +339,25 @@ const STORE = {
 
 /* French Curl lengths and prices.
    links: paste the Stripe Payment Link for each option
-   (Stripe → Payment links → Copy link). Empty = "coming soon". */
+   (Stripe → Payment links → Copy link). Empty = "coming soon".
+   mixed = price of a mixed bundle (2 colours, min 4 packs of each). */
 const LENGTHS = [
-  { len:12, label:"Bob length",        full:37.99, single:6,    links:{
+  { len:12, label:"Bob length",        full:37.99, single:6,    mixed:55,   links:{
       full:  "https://buy.stripe.com/14AeVf7eC7o62Ji3ji6sw07",
-      single:"https://buy.stripe.com/4gM5kF1UidMubfO5rq6sw06" } },
-  { len:16, label:"Bra-strap length",  full:44.99, single:7,    links:{
+      single:"https://buy.stripe.com/4gM5kF1UidMubfO5rq6sw06",
+      mixed: "https://buy.stripe.com/eVq5kFbuSeQy0Ba2fe6sw08" } },
+  { len:16, label:"Bra-strap length",  full:44.99, single:7,    mixed:60,   links:{
       full:  "https://buy.stripe.com/cNi4gBdD06k22Ji0766sw05",
-      single:"https://buy.stripe.com/28EcN77eCaAi6Zy2fe6sw04" } },
-  { len:22, label:"Lower-back length", full:47.99, single:8,    links:{
+      single:"https://buy.stripe.com/28EcN77eCaAi6Zy2fe6sw04",
+      mixed: "https://buy.stripe.com/eVq28taqOcIqcjS8DC6sw0a" } },
+  { len:22, label:"Lower-back length", full:47.99, single:8,    mixed:65,   links:{
       full:  "https://buy.stripe.com/14A4gB56u0ZIes09HG6sw03",
-      single:"https://buy.stripe.com/28EdRb0QefUC6Zy9HG6sw02" } },
-  { len:24, label:"Bum length",        full:49.99, single:8.99, links:{
+      single:"https://buy.stripe.com/28EdRb0QefUC6Zy9HG6sw02",
+      mixed: "https://buy.stripe.com/cNidRb8iGcIq6Zy8DC6sw09" } },
+  { len:24, label:"Bum length",        full:49.99, single:8.99, mixed:65, links:{
       full:  "https://buy.stripe.com/eVq28t2Ym7o61FecTS6sw01",
-      single:"https://buy.stripe.com/6oU9AVcyWaAiabK2fe6sw00" } },
+      single:"https://buy.stripe.com/6oU9AVcyWaAiabK2fe6sw00",
+      mixed: "https://buy.stripe.com/4gMdRbgPc9we3Nm8DC6sw0b" } },
 ];
 
 /* Colours: [name, root colour, tip colour]. Two-tone colours blend root → tip. */
@@ -401,35 +409,59 @@ function heroMedia(){
 heroMedia();
 
 /* state */
-let L = LENGTHS[1], pack = "full", colour = null;
+let L = LENGTHS[1], pack = "full", colour = null, picks = [];
 
 function render(){
   $("#lengths").innerHTML = LENGTHS.map(o=>`<button class="opt" data-len="${o.len}" aria-pressed="${o===L}"><b>${o.len}"</b><small>${o.label}</small></button>`).join("");
   $("#packs").innerHTML = `
     <button class="opt" data-pack="full" aria-pressed="${pack==="full"}"><b>Full head</b><small>10 packs · ${money(L.full)}</small></button>
+    <button class="opt" data-pack="mixed" aria-pressed="${pack==="mixed"}"><b>Mixed bundle</b><small>2 colours · min 4 each</small></button>
     <button class="opt" data-pack="single" aria-pressed="${pack==="single"}"><b>Extra packs</b><small>${money(L.single)} each</small></button>`;
-  $("#price").innerHTML = pack==="full" ? `${money(L.full)}<small>for 10 packs</small>` : `${money(L.single)}<small>per pack</small>`;
+  $("#price").innerHTML = pack==="full" ? `${money(L.full)}<small>for 10 packs</small>`
+    : pack==="mixed" ? `${money(L.mixed)}<small>mixed bundle · 2 colours, min 4 packs each</small>`
+    : `${money(L.single)}<small>per pack</small>`;
   const link = L.links[pack];
+  const label = pack==="full" ? money(L.full)
+    : pack==="mixed" ? money(L.mixed)
+    : money(L.single);
   $("#buyBtn").innerHTML = link
-    ? `<a class="btn" style="width:100%" href="${esc(link)}" target="_blank" rel="noopener">Buy now · ${money(pack==="full"?L.full:L.single)}</a>`
+    ? `<a class="btn" style="width:100%" href="${esc(link)}" target="_blank" rel="noopener">Buy now · ${label}</a>`
     : `<button class="btn" style="width:100%" disabled>Coming soon</button>`;
+  $("#colHint").textContent = pack==="mixed"
+    ? "Tap two colours to preview them. You'll pick both colours and your split (at least 4 packs each) at checkout. Colours on screen are a guide."
+    : "Tap a colour to preview it. You'll choose your colour at checkout. Colours on screen are a guide.";
+  $("#secureNote").textContent = pack==="mixed"
+    ? "Secure checkout by Stripe. Choose your two colours and tell me your split (at least 4 packs of each) at checkout."
+    : "Secure checkout by Stripe. You'll choose your colour and delivery, and can change the quantity on the next page.";
 }
 function renderColours(){
   const pic = n => STORE.images.byColour[n] || "";
+  const mixed = pack==="mixed";
   $("#colours").innerHTML = COLOURS.map(([n,a,b])=>{
     const bg = pic(n) ? `background-image:url('${esc(pic(n))}'), linear-gradient(160deg, ${a} 35%, ${b} 75%)`
                       : `background:linear-gradient(160deg, ${a} 35%, ${b} 75%)`;
-    return `<button class="col" data-col="${esc(n)}" aria-pressed="${colour===n}"><i style="${bg}"></i>${esc(n)}</button>`;
+    const on = mixed ? picks.includes(n) : colour===n;
+    return `<button class="col" data-col="${esc(n)}" aria-pressed="${on}"><i style="${bg}"></i>${esc(n)}</button>`;
   }).join("");
   const c = COLOURS.find(x=>x[0]===colour);
   $("#art").innerHTML = `<span class="tag">Available Now 🟢</span>`
     + (c ? hairSVG({root:c[1],tip:c[2]}) : hairSVG())
     + photo(c ? pic(c[0]) : STORE.images.hero, c ? `French Curl in colour ${c[0]}` : "French Curl braiding hair");
-  $("#colName").textContent = colour ? "· previewing "+colour : "";
+  $("#colName").textContent = mixed ? (picks.length ? "· "+picks.join(" + ") : "")
+                                    : (colour ? "· previewing "+colour : "");
 }
 $("#lengths").addEventListener("click",e=>{ const b=e.target.closest("[data-len]"); if(b){ L=LENGTHS.find(o=>o.len==b.dataset.len); render(); } });
-$("#packs").addEventListener("click",e=>{ const b=e.target.closest("[data-pack]"); if(b){ pack=b.dataset.pack; render(); } });
-$("#colours").addEventListener("click",e=>{ const b=e.target.closest("[data-col]"); if(b){ colour = colour===b.dataset.col ? null : b.dataset.col; renderColours(); } });
+$("#packs").addEventListener("click",e=>{ const b=e.target.closest("[data-pack]"); if(!b) return;
+  pack=b.dataset.pack;
+  picks = pack==="mixed" && colour ? [colour] : [];
+  render(); renderColours(); });
+$("#colours").addEventListener("click",e=>{ const b=e.target.closest("[data-col]"); if(!b) return;
+  const n=b.dataset.col;
+  if(pack==="mixed"){
+    picks = picks.includes(n) ? picks.filter(x=>x!==n) : [...picks.slice(-1), n];   // max 2 colours
+    colour = picks[picks.length-1] || null;
+  } else { colour = colour===n ? null : n; }
+  renderColours(); });
 
 /* modal (thank-you screen) */
 let lastFocus=null;

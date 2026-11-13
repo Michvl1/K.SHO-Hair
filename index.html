@@ -2921,7 +2921,7 @@ function applyDynamicContent(){
   setHTML('.hero-title', c.heroTitle);
   setText('.hero-sub',   c.heroSub);
   setSrc('.hero-portrait img', c.profileImg);
-  setSrc('.image-grid img',    c.aboutImg);
+  // setSrc('.image-grid img',    c.aboutImg);
   if (c.yearsExp) setText('.badge-num', c.yearsExp);
   const ap = document.querySelectorAll('.about-text p');
   if (ap[0] && c.aboutP1) ap[0].textContent = c.aboutP1;
